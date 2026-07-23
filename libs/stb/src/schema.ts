@@ -11,6 +11,8 @@ export const shot = stb.table("shot", {
   title: text("title").notNull(),
   direction: jsonb("direction").notNull(), // docs/13 §7 shape
   durationS: numeric("duration_s", { precision: 4, scale: 1 }).notNull(), // INV-STB-001
+  imagePrompt: text("image_prompt"), // REQ-STB-013: user-authored image script (null = auto)
+  videoPrompt: text("video_prompt"), // REQ-STB-013: user-authored video script (null = auto)
   selectedStartFrameId: uuid("selected_start_frame_id"),
   selectedEndFrameId: uuid("selected_end_frame_id"),
   selectedTakeId: uuid("selected_take_id"),

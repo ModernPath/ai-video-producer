@@ -23,9 +23,14 @@ export interface TakePromptInput {
   stylePrompt?: string | undefined;
   entities: EntityBlock[];
   direction: DirectionInput;
+  /** REQ-STB-013: user-authored script — used verbatim as the creative body. */
+  customPrompt?: string | undefined;
 }
 
 export function assembleTakePrompt(i: TakePromptInput): string {
+  if (i.customPrompt?.trim()) {
+    return [i.customPrompt.trim(), `FORMAT: ${i.aspectRatio} video, ${i.durationSeconds} seconds.`].join("\n");
+  }
   const lines: string[] = [];
   lines.push(`FORMAT: ${i.aspectRatio} video, ${i.durationSeconds} seconds.`);
   if (i.stylePrompt) lines.push(`STYLE: ${i.stylePrompt}`);
@@ -90,6 +95,9 @@ export function assembleEditPrompt(i: EditPromptInput): string {
 }
 
 export function assembleFramePrompt(i: Omit<TakePromptInput, "durationSeconds">): string {
+  if (i.customPrompt?.trim()) {
+    return [i.customPrompt.trim(), `FORMAT: still image, ${i.aspectRatio} aspect ratio.`].join("\n");
+  }
   const lines: string[] = [];
   lines.push(`FORMAT: still image, ${i.aspectRatio} aspect ratio.`);
   if (i.stylePrompt) lines.push(`STYLE: ${i.stylePrompt}`);

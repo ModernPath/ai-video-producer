@@ -145,6 +145,22 @@ async function ffmpegConcat(dir: string, inputFiles: string[], outFile: string):
   ]);
 }
 
+/** REQ-ASM-006 / INV-ASM-004: retry a failed export as a new job on the same snapshot. */
+export async function retryExport(db: Db, input: { exportJobId: string; principal: string }): Promise<string> {
+  const [src] = await db.select().from(exportJob).where(eq(exportJob.id, input.exportJobId));
+  if (!src) throw new AsmValidationError("not_found", "Export job not found");
+  if (src.status !== "failed") throw new AsmValidationError("conflict", "Only failed exports can be retried");
+  const id = uuidv7();
+  await db.insert(exportJob).values({
+    id,
+    organizationId: src.organizationId,
+    projectId: src.projectId,
+    snapshotId: src.snapshotId, // same immutable snapshot (INV-ASM-001)
+    preset: src.preset,
+  });
+  return id;
+}
+
 export interface ExportResult {
   jobId: string;
   status: "succeeded" | "failed";

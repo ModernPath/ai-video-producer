@@ -151,3 +151,12 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 **Done:** (1) Real-ring script test upgraded to cast-aware prompt — 3.6-flash returned a titled script; backlog item closed. (2) PRJ ledger seeded; REQ-PRJ-002 idempotent creation IN_REVIEW (browser double-click → 1 project) — the dup-project papercut is dead.
 **Observed:** user is actively testing in the dev app (new projects present). Loop will treat user-created data as untouchable.
 **Next:** review sweep (35 IN_REVIEW) · PRJ-003/004 test backfill · REQ-ASM-006 retry · GEN hardening.
+
+## 2026-07-23 — USER FEEDBACK (priority routing, Prompt 4)
+> "the generator and in overall control is horrible. Every clip MUST have an image script (with reference images added) and video script. How can you otherwise try to get them right?"
+**Routed:** REQ-STB-013 (READY, building immediately) — per-shot explicit editable image & video scripts with visible attached reference images; custom text used verbatim. The invisible direction→prompt assembly was the control failure.
+
+## 2026-07-23 — Build loop iteration 24 (user feedback priority)
+**Done:** REQ-STB-013 per-shot editable image & video scripts with visible refs — USER's control complaint addressed end-to-end (tests + browser + DB verbatim proof). Also REQ-GEN-005/ASM-006 retries IN_REVIEW.
+**Inbox:** update docs/features/shot-editor.md with the scripts-first pattern · GEN retry browser click-through evidence.
+**Next:** user re-test invited — the scripts are the new control surface; further roughness → next REQs.

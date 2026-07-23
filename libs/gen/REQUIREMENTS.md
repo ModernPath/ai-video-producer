@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 12 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 13 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -9,7 +9,7 @@ Totals: 0 DONE · 12 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DE
 | REQ-GEN-002 | Outputs are new immutable assets | P1 | IN_REVIEW | INV-GEN-002 | tests/pipeline.int.spec.ts | src/executor.ts |
 | REQ-GEN-003 | Cost recorded on completion | P1 | IN_REVIEW | INV-GEN-003 | tests/cost-routing.spec.ts, tests/pipeline.int.spec.ts | src/cost.ts |
 | REQ-GEN-004 | Quota check at enqueue | P5 | PROPOSED | INV-GEN-004 | — | — |
-| REQ-GEN-005 | Retry semantics (attempt / retry_of) | P2 | PROPOSED | INV-GEN-005 | — | — |
+| REQ-GEN-005 | Retry of terminal failures (retry_of provenance) | P2 | IN_REVIEW | INV-GEN-005 | tests/retry.int.spec.ts (browser: UI wired, click-through pending) | src/retry.ts |
 | REQ-GEN-006 | Content-policy terminal failure mapping | P2 | IN_REVIEW | INV-GEN-006 | tests/provider-path.int.spec.ts | src/provider.ts, src/executor.ts |
 | REQ-GEN-007 | Model routing from versioned config | P1 | IN_REVIEW | BR-GEN-001 | tests/cost-routing.spec.ts | src/routing.ts |
 | REQ-GEN-008 | Frame requests produce n candidates | P2 | PROPOSED | BR-GEN-002 | — | — |
@@ -75,8 +75,14 @@ Totals: 0 DONE · 12 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DE
 ### REQ-GEN-004 — Quota check at enqueue
 - **Status:** PROPOSED · **Stage:** P5 · **Source:** INV-GEN-004 — needs PLT quota aggregate first.
 
-### REQ-GEN-005 — Retry semantics
-- **Status:** PROPOSED · **Stage:** P2 · **Source:** INV-GEN-005 — same id + `attempt` increments; terminal failure retry = new generation with `retry_of`.
+### REQ-GEN-005 — Retry of terminal failures (retry_of provenance)
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must
+- **Source:** INV-GEN-005
+- **Statement:** A terminally failed generation can be retried: a NEW generation row is created copying kind/target/snapshot/params/refs with `retry_of` = source; the failed row is never mutated. Retrying non-failed generations is rejected.
+- **Acceptance criteria:**
+  - GIVEN a failed generation WHEN retried THEN a new queued row exists with retry_of=source and identical snapshot; the source stays failed.
+  - GIVEN a succeeded/queued generation WHEN retried THEN rejected `conflict`.
+  - Browser: a failed row in RECENT GENERATIONS offers ↻ retry and the retried work lands.
 
 ### REQ-GEN-006 — Content-policy terminal failure mapping
 - **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must

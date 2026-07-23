@@ -295,3 +295,37 @@ export async function updateBriefAction(formData: FormData) {
     .where(eq(project.id, projectId));
   revalidatePath(`/p/${projectId}/script`);
 }
+
+export async function retryGenerationAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { retryGeneration } = await import("@avd/gen");
+  const newId = await retryGeneration(db(), { generationId: String(formData.get("generationId")), principal: PRINCIPAL });
+  await drainQueueAndMaterialize([newId]);
+  revalidatePath(`/p/${projectId}`);
+}
+
+export async function retryExportAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { retryExport, runExportById } = await import("@avd/asm");
+  const newJobId = await retryExport(db(), { exportJobId: String(formData.get("exportJobId")), principal: PRINCIPAL });
+  const { queueMode, createBoss, EXPORT_QUEUE } = await import("@avd/shared/queue");
+  if (queueMode() === "queue") {
+    const boss = await createBoss();
+    await boss.send(EXPORT_QUEUE, { exportJobId: newJobId });
+  } else {
+    await runExportById(db(), newJobId);
+  }
+  revalidatePath(`/p/${projectId}`);
+}
+
+/** REQ-STB-013 (USER): per-shot image & video scripts — empty saves back to auto. */
+export async function updateShotScriptsAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { updateShotScripts } = await import("@avd/stb");
+  await updateShotScripts(db(), {
+    shotId: String(formData.get("shotId")),
+    imagePrompt: String(formData.get("imagePrompt") ?? ""),
+    videoPrompt: String(formData.get("videoPrompt") ?? ""),
+  });
+  revalidatePath(`/p/${projectId}`);
+}

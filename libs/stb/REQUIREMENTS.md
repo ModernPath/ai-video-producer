@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,6 +15,7 @@ Totals: 0 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEF
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
+| REQ-STB-013 | Per-shot editable image & video scripts (visible refs) | P1 | IN_REVIEW | USER FEEDBACK 2026-07-23 | tests/shot-scripts.int.spec.ts + browser | src/service.ts, ../gen/src/prompt.ts, shot-card scripts UI |
 | REQ-STB-012 | Video prompt drives script & image prompts with cast | P2 | IN_REVIEW | USER 2026-07-23, BR-STB-001 | tests/video-prompt.int.spec.ts + browser | src/service.ts, ../gen/src/prompt.ts, web UI |
 | REQ-STB-011 | Shot plan proposal materializes and applies | P2 | IN_REVIEW | `docs/13` §6 ProposeShotPlan/ApplyShotPlan | tests/script.int.spec.ts | src/service.ts |
 
@@ -61,6 +62,18 @@ Totals: 0 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEF
   - GIVEN a project with a brief WHEN DraftScript completes THEN script_version v1 exists with non-empty content and generation_id.
   - GIVEN an existing v1 WHEN DraftScript again THEN v2 exists; v1 unchanged.
 - **Tests:** `tests/script.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 2)
+
+### REQ-STB-013 — Per-shot editable image & video scripts (visible refs)
+- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Raised-by:** USER FEEDBACK 2026-07-23 ("Every clip MUST have an image script (with reference images added) and video script. How can you otherwise try to get them right?")
+- **Source:** `docs/06` §5 ("what the model saw" made editable), BR-STB-002
+- **Statement:** Every shot exposes an **image script** and a **video script**: editable prompt texts shown with the reference images that will attach (entity refs; selected start frame for video). Empty = auto-composed from direction+cast (shown as the effective default). Once set, the user's text is used verbatim as the creative body (format line + reference attachment still applied).
+- **Acceptance criteria:**
+  - GIVEN a custom image script WHEN a frame generates THEN the snapshot prompt starts with the custom text and contains no auto-assembled direction block; entity ref images still attach.
+  - GIVEN a custom video script WHEN a take generates THEN likewise, and the selected start frame still conditions the video.
+  - GIVEN no custom script THEN behavior is unchanged (auto-composed).
+  - Browser: shot card shows both scripts with ref thumbnails; editing + generating uses the edited text.
+- **Tests:** `tests/shot-scripts.int.spec.ts` + browser E2E (custom script → verbatim snapshot) · **Code:** migration 0012, `updateShotScripts`, customPrompt in assembly, scripts UI on every shot card · **Log:** LOG 2026-07-23 (slice 6)
 
 ### REQ-STB-012 — Video prompt drives script & image prompts with cast
 - **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must

@@ -108,6 +108,7 @@ export async function requestFrame(
       aspectRatio: input.aspectRatio,
       durationSeconds: Number(s.durationS),
       entities: cast.entities,
+      customPrompt: s.imagePrompt ?? undefined, // REQ-STB-013
       direction: {
         synopsis: d.synopsis, subject: d.subject, action: d.action,
         camera: d.camera, mood: d.mood, dialogue: d.dialogue, audioNotes: d.audioNotes,
@@ -142,6 +143,7 @@ export async function requestTake(
       aspectRatio: input.aspectRatio,
       durationSeconds: Number(s.durationS),
       entities: cast.entities,
+      customPrompt: s.videoPrompt ?? undefined, // REQ-STB-013
       direction: {
         synopsis: d.synopsis, subject: d.subject, action: d.action,
         camera: d.camera, mood: d.mood, dialogue: d.dialogue, audioNotes: d.audioNotes,
@@ -360,6 +362,19 @@ export async function selectTake(db: Db, input: { shotId: string; takeId: string
   const [a] = await db.select().from(asset).where(eq(asset.id, t.videoAssetId));
   if (a?.status !== "ready") throw new StbValidationError("asset_not_ready", "Take video is not ready yet"); // INV-STB-004
   await db.update(shot).set({ selectedTakeId: t.id }).where(eq(shot.id, input.shotId)); // INV-STB-003
+}
+
+// ---- Per-shot scripts (REQ-STB-013, USER feedback) ----
+
+export async function updateShotScripts(
+  db: Db,
+  input: { shotId: string; imagePrompt?: string | null | undefined; videoPrompt?: string | null | undefined }
+): Promise<void> {
+  await getShotOrThrow(db, input.shotId);
+  const patch: Record<string, string | null> = {};
+  if (input.imagePrompt !== undefined) patch.imagePrompt = input.imagePrompt?.trim() || null;
+  if (input.videoPrompt !== undefined) patch.videoPrompt = input.videoPrompt?.trim() || null;
+  if (Object.keys(patch).length) await db.update(shot).set(patch).where(eq(shot.id, input.shotId));
 }
 
 // ---- Candidate removal (REQ-STB-009 / POL-STB-002/003) ----

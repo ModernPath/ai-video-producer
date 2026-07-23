@@ -6,10 +6,11 @@ import { project } from "@avd/prj/schema";
 import { generation } from "@avd/gen/schema";
 import { exportJob } from "@avd/asm/schema";
 import { getMusicBrief, listCandidates, listShots } from "@avd/stb";
+import { assembleFramePrompt, assembleTakePrompt } from "@avd/gen";
 import { listEntities, listProjectEntities } from "@avd/ast";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  removeCandidateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction,
+  removeCandidateAction, retryExportAction, retryGenerationAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
 } from "../../actions";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
@@ -175,6 +176,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               </div>
               {dd.synopsis && <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>{dd.synopsis}</p>}
 
+              {(() => null)()}
               <div style={{ display: "flex", gap: 18, marginTop: 12, flexWrap: "wrap" }}>
                 <div>
                   <p className="mono muted" style={{ fontSize: 10, marginBottom: 6 }}>START FRAMES</p>
@@ -239,6 +241,58 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                   </div>
                 </div>
               </div>
+
+              {(() => {
+                const dirIn = {
+                  synopsis: dd.synopsis ?? "", subject: (s.direction as { subject?: string }).subject ?? "",
+                  action: (s.direction as { action?: string }).action ?? "",
+                  camera: (s.direction as { camera?: string }).camera, mood: (s.direction as { mood?: string }).mood,
+                  dialogue: (s.direction as { dialogue?: string }).dialogue, audioNotes: (s.direction as { audioNotes?: string }).audioNotes,
+                };
+                const entities = cast.map((e) => ({ kind: e.kind, name: e.name, description: e.description }));
+                const autoImage = assembleFramePrompt({ aspectRatio: p.aspectRatio, entities, direction: dirIn });
+                const autoVideo = assembleTakePrompt({ aspectRatio: p.aspectRatio, durationSeconds: Number(s.durationS), entities, direction: dirIn });
+                const selFrame = cands.frames.find((f) => f.id === s.selectedStartFrameId);
+                const castRefs = cast.flatMap((e) => e.refAssetIds);
+                return (
+                  <form action={updateShotScriptsAction} style={{ marginTop: 14, borderTop: "1px solid var(--line)", paddingTop: 10 }}>
+                    <input type="hidden" name="projectId" value={id} />
+                    <input type="hidden" name="shotId" value={s.id} />
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                      <div>
+                        <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 5 }}>
+                          <p className="mono muted" style={{ fontSize: 10 }}>IMAGE SCRIPT {s.imagePrompt ? "· custom" : "· auto"}</p>
+                          {castRefs.map((rid) => (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img key={rid} src={`/api/assets/${rid}`} alt="ref" title="reference image attached" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
+                          ))}
+                        </div>
+                        <textarea name="imagePrompt" rows={3} defaultValue={s.imagePrompt ?? ""} placeholder={autoImage}
+                          style={{ width: "100%", background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "6px 8px", color: "var(--ink)", fontSize: 11, fontFamily: "var(--mono)", resize: "vertical" }} />
+                      </div>
+                      <div>
+                        <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 5 }}>
+                          <p className="mono muted" style={{ fontSize: 10 }}>VIDEO SCRIPT {s.videoPrompt ? "· custom" : "· auto"}</p>
+                          {selFrame && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={`/api/assets/${selFrame.imageAssetId}`} alt="start frame" title="start frame conditions the video" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--accent)" }} />
+                          )}
+                          {castRefs.map((rid) => (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img key={rid} src={`/api/assets/${rid}`} alt="ref" title="reference image attached" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
+                          ))}
+                        </div>
+                        <textarea name="videoPrompt" rows={3} defaultValue={s.videoPrompt ?? ""} placeholder={autoVideo}
+                          style={{ width: "100%", background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "6px 8px", color: "var(--ink)", fontSize: 11, fontFamily: "var(--mono)", resize: "vertical" }} />
+                      </div>
+                    </div>
+                    <div style={{ marginTop: 6 }}>
+                      <SubmitButton small pendingLabel="Saving…">Save scripts</SubmitButton>
+                      <span className="mono muted" style={{ fontSize: 9, marginLeft: 8 }}>empty = auto from direction · custom text is sent verbatim</span>
+                    </div>
+                  </form>
+                );
+              })()}
             </div>
           );
         })}
@@ -271,7 +325,16 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                   ⇓ download final.mp4
                 </a>
               )}
-              {e.status === "failed" && <span className="muted">{e.errorDetail?.slice(0, 80)}</span>}
+              {e.status === "failed" && (
+                <>
+                  <span className="muted">{e.errorDetail?.slice(0, 80)}</span>
+                  <form action={retryExportAction}>
+                    <input type="hidden" name="projectId" value={id} />
+                    <input type="hidden" name="exportJobId" value={e.id} />
+                    <SubmitButton small pendingLabel="Retrying…">↻ retry</SubmitButton>
+                  </form>
+                </>
+              )}
               {(() => { const ex = exportSnapshots.get(e.snapshotId) ?? []; return ex.length > 0 ? (
                 <span className="mono muted" style={{ fontSize: 10 }}>skipped: {ex.map((x) => x.title).join(", ")}</span>
               ) : null; })()}
@@ -284,9 +347,18 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <section style={{ marginTop: 18 }}>
           <p className="mono muted" style={{ fontSize: 10, marginBottom: 6 }}>RECENT GENERATIONS</p>
           {recentGens.map((g) => (
-            <p key={g.id} className="mono muted" style={{ fontSize: 11 }}>
-              {g.kind} · {g.modelId} · {g.status} · ${g.costUsd ?? "—"}
-            </p>
+            <div key={g.id} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <p className="mono muted" style={{ fontSize: 11 }}>
+                {g.kind} · {g.modelId} · {g.status} · ${g.costUsd ?? "—"}{g.retryOf ? " · retry" : ""}
+              </p>
+              {g.status === "failed" && (
+                <form action={retryGenerationAction}>
+                  <input type="hidden" name="projectId" value={id} />
+                  <input type="hidden" name="generationId" value={g.id} />
+                  <SubmitButton small pendingLabel="…">↻ retry</SubmitButton>
+                </form>
+              )}
+            </div>
           ))}
         </section>
       )}
