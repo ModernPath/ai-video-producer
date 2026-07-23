@@ -64,6 +64,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     await Promise.all(shots.map(async (s) => [s.id, await listCandidates(d, s.id)] as const))
   );
   const cost = await costMeterUsd(d, id); // INV-PRJ-004: succeeded+running only — failed/canceled don't count as spend
+  const { dailySpendUsd } = await import("@avd/gen");
+  const spentToday = await dailySpendUsd(d, p.organizationId);
   const recentGens = await d
     .select()
     .from(generation)
@@ -116,8 +118,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <h1 className="disp" style={{ fontSize: 24 }}>{p.title}</h1>
         <span className="mono muted" style={{ fontSize: 12 }}>{p.aspectRatio} · target {p.targetDurationS}s</span>
         <span className="mono muted" style={{ fontSize: 12 }}>{generated}/{shots.length} generated</span>
-        <span className="mono" style={{ fontSize: 12, marginLeft: "auto" }}>
+        <span className="mono" style={{ fontSize: 12, marginLeft: "auto" }} title="Left: this project's total spend. Right: today's org-wide spend vs the daily cap (INV-GEN-004).">
           spend <b>${Number(cost).toFixed(2)}</b>
+          <span className="muted"> · today ${spentToday.toFixed(2)} / ${config.gen.quota.dailyUsdPerOrg.toFixed(2)}</span>
         </span>
         <AnimaticPlayer
           shots={shots.map((s) => {
@@ -228,7 +231,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     <form action={generateFrameAction}>
                       <input type="hidden" name="projectId" value={id} />
                       <input type="hidden" name="shotId" value={s.id} />
-                      <SubmitButton pendingLabel="Framing…">＋ Frame ≈ ${priceTable.imagePerImageUsd.standard.toFixed(2)}</SubmitButton>
+                      <SubmitButton disabled={(activeByShot.get(s.id)?.frame ?? 0) > 0} pendingLabel="Framing…">＋ Frame ≈ ${priceTable.imagePerImageUsd.standard.toFixed(2)}</SubmitButton>
                     </form>
                   </div>
                 </div>
@@ -260,7 +263,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     <form action={generateTakeAction}>
                       <input type="hidden" name="projectId" value={id} />
                       <input type="hidden" name="shotId" value={s.id} />
-                      <SubmitButton primary pendingLabel="Generating take…">
+                      <SubmitButton primary disabled={(activeByShot.get(s.id)?.take ?? 0) > 0} pendingLabel="Generating take…">
                         ▸ Take ≈ ${(([...providerLimits.video.allowedDurationsS].reduce((b, d) => Math.abs(d - Number(s.durationS)) < Math.abs(b - Number(s.durationS)) || (Math.abs(d - Number(s.durationS)) === Math.abs(b - Number(s.durationS)) && d > b) ? d : b)) * priceTable.videoPerSecondUsd).toFixed(2)}
                       </SubmitButton>
                     </form>
@@ -314,8 +317,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     </div>
                     <div style={{ marginTop: 6, display: "flex", gap: 8, alignItems: "center" }}>
                       <button type="submit" name="generate" value="none" className="mono" style={{ background: "#1e232d", border: "1px solid var(--line)", borderRadius: 6, color: "var(--ink)", fontSize: 11, padding: "3px 10px", cursor: "pointer" }}>Save</button>
-                      <button type="submit" name="generate" value="frame" style={{ background: "var(--accent)", border: "1px solid var(--accent)", borderRadius: 6, color: "#12151b", fontSize: 11, fontWeight: 600, padding: "3px 10px", cursor: "pointer" }}>Save &amp; generate frame</button>
-                      <button type="submit" name="generate" value="take" style={{ background: "var(--accent)", border: "1px solid var(--accent)", borderRadius: 6, color: "#12151b", fontSize: 11, fontWeight: 600, padding: "3px 10px", cursor: "pointer" }}>Save &amp; generate take</button>
+                      <button type="submit" name="generate" value="frame" disabled={(activeByShot.get(s.id)?.frame ?? 0) > 0} style={{ background: "var(--accent)", border: "1px solid var(--accent)", borderRadius: 6, color: "#12151b", fontSize: 11, fontWeight: 600, padding: "3px 10px", cursor: "pointer" }}>Save &amp; generate frame</button>
+                      <button type="submit" name="generate" value="take" disabled={(activeByShot.get(s.id)?.take ?? 0) > 0} style={{ background: "var(--accent)", border: "1px solid var(--accent)", borderRadius: 6, color: "#12151b", fontSize: 11, fontWeight: 600, padding: "3px 10px", cursor: "pointer" }}>Save &amp; generate take</button>
                       <span className="mono muted" style={{ fontSize: 9 }}>empty = auto · custom text sent verbatim</span>
                     </div>
                   </form>

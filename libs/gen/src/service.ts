@@ -38,6 +38,19 @@ export class GenEnqueueError extends Error {
   }
 }
 
+/** INV-GEN-004: billed spend (succeeded+running) for the current UTC day. Shared by the quota guard and the UI budget meter. */
+export async function dailySpendUsd(db: Db, organizationId: string): Promise<number> {
+  const [row] = await db
+    .select({ spent: sql<string>`coalesce(sum(${generation.costUsd}), 0)` })
+    .from(generation)
+    .where(and(
+      eq(generation.organizationId, organizationId),
+      inArray(generation.status, ["succeeded", "running"]),
+      sql`${generation.createdAt} >= date_trunc('day', now())`
+    ));
+  return Number(row?.spent ?? 0);
+}
+
 export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<string> {
   if (!mockEnabled() && !process.env.GEMINI_API_KEY) {
     throw new GenConfigError("Generation is not configured: set GEMINI_API_KEY or MOCK_GEN=1"); // REQ-GEN-015
@@ -48,15 +61,8 @@ export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<st
   }
   const id = uuidv7();
   // INV-GEN-004: daily per-org spend cap — checked before any provider work.
-  const [{ spentToday }] = await db
-    .select({ spentToday: sql<string>`coalesce(sum(${generation.costUsd}), 0)` })
-    .from(generation)
-    .where(and(
-      eq(generation.organizationId, input.organizationId),
-      inArray(generation.status, ["succeeded", "running"]),
-      sql`${generation.createdAt} >= date_trunc('day', now())`
-    ));
-  const overQuota = Number(spentToday) >= config.gen.quota.dailyUsdPerOrg;
+  const spentToday = await dailySpendUsd(db, input.organizationId);
+  const overQuota = spentToday >= config.gen.quota.dailyUsdPerOrg;
   let prompt: string;
   if (input.kind === "image_edit") prompt = assembleEditPrompt(input.editInput!);
   else if (input.kind === "frame") prompt = assembleFramePrompt(input.promptInput!);
@@ -88,7 +94,7 @@ export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<st
       ? {
           status: "failed" as const,
           errorCode: "quota_exceeded",
-          errorDetail: `Daily spend cap $${config.gen.quota.dailyUsdPerOrg} reached for this organization (spent $${Number(spentToday).toFixed(2)} today) — resets at midnight UTC`,
+          errorDetail: `Daily spend cap $${config.gen.quota.dailyUsdPerOrg} reached for this organization (spent $${spentToday.toFixed(2)} today) — resets at midnight UTC`,
         }
       : {}),
     commandId: input.commandId,

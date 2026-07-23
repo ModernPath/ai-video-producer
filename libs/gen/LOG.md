@@ -1,5 +1,13 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-23 — daily budget meter + busy-lane button lockout (web polish)
+**Done:** extracted dailySpendUsd(db, orgId) (shared by quota guard + UI, single SQL source of truth); project header now shows "spend $X · today $Y / $CAP" with tooltip; frame/take generate buttons (both lanes + Save & generate variants) disable while that shot's lane has a queued/running generation — same activeByShot map that drives the verified pulsing badges.
+**Decisions:** lane lockout is per shot per kind (frame vs take), not global — parallel shots stay generatable.
+**Deferred:** —
+**Discovered:** —
+**Follow-ups:** —
+**Gate:** gen suite green (25 passed); web tsc clean; header verified in browser.
+
 ## 2026-07-23 — REQ-GEN-004 daily per-org spend cap (PROPOSED → IN_REVIEW)
 **Done:** red-first quota guard in enqueueGeneration: sums today's billed spend (succeeded+running, UTC day) per org; at/over config.gen.quota.dailyUsdPerOrg (default $5, env GEN_DAILY_USD_CAP) the row is inserted failed with quota_exceeded — visible in RECENT GENERATIONS with retry, never billed, never reaches a provider. Recent-generations rows now show error codes for failed generations.
 **Decisions:** no PLT quota aggregate — generation table is the billing source of truth; over-quota enqueue records a failed row instead of throwing so the UI surfaces it without new machinery.

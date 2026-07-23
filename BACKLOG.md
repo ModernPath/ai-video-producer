@@ -185,5 +185,4 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 - 2026-07-23 (user docs): gemini-omni-flash-preview Interactions API supports video tasks (image_to_video, reference_to_video, edit) — evaluate cost/quality vs veo-3.1-fast for takes/retakes; update OQ-112. Owner: GEN.
 - 2026-07-23 integrator follow-ups from workflow merge: ~~cost SQL → costMeterUsd~~ (done), ~~share-link button~~ (done, browser-verified); ALL integrator follow-ups complete (archive guard REQ-ASM-008, slice 12).
 - 2026-07-23: dedicated test database (or per-run schema) for integration tests — interrupted runs leave org/project debris in the dev DB even with afterAll teardown; debris broke dev-org resolution (REQ-PLT-001). Owner: shared/infra.
-- 2026-07-23 (user): generation indicators shipped (pulsing badge per shot lane); consider also disabling generate buttons while a generation for that lane is active. Owner: web.
-- 2026-07-23: show remaining daily gen budget (cap - spent today) in project header next to spend. Owner: web.
+- 2026-07-23: both web-polish items (busy-lane lockout, budget meter) shipped same day. Remaining infra: dedicated test DB; Omni Interactions video-task spike (OQ-112).
