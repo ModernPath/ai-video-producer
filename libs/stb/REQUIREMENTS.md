@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 7 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -13,7 +13,7 @@ Totals: 0 DONE · 7 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DEF
 | REQ-STB-006 | Frame re-selection keeps takes + provenance | P2 | PROPOSED | INV-STB-006 | — | — |
 | REQ-STB-007 | Shot-plan apply protects paid shots | P2 | PROPOSED | INV-STB-007, BR-STB-005 | — | — |
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
-| REQ-STB-009 | Candidate removal rules (soft, unselected) | P2 | PROPOSED | POL-STB-002/003 | — | — |
+| REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
 | REQ-STB-011 | Shot plan proposal materializes and applies | P2 | IN_REVIEW | `docs/13` §6 ProposeShotPlan/ApplyShotPlan | tests/script.int.spec.ts | src/service.ts |
 
@@ -79,4 +79,13 @@ Totals: 0 DONE · 7 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DEF
   - GIVEN an existing brief WHEN regenerating THEN the row is replaced (new generation id), not duplicated.
 - **Tests:** `tests/music.int.spec.ts` + browser E2E · **Code:** `src/service.ts` (requestMusicBrief/getMusicBrief), migration 0006 · **Log:** LOG 2026-07-23 (slice 3)
 
-*(PROPOSED blocks 005–007, 009: statements live in `docs/13-storyboard.md`; elaborate when promoted.)*
+### REQ-STB-009 — Candidate removal (soft, unselected only)
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must
+- **Source:** POL-STB-002/003 (user requirement #4 removal arm), INV-AST-003
+- **Statement:** Users may soft-remove frame candidates and takes that are not currently selected; removed candidates vanish from strips and the animatic but their assets remain in storage (provenance sacred). Removing a selected candidate is rejected — unselect first.
+- **Acceptance criteria:**
+  - GIVEN an unselected frame candidate or take WHEN removed THEN it is soft-deleted (deletedAt), disappears from listCandidates, and its asset stays `ready`.
+  - GIVEN a selected candidate WHEN removal attempted THEN rejected `conflict` and nothing changes.
+- **Tests:** `tests/remove.int.spec.ts` + browser E2E · **Code:** `src/service.ts`, ✕ remove UI · **Log:** LOG 2026-07-23 (slice 4)
+
+*(PROPOSED blocks 005–007: statements live in `docs/13-storyboard.md`; elaborate when promoted.)*

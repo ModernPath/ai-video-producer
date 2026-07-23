@@ -268,3 +268,12 @@ export async function setAudioModeAction(formData: FormData) {
   await db().update(project).set({ audioMixMode: mode as "native" | "music" | "mix" }).where(eq(project.id, projectId));
   revalidatePath(`/p/${projectId}`);
 }
+
+export async function removeCandidateAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const kind = String(formData.get("kind"));
+  const { removeFrameCandidate, removeTake } = await import("@avd/stb");
+  if (kind === "frame") await removeFrameCandidate(db(), { frameCandidateId: String(formData.get("id")) });
+  else await removeTake(db(), { takeId: String(formData.get("id")) });
+  revalidatePath(`/p/${projectId}`);
+}

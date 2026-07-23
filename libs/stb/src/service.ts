@@ -356,6 +356,28 @@ export async function selectTake(db: Db, input: { shotId: string; takeId: string
   await db.update(shot).set({ selectedTakeId: t.id }).where(eq(shot.id, input.shotId)); // INV-STB-003
 }
 
+// ---- Candidate removal (REQ-STB-009 / POL-STB-002/003) ----
+
+export async function removeFrameCandidate(db: Db, input: { frameCandidateId: string }): Promise<void> {
+  const [fc] = await db.select().from(frameCandidate).where(eq(frameCandidate.id, input.frameCandidateId));
+  if (!fc || fc.deletedAt) throw new StbValidationError("not_found", "Frame candidate not found");
+  const [s] = await db.select().from(shot).where(eq(shot.id, fc.shotId));
+  if (s?.selectedStartFrameId === fc.id || s?.selectedEndFrameId === fc.id) {
+    throw new StbValidationError("conflict", "This frame is selected — unselect it before removing");
+  }
+  await db.update(frameCandidate).set({ deletedAt: new Date() }).where(eq(frameCandidate.id, fc.id)); // soft; asset retained (INV-AST-003)
+}
+
+export async function removeTake(db: Db, input: { takeId: string }): Promise<void> {
+  const [t] = await db.select().from(take).where(eq(take.id, input.takeId));
+  if (!t || t.deletedAt) throw new StbValidationError("not_found", "Take not found");
+  const [s] = await db.select().from(shot).where(eq(shot.id, t.shotId));
+  if (s?.selectedTakeId === t.id) {
+    throw new StbValidationError("conflict", "This take is selected — select another before removing");
+  }
+  await db.update(take).set({ deletedAt: new Date() }).where(eq(take.id, t.id));
+}
+
 export async function listCandidates(db: Db, shotId: string) {
   const frames = await db
     .select()

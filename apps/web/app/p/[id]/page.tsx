@@ -9,7 +9,7 @@ import { getMusicBrief, listCandidates, listShots } from "@avd/stb";
 import { listEntities, listProjectEntities } from "@avd/ast";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction,
+  removeCandidateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction,
 } from "../../actions";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
@@ -164,14 +164,24 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                   <p className="mono muted" style={{ fontSize: 10, marginBottom: 6 }}>START FRAMES</p>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {cands.frames.map((f) => (
-                      <form key={f.id} action={selectFrameAction}>
-                        <input type="hidden" name="projectId" value={id} />
-                        <input type="hidden" name="shotId" value={s.id} />
-                        <input type="hidden" name="frameCandidateId" value={f.id} />
-                        <button type="submit" style={{ all: "unset", cursor: "pointer" }} title="Select frame">
-                          <Tile label={`frame ${f.id.slice(-4)}`} selected={s.selectedStartFrameId === f.id} assetId={f.imageAssetId} />
-                        </button>
-                      </form>
+                      <div key={f.id} style={{ display: "grid", gap: 4, justifyItems: "start" }}>
+                        <form action={selectFrameAction}>
+                          <input type="hidden" name="projectId" value={id} />
+                          <input type="hidden" name="shotId" value={s.id} />
+                          <input type="hidden" name="frameCandidateId" value={f.id} />
+                          <button type="submit" style={{ all: "unset", cursor: "pointer" }} title="Select frame">
+                            <Tile label={`frame ${f.id.slice(-4)}`} selected={s.selectedStartFrameId === f.id} assetId={f.imageAssetId} />
+                          </button>
+                        </form>
+                        {s.selectedStartFrameId !== f.id && (
+                          <form action={removeCandidateAction}>
+                            <input type="hidden" name="projectId" value={id} />
+                            <input type="hidden" name="kind" value="frame" />
+                            <input type="hidden" name="id" value={f.id} />
+                            <button type="submit" className="mono" title="Remove candidate (asset kept)" style={{ background: "none", border: "1px solid var(--line)", borderRadius: 5, color: "var(--ink-2)", fontSize: 9, padding: "1px 6px", cursor: "pointer" }}>✕ remove</button>
+                          </form>
+                        )}
+                      </div>
                     ))}
                     <form action={generateFrameAction}>
                       <input type="hidden" name="projectId" value={id} />
@@ -188,12 +198,20 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                       <div key={t.id} style={{ display: "grid", gap: 5, justifyItems: "start" }}>
                         <Tile video label={`take ${t.id.slice(-4)} · ${t.durationActualS ?? s.durationS}s`} selected={s.selectedTakeId === t.id} assetId={t.videoAssetId} />
                         {s.selectedTakeId !== t.id && (
-                          <form action={selectTakeAction}>
-                            <input type="hidden" name="projectId" value={id} />
-                            <input type="hidden" name="shotId" value={s.id} />
-                            <input type="hidden" name="takeId" value={t.id} />
-                            <SubmitButton small pendingLabel="Selecting…">Select take</SubmitButton>
-                          </form>
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <form action={selectTakeAction}>
+                              <input type="hidden" name="projectId" value={id} />
+                              <input type="hidden" name="shotId" value={s.id} />
+                              <input type="hidden" name="takeId" value={t.id} />
+                              <SubmitButton small pendingLabel="Selecting…">Select take</SubmitButton>
+                            </form>
+                            <form action={removeCandidateAction}>
+                              <input type="hidden" name="projectId" value={id} />
+                              <input type="hidden" name="kind" value="take" />
+                              <input type="hidden" name="id" value={t.id} />
+                              <button type="submit" className="mono" title="Remove take (asset kept)" style={{ background: "none", border: "1px solid var(--line)", borderRadius: 5, color: "var(--ink-2)", fontSize: 9, padding: "1px 6px", cursor: "pointer" }}>✕</button>
+                            </form>
+                          </div>
                         )}
                       </div>
                     ))}
