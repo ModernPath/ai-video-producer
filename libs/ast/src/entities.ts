@@ -63,3 +63,18 @@ export async function listProjectEntities(db: Db, projectId: string) {
     .where(eq(projectEntity.projectId, projectId));
   return rows.map((r) => r.e);
 }
+
+/** BR-AST-005: swap an entity ref for its edited version (original asset remains, lineage preserved). */
+export async function updateEntityRef(
+  db: Db,
+  input: { entityId: string; oldAssetId: string; newAssetId: string }
+): Promise<void> {
+  const [e] = await db.select().from(entity).where(eq(entity.id, input.entityId));
+  if (!e) throw new AstValidationError("not_found", "Entity not found");
+  if (!e.refAssetIds.includes(input.oldAssetId)) {
+    throw new AstValidationError("not_found", "Reference not on this entity");
+  }
+  const next = e.refAssetIds.map((id) => (id === input.oldAssetId ? input.newAssetId : id));
+  await assertValidRefs(db, next);
+  await db.update(entity).set({ refAssetIds: next }).where(eq(entity.id, input.entityId));
+}

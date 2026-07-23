@@ -3,8 +3,8 @@ import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import type { FrameQuality, GenerationKind } from "@avd/shared/config";
 import {
-  PROMPT_TEMPLATE_VERSION, assembleFramePrompt, assembleScriptPrompt, assembleShotPlanPrompt,
-  assembleTakePrompt, type TakePromptInput, type TextPromptInput,
+  PROMPT_TEMPLATE_VERSION, assembleEditPrompt, assembleFramePrompt, assembleScriptPrompt, assembleShotPlanPrompt,
+  assembleTakePrompt, type EditPromptInput, type TakePromptInput, type TextPromptInput,
 } from "./prompt";
 import { resolveModel } from "./routing";
 import { generation } from "./schema";
@@ -23,7 +23,8 @@ export interface EnqueueInput {
   quality?: FrameQuality;
   promptInput?: TakePromptInput;   // media kinds
   textInput?: TextPromptInput;     // script / shot_plan / music_brief kinds
-  refs?: { startFrameAssetId?: string; entityRefAssetIds?: string[] }; // REQ-GEN-009 + REQ-AST-006
+  refs?: { startFrameAssetId?: string; entityRefAssetIds?: string[]; editSourceAssetId?: string }; // REQ-GEN-009/012 + REQ-AST-006
+  editInput?: EditPromptInput; // image_edit kinds
 }
 
 export class GenConfigError extends Error {}
@@ -34,7 +35,8 @@ export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<st
   }
   const id = uuidv7();
   let prompt: string;
-  if (input.kind === "frame" || input.kind === "image_edit") prompt = assembleFramePrompt(input.promptInput!);
+  if (input.kind === "image_edit") prompt = assembleEditPrompt(input.editInput!);
+  else if (input.kind === "frame") prompt = assembleFramePrompt(input.promptInput!);
   else if (input.kind === "take" || input.kind === "retake") prompt = assembleTakePrompt(input.promptInput!);
   else if (input.kind === "shot_plan") prompt = assembleShotPlanPrompt(input.textInput!);
   else prompt = assembleScriptPrompt(input.textInput!);
@@ -51,10 +53,11 @@ export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<st
       templateVersion: PROMPT_TEMPLATE_VERSION,
       refAssetIds: [
         ...(input.refs?.startFrameAssetId ? [input.refs.startFrameAssetId] : []),
+        ...(input.refs?.editSourceAssetId ? [input.refs.editSourceAssetId] : []),
         ...(input.refs?.entityRefAssetIds ?? []),
       ], // INV-GEN-001
       refs: input.refs ?? {},
-      input: input.promptInput ?? input.textInput,
+      input: input.promptInput ?? input.textInput ?? input.editInput,
     },
     params: { durationSeconds: input.promptInput?.durationSeconds, quality: input.quality ?? "standard" },
     commandId: input.commandId,

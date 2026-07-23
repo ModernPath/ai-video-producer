@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 5 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 12 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -16,7 +16,7 @@ Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 5 PROPOSED · 0 DE
 | REQ-GEN-009 | Frame-conditioned takes (start-frame attachment) | P4 | IN_REVIEW | BR-GEN-003 (frame arm) | tests/frame-conditioned.int.spec.ts + real ring + browser | src/service.ts, src/executor.ts, ../stb/src/service.ts |
 | REQ-GEN-010 | Provider abstraction: real path → storage → ready | P1 | IN_REVIEW | BR-GEN-004 | tests/provider-path.int.spec.ts | src/provider.ts, src/executor.ts |
 | REQ-GEN-011 | Per-org video concurrency cap | P2 | PROPOSED | BR-GEN-005 | — | — |
-| REQ-GEN-012 | image_edit creates new asset with lineage | P4 | PROPOSED | BR-GEN-006 | — | — |
+| REQ-GEN-012 | image_edit: instruction + source → new asset with lineage | P4 | IN_REVIEW | BR-GEN-006, BR-AST-005, INV-AST-001 | tests/image-edit.int.spec.ts + real ring + browser | src/prompt.ts, src/service.ts, src/executor.ts, ../ast/src/entities.ts |
 | REQ-GEN-013 | Deterministic prompt assembly, snapshotted | P1 | IN_REVIEW | `docs/14` §5 | tests/prompt.spec.ts | src/prompt.ts |
 | REQ-GEN-015 | Mock executor (MOCK_GEN) returns fixture media | P1 | IN_REVIEW | `docs/82` §5 (enabler) | tests/pipeline.int.spec.ts | src/executor.ts, src/service.ts |
 | REQ-GEN-017 | Live progress reaches the UI (SSE) | P2 | IN_REVIEW | `docs/07` §1, ADR-006 (enabler) | libs/prj/tests/activity.int.spec.ts + browser E2E | libs/prj/src/activity.ts, apps/web (events route, LiveRefresh) |
@@ -117,8 +117,15 @@ Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 5 PROPOSED · 0 DE
 ### REQ-GEN-011 — Per-org video concurrency cap
 - **Status:** PROPOSED · **Stage:** P2 · **Source:** BR-GEN-005 — `config.gen.maxConcurrentVideoPerOrg`, FIFO overflow.
 
-### REQ-GEN-012 — image_edit creates new asset with lineage
-- **Status:** PROPOSED · **Stage:** P4 · **Source:** BR-GEN-006 — `edit_of` chain, INV-AST-001.
+### REQ-GEN-012 — image_edit: instruction + source → new asset with lineage
+- **Status:** IN_REVIEW · **Stage:** P4 · **Priority:** must
+- **Source:** BR-GEN-006, BR-AST-005, INV-AST-001
+- **Statement:** An image_edit generation carries an instruction and a source asset; the provider receives the instruction prompt plus the source bytes; the output is a NEW ready asset with `edit_of` = source. The source is never mutated. Entity refs can be replaced with the edited result (count/validation preserved).
+- **Acceptance criteria:**
+  - GIVEN an image_edit WHEN executed THEN the provider prompt contains the instruction and the source bytes arrive as the first reference image (stub-verified).
+  - GIVEN completion THEN a new asset exists with `edit_of` = source id; the source row/bytes are unchanged.
+  - GIVEN an entity-ref replacement THEN the entity keeps 1–5 valid refs with the new asset swapped in.
+  - Real ring: draft frame → edited variant with lineage (RUN_REAL_API).
 
 ### REQ-GEN-013 — Deterministic prompt assembly, snapshotted
 - **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must

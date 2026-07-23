@@ -56,3 +56,8 @@
 **Done:** red-first capture-stub tests — refs.startFrameAssetId flows enqueue → snapshot (refAssetIds provenance, INV-GEN-001) → executor fetches bytes from storage → provider.startFrame; STB requestTake resolves selected frame automatically; no selection → text-to-video unchanged. Real ring upgraded to the product chain: real draft frame conditions a real 4s take (1.1MB MP4, $0.40 — visibly denser than text-only). Browser+DB verified: UI take's provenance ref === selected frame asset id.
 **Deferred:** entity/style reference arms of BR-GEN-003 → entity library slice; end-frame (lastFrame param) → with retake/edit UX.
 **Gate:** mock 44 green · real ring 3/3 green (chain).
+
+## 2026-07-23 — GEN slice 6: AI image editing (REQ-GEN-012 → IN_REVIEW)
+**Done:** red-first — assembleEditPrompt (instruction + identity-preservation), editInput/refs.editSourceAssetId through enqueue (provenance), executor feeds source bytes as first refImage and stamps asset.edit_of; AST updateEntityRef swaps refs with validation (BR-AST-005). Library UI: per-entity AI-edit form. Browser-verified: instruction → visibly new ref thumb; DB chain current(svg mock) → edit_of → original png (untouched, INV-AST-001). Real ring: actual Nano Banana edit ("night, neon reflections") with lineage — 4/4 base ring green.
+**Deferred:** per-ref edit picker (MVP edits ref #1); add-alongside mode (replace only); queue-mode edits (inline for now).
+**Gate:** 50 mock green + real ring green.

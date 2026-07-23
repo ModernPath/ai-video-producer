@@ -119,3 +119,8 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 **Inbox additions:** per-shot entity selection (direction.entityIds UI) · entity refs → video referenceImages param · real-ring entity-conditioned frame test (~$0.07) · native select kind picker didn't respond to arrow-key automation (ended as "character" instead of "product" — cosmetic here, note for E2E robustness).
 **Next:** AI image-edit of entity refs (user req #2, BR-AST-005 + REQ-GEN-012) or review sweep.
 **Spend today:** ≈ $1.20 (unchanged this tick — mock mode).
+
+## 2026-07-23 — Build loop iteration 17
+**Done:** AI image editing (REQ-GEN-012 IN_REVIEW) — user requirement #2 functional: edit entity refs by instruction, lineage preserved, originals immutable; mock + real + browser evidence.
+**Recurring papercut (3rd occurrence):** pre-hydration submit drops on freshly compiled routes — inbox: consider next dev warmup or E2E retry helper; production build won't have per-route compile lag.
+**Next:** review sweep (28 IN_REVIEW) or remaining arms: per-shot entities, edit add-alongside, export mix modes.

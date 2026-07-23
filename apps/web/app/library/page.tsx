@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { listEntities } from "@avd/ast";
 import { organization } from "@avd/plt/schema";
-import { createEntityAction } from "../actions";
+import { createEntityAction, editEntityRefAction } from "../actions";
 import { SubmitButton } from "../../components/SubmitButton";
 import { db } from "../../lib/db";
 
@@ -58,6 +58,12 @@ export default async function LibraryPage() {
                 <img key={rid} src={`/api/assets/${rid}`} alt="" style={{ width: 38, height: 38, borderRadius: 6, objectFit: "cover", border: "1px solid var(--line)" }} />
               ))}
             </div>
+            <form action={editEntityRefAction} style={{ display: "flex", gap: 6, marginTop: 10 }}>
+              <input type="hidden" name="entityId" value={e.id} />
+              <input type="hidden" name="refAssetId" value={e.refAssetIds[0]} />
+              <input name="instruction" placeholder="AI-edit ref 1… (e.g. make it night)" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "5px 8px", color: "var(--ink)", fontSize: 11, flex: 1 }} />
+              <SubmitButton small pendingLabel="Editing…">✎ Edit</SubmitButton>
+            </form>
           </div>
         ))}
         {entities.length === 0 && <p className="muted" style={{ fontSize: 12 }}>No entities yet.</p>}

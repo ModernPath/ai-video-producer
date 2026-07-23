@@ -65,6 +65,19 @@ export function assembleShotPlanPrompt(i: TextPromptInput): string {
   ].join("\n");
 }
 
+export interface EditPromptInput {
+  instruction: string;
+  aspectRatio: "16:9" | "9:16";
+}
+
+export function assembleEditPrompt(i: EditPromptInput): string {
+  return [
+    `EDIT: ${i.instruction}`,
+    `Preserve the subject's identity, framing, and composition except where the edit requires otherwise.`,
+    `FORMAT: still image, ${i.aspectRatio} aspect ratio.`,
+  ].join("\n");
+}
+
 export function assembleFramePrompt(i: Omit<TakePromptInput, "durationSeconds">): string {
   const lines: string[] = [];
   lines.push(`FORMAT: still image, ${i.aspectRatio} aspect ratio.`);

@@ -79,6 +79,26 @@ describe.skipIf(!enabled)("REAL API e2e: gemini text + draft image (≈$0.04/run
     const obj = await getObject(a!.storageKey);
     expect(obj.bytes.byteLength).toBeGreaterThan(5_000); // a real image, not a stub
   }, 120_000);
+
+  it("real image edit: instruction produces a new asset with edit_of lineage (REQ-GEN-012)", async () => {
+    const [srcGen] = await db.select().from(generation)
+      .where(eq(generation.organizationId, orgId));
+    const sourceAssetId = srcGen?.outputAssetIds?.[0];
+    if (!sourceAssetId) throw new Error("prior image test must run first");
+    const genId = await enqueueGeneration(db, {
+      organizationId: orgId, projectId, principal: "user:e2e", kind: "image_edit",
+      commandId: uuidv7(), target: { assetId: sourceAssetId }, quality: "draft",
+      refs: { editSourceAssetId: sourceAssetId },
+      editInput: { instruction: "make it night time with neon reflections on the water", aspectRatio: "16:9" },
+    });
+    const result = await runNextGeneration(db, { organizationId: orgId, provider: createGeminiProvider() });
+    const [g] = await db.select().from(generation).where(eq(generation.id, genId));
+    if (result?.status !== "succeeded") throw new Error(`edit failed: ${g?.errorCode} ${g?.errorDetail}`);
+    const [edited] = await db.select().from(asset).where(eq(asset.id, g!.outputAssetIds![0]!));
+    expect(edited?.editOf).toBe(sourceAssetId);
+    const obj = await getObject(edited!.storageKey);
+    expect(obj.bytes.byteLength).toBeGreaterThan(5_000);
+  }, 120_000);
 });
 
 // Omni video spike + real take E2E — extra gate: RUN_REAL_VIDEO=1 (≈$0.40/run at 4s).

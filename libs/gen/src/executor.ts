@@ -64,7 +64,7 @@ async function processGenerationRow(
   const provider = injectedProvider ?? defaultProvider();
   const snapshot = next.promptSnapshot as {
     prompt: string;
-    refs?: { startFrameAssetId?: string; entityRefAssetIds?: string[] };
+    refs?: { startFrameAssetId?: string; entityRefAssetIds?: string[]; editSourceAssetId?: string };
     input?: { aspectRatio?: "16:9" | "9:16" } & Record<string, unknown>;
   };
   const params = next.params as { durationSeconds?: number; quality?: "draft" | "standard" | "hero" };
@@ -118,7 +118,12 @@ async function processGenerationRow(
           aspectRatio,
           seed: assetId,
           label: `${next.kind} · ${assetId.slice(-6)} · ${provider.name}`,
-          ...(await fetchRefImages(db, snapshot.refs?.entityRefAssetIds)),
+          ...(await fetchRefImages(
+            db,
+            next.kind === "image_edit" && snapshot.refs?.editSourceAssetId
+              ? [snapshot.refs.editSourceAssetId, ...(snapshot.refs?.entityRefAssetIds ?? [])] // source first (REQ-GEN-012)
+              : snapshot.refs?.entityRefAssetIds
+          )),
         });
 
     const ext = media.mime === "video/mp4" ? "mp4" : media.mime === "image/svg+xml" ? "svg" : "png";
@@ -137,6 +142,7 @@ async function processGenerationRow(
       bytes: media.bytes.byteLength,
       durationS: isVideo ? String((media as { durationS: number }).durationS) : null,
       generationId: next.id, // INV-GEN-002: new immutable asset per generation
+      editOf: next.kind === "image_edit" ? snapshot.refs?.editSourceAssetId ?? null : null, // lineage
     });
 
     await db

@@ -5,7 +5,7 @@ import { createDb } from "@avd/shared/db";
 import { organization } from "@avd/plt/schema";
 import { project } from "@avd/prj/schema";
 import { asset, entity, projectEntity } from "../src/schema";
-import { AstValidationError, attachEntities, createEntity, listProjectEntities } from "../src/entities";
+import { AstValidationError, attachEntities, createEntity, listProjectEntities, updateEntityRef } from "../src/entities";
 import { migrate } from "../../../scripts/migrate";
 
 // REQ-AST-006 — entity library (requires compose pg).
@@ -56,5 +56,16 @@ describe("AST entities", () => {
     expect(cast.length).toBe(1);
     expect(cast[0]?.name).toBe("KAIJU Can");
     expect(cast[0]?.refAssetIds.length).toBe(2);
+  });
+
+  it("BR-AST-005: replaces a ref with an edited version, count preserved", async () => {
+    const [e] = await listProjectEntities(db, projectId);
+    const oldRef = e!.refAssetIds[0]!;
+    const newRef = refIds[2]!; // another ready image
+    await updateEntityRef(db, { entityId: e!.id, oldAssetId: oldRef, newAssetId: newRef });
+    const [after] = await listProjectEntities(db, projectId);
+    expect(after!.refAssetIds).toContain(newRef);
+    expect(after!.refAssetIds).not.toContain(oldRef);
+    expect(after!.refAssetIds.length).toBe(2);
   });
 });

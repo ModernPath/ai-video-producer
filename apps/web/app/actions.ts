@@ -235,3 +235,28 @@ export async function setCastAction(formData: FormData) {
   await attachEntities(db(), { projectId, entityIds });
   revalidatePath(`/p/${projectId}`);
 }
+
+/** User req #2: AI-edit an entity reference image; edited result replaces the ref (lineage kept). */
+export async function editEntityRefAction(formData: FormData) {
+  const entityId = String(formData.get("entityId"));
+  const refAssetId = String(formData.get("refAssetId"));
+  const instruction = String(formData.get("instruction") ?? "").trim();
+  if (!instruction) return;
+  const orgId = await devOrgId();
+  const { enqueueGeneration, runGenerationById } = await import("@avd/gen");
+  const { updateEntityRef } = await import("@avd/ast");
+  const { generation } = await import("@avd/gen/schema");
+
+  const genId = await enqueueGeneration(db(), {
+    organizationId: orgId, projectId: orgId /* org-library scope */, principal: PRINCIPAL,
+    kind: "image_edit", commandId: uuidv7(), target: { assetId: refAssetId, entityId },
+    refs: { editSourceAssetId: refAssetId },
+    editInput: { instruction, aspectRatio: "16:9" },
+  });
+  await runGenerationById(db(), genId); // inline: edits are fast; queue-mode arm later
+  const [g] = await db().select().from(generation).where(eq(generation.id, genId));
+  if (g?.status === "succeeded" && g.outputAssetIds?.[0]) {
+    await updateEntityRef(db(), { entityId, oldAssetId: refAssetId, newAssetId: g.outputAssetIds[0] });
+  }
+  revalidatePath("/library");
+}
