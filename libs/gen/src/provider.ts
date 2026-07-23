@@ -1,6 +1,6 @@
 // REQ-GEN-010 — GenProvider port. Implementations: mock (fixtures), gemini (real), test stubs.
 import { config } from "@avd/shared/config";
-import { fixtureMp4, fixtureScript, fixtureShotPlan, fixtureSvg } from "./fixtures";
+import { fixtureMp4, fixtureMusicBrief, fixtureScript, fixtureShotPlan, fixtureSvg } from "./fixtures";
 
 export type ProviderErrorCode = "content_policy" | "provider_unavailable" | "invalid_reference" | "output_unusable";
 
@@ -50,9 +50,9 @@ export const mockProvider: GenProvider = {
       brief: meta.brief ?? {},
       targetDurationSeconds: meta.targetDurationSeconds ?? config.project.defaultTargetDurationSeconds,
     };
-    return r.json
-      ? { json: { shots: fixtureShotPlan({ ...ti, minS: config.shot.minSeconds, maxS: config.shot.maxSeconds }) } }
-      : { text: fixtureScript(ti) };
+    if (r.json) return { json: { shots: fixtureShotPlan({ ...ti, minS: config.shot.minSeconds, maxS: config.shot.maxSeconds }) } };
+    if ((r.meta as { kind?: string } | undefined)?.kind === "music_brief") return { text: fixtureMusicBrief(ti) };
+    return { text: fixtureScript(ti) };
   },
   async generateImage(r) {
     return { bytes: fixtureSvg(r.seed ?? r.prompt, r.label ?? "mock", r.aspectRatio), mime: "image/svg+xml" };

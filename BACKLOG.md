@@ -90,3 +90,11 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 ## 2026-07-23 — Build loop iteration 11
 **Done:** SSE live updates (REQ-GEN-017 IN_REVIEW) — fingerprint poll-bridge behind the documented SSE contract; browser-verified zero-reload take arrival. Queue-mode UX gap closed.
 **Next candidates:** approve-review sweep (23 IN_REVIEW) · music brief + attach (REQ-STB-010/ASM-004 arm) · idempotent createProject · real-API spikes (awaiting key + budget).
+
+## 2026-07-23 — Build loop iteration 12 (triage + build)
+**Triage pass (Prompt 3):**
+- Inbox "image price placeholders" → CLOSED via web verification: prices are per-image (~$0.067 @1K standard, $0.034 draft/batch, ~$0.15 hi-res) — found and fixed a 1000x unit mis-encoding (imagePerThousandUsd → imagePerImageUsd) before any real spend. Tests updated red/green.
+- Promoted REQ-STB-010 (music brief, generation arm) → built this tick.
+- Kept: per-suite DB isolation (chore), idempotent createProject (next), SSE outbox upgrade (later).
+**Done:** Music brief slice browser-verified (Suno prompt card on script page).
+**Next:** REQ-AST-004 presigned uploads (unblocks music attach + entity refs) or idempotent createProject; review queue 24 IN_REVIEW.

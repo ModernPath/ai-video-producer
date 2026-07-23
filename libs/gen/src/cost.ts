@@ -15,7 +15,7 @@ export function computeCostUsd(kind: GenerationKind, opts: CostOpts = {}): numbe
       return (opts.durationSeconds ?? 0) * priceTable.videoPerSecondUsd;
     case "frame":
     case "image_edit":
-      return priceTable.imagePerThousandUsd[opts.quality ?? "standard"] / 1000;
+      return priceTable.imagePerImageUsd[opts.quality ?? "standard"];
     default:
       return 0; // text kinds: negligible; metered later (BACKLOG price-table item)
   }

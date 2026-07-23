@@ -41,7 +41,10 @@ export const modelRoutes: Record<Exclude<GenerationKind, "frame" | "image_edit">
 /** Provider price table (USD) — INV-GEN-003 cost recording derives from these. */
 export const priceTable = {
   videoPerSecondUsd: 0.1, // gemini-omni-flash-preview, announcement 2026 (docs/00 §3)
-  imagePerThousandUsd: { draft: 0.034, standard: 0.3, hero: 1.2 }, // draft verified; others placeholder → BACKLOG
+  // Per-image USD, verified 2026-07-23 (Google API pricing: ~$0.067 @1K standard,
+  // $0.034 draft/batch tier, ~$0.15 high-res pro). Triage note: earlier draft mis-encoded
+  // these as per-1000-images — a 1000x cost under-report. BACKLOG item closed.
+  imagePerImageUsd: { draft: 0.034, standard: 0.067, hero: 0.15 },
 } as const;
 
 /** Provider capability facts the domain depends on (docs/00 §3 — re-verify per phase). */

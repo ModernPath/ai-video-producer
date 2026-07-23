@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { desc, eq } from "drizzle-orm";
 import { project } from "@avd/prj/schema";
 import { scriptVersion, shotPlanProposal } from "@avd/stb/schema";
-import { applyPlanAction, draftScriptAction, proposePlanAction } from "../../../actions";
+import { getMusicBrief } from "@avd/stb";
+import { applyPlanAction, draftScriptAction, musicBriefAction, proposePlanAction } from "../../../actions";
 import { LiveRefresh } from "../../../../components/LiveRefresh";
 import { db } from "../../../../lib/db";
 
@@ -21,6 +22,7 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
 
   const versions = await d.select().from(scriptVersion).where(eq(scriptVersion.projectId, id)).orderBy(desc(scriptVersion.version));
   const latest = versions[0];
+  const music = await getMusicBrief(d, id);
   const proposals = await d
     .select()
     .from(shotPlanProposal)
@@ -92,6 +94,28 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
           </section>
         );
       })}
+
+      <section style={{ ...card, marginTop: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <p className="mono muted" style={{ fontSize: 10 }}>MUSIC BRIEF · Suno round-trip (docs/17)</p>
+          <form action={musicBriefAction} style={{ marginLeft: "auto" }}>
+            <input type="hidden" name="projectId" value={id} />
+            <button type="submit" style={music ? btn : btnPrimary}>{music ? "Regenerate" : "Generate music brief"}</button>
+          </form>
+        </div>
+        {music ? (
+          <>
+            <pre style={{ whiteSpace: "pre-wrap", fontFamily: "var(--mono)", fontSize: 12, lineHeight: 1.7, marginTop: 10, background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 8, padding: 12 }}>
+              {music.prompt}
+            </pre>
+            <p className="muted" style={{ fontSize: 11, marginTop: 8 }}>
+              Copy this prompt into Suno, generate the track, then attach the audio here (upload lands with the library slice).
+            </p>
+          </>
+        ) : (
+          <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>No brief yet — generate one from the project and script.</p>
+        )}
+      </section>
     </main>
   );
 }

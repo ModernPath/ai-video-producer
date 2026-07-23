@@ -6,7 +6,7 @@ import { config } from "@avd/shared/config";
 import { asset } from "@avd/ast/schema";
 import { enqueueGeneration } from "@avd/gen";
 import { generation } from "@avd/gen/schema";
-import { frameCandidate, scriptVersion, shot, shotPlanProposal, take } from "./schema";
+import { frameCandidate, musicBrief, scriptVersion, shot, shotPlanProposal, take } from "./schema";
 import { project } from "@avd/prj/schema";
 
 export class StbValidationError extends Error {
@@ -180,6 +180,32 @@ export async function proposeShotPlan(db: Db, input: { projectId: string; princi
   });
 }
 
+// ---- Music brief (REQ-STB-010 / BR-STB-007 / docs/17 §1) ----
+
+export async function requestMusicBrief(db: Db, input: { projectId: string; principal: string }) {
+  const p = await getProjectOrThrow(db, input.projectId);
+  const script = await latestScript(db, input.projectId);
+  return enqueueGeneration(db, {
+    organizationId: p.organizationId,
+    projectId: p.id,
+    principal: input.principal,
+    kind: "music_brief",
+    commandId: uuidv7(),
+    target: { projectId: p.id },
+    textInput: {
+      projectTitle: p.title,
+      brief: (p.brief ?? {}) as Record<string, unknown>,
+      targetDurationSeconds: Number(p.targetDurationS),
+      scriptText: script?.content,
+    },
+  });
+}
+
+export async function getMusicBrief(db: Db, projectId: string) {
+  const [b] = await db.select().from(musicBrief).where(eq(musicBrief.projectId, projectId));
+  return b ?? null;
+}
+
 export interface PlannedShot {
   title: string;
   durationS: number;
@@ -225,6 +251,19 @@ export async function materializeGenerationOutput(db: Db, generationId: string) 
       generationId: g.id,
     });
     return { kind: "script" as const, id };
+  }
+  if (g.kind === "music_brief") {
+    const out = g.output as { text?: string } | null;
+    if (!out?.text) return null;
+    const id = uuidv7();
+    await db
+      .insert(musicBrief)
+      .values({ id, projectId: g.projectId, prompt: out.text, generationId: g.id })
+      .onConflictDoUpdate({
+        target: musicBrief.projectId,
+        set: { prompt: out.text, generationId: g.id, updatedAt: new Date() }, // replace, keep single row
+      });
+    return { kind: "music_brief" as const, id };
   }
   if (g.kind === "shot_plan") {
     const out = g.output as { shots?: PlannedShot[] } | null;

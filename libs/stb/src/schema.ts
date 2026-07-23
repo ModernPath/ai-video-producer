@@ -48,6 +48,15 @@ export const shotPlanProposal = stb.table("shot_plan_proposal", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const musicBrief = stb.table("music_brief", {
+  id: uuid("id").primaryKey(),
+  projectId: uuid("project_id").notNull().unique(),
+  prompt: text("prompt").notNull(),
+  generationId: uuid("generation_id"),
+  activeTrackAssetId: uuid("active_track_asset_id"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const take = stb.table("take", {
   id: uuid("id").primaryKey(),
   shotId: uuid("shot_id").notNull(),

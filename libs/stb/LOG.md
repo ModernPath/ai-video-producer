@@ -29,3 +29,8 @@
 **Deferred:** revise-with-instruction chat UX; diff apply with paid-work protection (REQ-STB-007).
 **Discovered:** server-action forms ignore clicks pre-hydration (bit us twice in browser tests) → BACKLOG (pending-state/disable until hydrated). Duplicate "Wake the City" project from an earlier double-submit → BACKLOG cleanup + idempotent create.
 **Gate:** full suite 28/28 green.
+
+## 2026-07-23 — STB slice 3: music brief (REQ-STB-010 → IN_REVIEW)
+**Done:** red-first — requestMusicBrief (GEN kind music_brief with script context), single-row-per-project upsert on materialize (regenerate replaces, provenance via generation_id), migration 0006; mock provider routes music_brief kind to a Suno-style fixture (style/mood/structure/length/context). Script page: MUSIC BRIEF card with generate/regenerate + handoff note. Browser-verified.
+**Deferred (explicit):** track attach + mix modes → needs REQ-AST-004 presigned uploads; editable brief text (BR-STB-007 edit arm) with it.
+**Gate:** 38/38 green.

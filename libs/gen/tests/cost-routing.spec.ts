@@ -9,7 +9,7 @@ describe("REQ-GEN-003: cost computation", () => {
     expect(computeCostUsd("take", { durationSeconds: 6.5 })).toBeCloseTo(0.65, 5);
   });
   it("prices draft frames from the image price table", () => {
-    expect(computeCostUsd("frame", { quality: "draft" })).toBeCloseTo(0.034 / 1000, 8);
+    expect(computeCostUsd("frame", { quality: "draft" })).toBeCloseTo(0.034, 5);
   });
   it("mock executions cost zero", () => {
     expect(computeCostUsd("take", { durationSeconds: 8, mock: true })).toBe(0);

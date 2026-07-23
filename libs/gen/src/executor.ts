@@ -61,7 +61,7 @@ async function processGenerationRow(
         model: next.modelId,
         prompt: snapshot.prompt,
         json: next.kind === "shot_plan",
-        meta: snapshot.input,
+        meta: { ...snapshot.input, kind: next.kind },
       });
       const output = res.json ? (res.json as Record<string, unknown>) : { text: res.text ?? "" };
       await db

@@ -65,7 +65,7 @@ describe("GEN provider path (stub-injected)", () => {
     const res = await runNextGeneration(db, { organizationId: orgId, provider: stub });
     expect(res?.status).toBe("succeeded");
     const [g] = await db.select().from(generation).where(eq(generation.id, id));
-    expect(Number(g!.costUsd)).toBeCloseTo(0.3 / 1000, 8); // standard image price, billed
+    expect(Number(g!.costUsd)).toBeCloseTo(0.067, 5); // standard image price, billed
     const [a] = await db.select().from(asset).where(eq(asset.id, g!.outputAssetIds![0]!));
     expect(a?.mime).toBe("image/png");
     const obj = await getObject(a!.storageKey);

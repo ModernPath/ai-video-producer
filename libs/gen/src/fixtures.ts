@@ -39,6 +39,16 @@ export function fixtureScript(i: { projectTitle: string; brief: Record<string, u
   ].join("\n");
 }
 
+export function fixtureMusicBrief(i: { projectTitle: string; brief: Record<string, unknown>; targetDurationSeconds: number }): string {
+  return [
+    `Style: cinematic electronic, driving pulse, dawn-light warmth. (mock)`,
+    `Mood: ${String(i.brief["tone"] ?? "uplifting, focused")} — builds to a confident drop, clean outro.`,
+    `Structure: intro riser -> groove -> peak at two-thirds -> hard button ending.`,
+    `Length: about ${i.targetDurationSeconds} seconds. Instrumental only, no vocals.`,
+    `Context: soundtrack for "${i.projectTitle}" — ${String(i.brief["idea"] ?? "brand video")}.`,
+  ].join("\n");
+}
+
 const beatTitles = ["Cold open", "The wake", "Momentum", "Close-up beat", "Crowd swell", "Hero reveal", "Logo out"];
 
 export function fixtureShotPlan(i: { projectTitle: string; targetDurationSeconds: number; minS: number; maxS: number }) {

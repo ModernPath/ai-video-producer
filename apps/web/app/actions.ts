@@ -178,3 +178,11 @@ export async function generateMissingFramesAction(formData: FormData) {
   await drainQueueAndMaterialize(genIds);
   revalidatePath(`/p/${projectId}`);
 }
+
+export async function musicBriefAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { requestMusicBrief } = await import("@avd/stb");
+  const genId = await requestMusicBrief(db(), { projectId, principal: PRINCIPAL });
+  await drainQueueAndMaterialize([genId]);
+  revalidatePath(`/p/${projectId}/script`);
+}
