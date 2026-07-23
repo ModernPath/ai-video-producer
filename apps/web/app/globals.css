@@ -33,3 +33,7 @@ a { color: inherit; text-decoration: none; }
 }
 .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .muted { color: var(--ink-2); }
+
+/* USER 2026-07-23: visible generating indicators */
+.gen-pulse { color: var(--accent); animation: gen-pulse 1.2s ease-in-out infinite; }
+@keyframes gen-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }

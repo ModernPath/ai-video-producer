@@ -308,6 +308,14 @@ export async function removeShotAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/** REQ-ASM-007: share a succeeded export via public token link. */
+export async function createShareLinkAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { createShareLink } = await import("@avd/asm");
+  await createShareLink(db(), { exportJobId: String(formData.get("exportJobId")) });
+  revalidatePath(`/p/${projectId}`);
+}
+
 /** REQ-STB-012: the project's video prompt (brief.idea) — drives script, plan, music, and styling. */
 export async function updateBriefAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));

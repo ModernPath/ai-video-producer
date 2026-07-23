@@ -1,7 +1,7 @@
 import { ZoomImage } from "../../../components/ZoomImage";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { config, priceTable, providerLimits } from "@avd/shared/config";
 import { project } from "@avd/prj/schema";
 import { generation } from "@avd/gen/schema";
@@ -9,9 +9,11 @@ import { exportJob } from "@avd/asm/schema";
 import { getMusicBrief, listCandidates, listShots } from "@avd/stb";
 import { assembleFramePrompt, assembleTakePrompt } from "@avd/gen";
 import { listEntities, listProjectEntities } from "@avd/ast";
+import { costMeterUsd } from "@avd/prj/service";
+import { shareLink } from "@avd/asm/schema";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  removeCandidateAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
+  createShareLinkAction, removeCandidateAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
 } from "../../actions";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
@@ -61,17 +63,26 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const candidatesByShot = new Map(
     await Promise.all(shots.map(async (s) => [s.id, await listCandidates(d, s.id)] as const))
   );
-  const costRows = await d
-    .select({ cost: sql<string>`coalesce(sum(${generation.costUsd}), 0)` })
-    .from(generation)
-    .where(eq(generation.projectId, id));
-  const cost = costRows[0]?.cost ?? "0";
+  const cost = await costMeterUsd(d, id); // INV-PRJ-004: succeeded+running only — failed/canceled don't count as spend
   const recentGens = await d
     .select()
     .from(generation)
     .where(eq(generation.projectId, id))
     .orderBy(desc(generation.createdAt))
     .limit(5);
+  const activeGens = await d
+    .select()
+    .from(generation)
+    .where(and(eq(generation.projectId, id), inArray(generation.status, ["queued", "running"])));
+  const activeByShot = new Map<string, { frame: number; take: number }>();
+  for (const g of activeGens) {
+    const shotId = (g.target as { shotId?: string }).shotId;
+    if (!shotId) continue;
+    const e = activeByShot.get(shotId) ?? { frame: 0, take: 0 };
+    if (g.kind === "frame" || g.kind === "image_edit") e.frame++;
+    if (g.kind === "take" || g.kind === "retake") e.take++;
+    activeByShot.set(shotId, e);
+  }
 
   const generated = shots.filter((s) => s.selectedTakeId).length;
   const music = await getMusicBrief(d, id);
@@ -85,6 +96,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     .orderBy(desc(exportJob.createdAt))
     .limit(5);
   const { storyboardSnapshot } = await import("@avd/asm/schema");
+  const shareRows = exports_.length
+    ? await d.select().from(shareLink).where(inArray(shareLink.exportJobId, exports_.map((e) => e.id)))
+    : [];
+  const shareByJob = new Map(shareRows.filter((r) => !r.revokedAt).map((r) => [r.exportJobId, r]));
   const snaps = exports_.length
     ? await d.select().from(storyboardSnapshot).where(inArray(storyboardSnapshot.id, exports_.map((e) => e.snapshotId)))
     : [];
@@ -188,7 +203,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               {(() => null)()}
               <div style={{ display: "flex", gap: 18, marginTop: 12, flexWrap: "wrap" }}>
                 <div>
-                  <p className="mono muted" style={{ fontSize: 10, marginBottom: 6 }}>START FRAME · candidates, pick 1 — only the selected frame is sent to the video model</p>
+                  <p className="mono muted" style={{ fontSize: 10, marginBottom: 6 }}>START FRAME · candidates, pick 1 — only the selected frame is sent to the video model{(activeByShot.get(s.id)?.frame ?? 0) > 0 && <span className="gen-pulse"> ● generating image…</span>}</p>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {cands.frames.map((f) => (
                       <div key={f.id} style={{ display: "grid", gap: 4, justifyItems: "start" }}>
@@ -219,7 +234,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 </div>
 
                 <div>
-                  <p className="mono muted" style={{ fontSize: 10, marginBottom: 6 }}>TAKES</p>
+                  <p className="mono muted" style={{ fontSize: 10, marginBottom: 6 }}>TAKES{(activeByShot.get(s.id)?.take ?? 0) > 0 && <span className="gen-pulse"> ● generating video…</span>}</p>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {cands.takes.map((t) => (
                       <div key={t.id} style={{ display: "grid", gap: 5, justifyItems: "start" }}>
@@ -334,9 +349,20 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 {e.status}{e.progressStage && e.status === "running" ? ` · ${e.progressStage}` : ""}
               </span>
               {e.status === "succeeded" && e.outputAssetId && (
-                <a href={`/api/assets/${e.outputAssetId}`} download="final.mp4" className="mono" style={{ color: "var(--accent)" }}>
-                  ⇓ download final.mp4
-                </a>
+                <>
+                  <a href={`/api/assets/${e.outputAssetId}`} download="final.mp4" className="mono" style={{ color: "var(--accent)" }}>
+                    ⇓ download final.mp4
+                  </a>
+                  {(() => { const link = shareByJob.get(e.id); return link ? (
+                    <a href={`/s/${link.token}`} target="_blank" className="mono" style={{ color: "var(--accent)" }}>⧉ open share link</a>
+                  ) : (
+                    <form action={createShareLinkAction}>
+                      <input type="hidden" name="projectId" value={id} />
+                      <input type="hidden" name="exportJobId" value={e.id} />
+                      <SubmitButton small pendingLabel="Creating…">⧉ share</SubmitButton>
+                    </form>
+                  ); })()}
+                </>
               )}
               {e.status === "failed" && (
                 <>
