@@ -2,7 +2,7 @@
  * Product configuration — versioned; the only home for thresholds and defaults
  * (root CLAUDE.md non-negotiable 4: configuration values are never literals).
  */
-import { providerLimits } from "./models.js";
+import { providerLimits } from "./models";
 
 export const config = {
   shot: {

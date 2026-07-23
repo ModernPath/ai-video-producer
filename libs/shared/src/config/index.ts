@@ -1,2 +1,2 @@
-export * from "./models.js";
-export * from "./limits.js";
+export * from "./models";
+export * from "./limits";

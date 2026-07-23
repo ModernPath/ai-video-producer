@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { config, modelRoutes, priceTable, providerLimits } from "../src/config/index.js";
+import { config, modelRoutes, priceTable, providerLimits } from "../src/config/index";
 
 describe("shared config invariants", () => {
   it("INV-STB-001: shot duration bounds fit inside the provider clip limit", () => {
