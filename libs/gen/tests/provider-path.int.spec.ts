@@ -76,7 +76,7 @@ describe("GEN provider path (stub-injected)", () => {
     const id = await enqueue("take");
     await runNextGeneration(db, { organizationId: orgId, provider: stub });
     const [g] = await db.select().from(generation).where(eq(generation.id, id));
-    expect(Number(g!.costUsd)).toBeCloseTo(0.65, 5);
+    expect(Number(g!.costUsd)).toBeCloseTo(0.975, 5);
     const [a] = await db.select().from(asset).where(eq(asset.id, g!.outputAssetIds![0]!));
     expect(Number(a?.durationS)).toBeCloseTo(6.5, 1);
   });

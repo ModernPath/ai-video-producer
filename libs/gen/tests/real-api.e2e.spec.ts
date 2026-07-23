@@ -156,7 +156,7 @@ describe.skipIf(!videoEnabled)("REAL API e2e: omni take (≈$0.40/run, 4s)", () 
     const result = await runNextGeneration(db, { organizationId: orgId, provider: createGeminiProvider() });
     const [g] = await db.select().from(generation).where(eq(generation.id, genId));
     if (result?.status !== "succeeded") throw new Error(`spike failed: ${g?.errorCode} ${g?.errorDetail}`);
-    expect(Number(g!.costUsd)).toBeCloseTo(0.4, 2);
+    expect(Number(g!.costUsd)).toBeCloseTo(0.6, 2); // 4s x $0.15 veo fast
     const [a] = await db.select().from(asset).where(eq(asset.id, g!.outputAssetIds![0]!));
     expect(a?.status).toBe("ready");
     expect(a?.mime).toContain("video");

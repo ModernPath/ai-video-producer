@@ -260,3 +260,11 @@ export async function editEntityRefAction(formData: FormData) {
   }
   revalidatePath("/library");
 }
+
+export async function setAudioModeAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const mode = String(formData.get("mode"));
+  if (!["native", "music", "mix"].includes(mode)) return;
+  await db().update(project).set({ audioMixMode: mode as "native" | "music" | "mix" }).where(eq(project.id, projectId));
+  revalidatePath(`/p/${projectId}`);
+}

@@ -9,7 +9,7 @@ import { getMusicBrief, listCandidates, listShots } from "@avd/stb";
 import { listEntities, listProjectEntities } from "@avd/ast";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  selectFrameAction, selectTakeAction, setCastAction,
+  selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction,
 } from "../../actions";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
@@ -108,6 +108,15 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <form action={generateMissingFramesAction}>
           <input type="hidden" name="projectId" value={id} />
           <SubmitButton pendingLabel="Generating frames…">＋ Missing frames</SubmitButton>
+        </form>
+        <form action={setAudioModeAction} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <input type="hidden" name="projectId" value={id} />
+          <select name="mode" defaultValue={p.audioMixMode} className="mono" style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: 7, padding: "5px 8px", color: "var(--ink)", fontSize: 11 }}>
+            <option value="native">audio: native</option>
+            <option value="music">audio: music</option>
+            <option value="mix">audio: mix</option>
+          </select>
+          <SubmitButton small pendingLabel="…">Set</SubmitButton>
         </form>
         <form action={exportAction}>
           <input type="hidden" name="projectId" value={id} />

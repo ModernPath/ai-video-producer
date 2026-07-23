@@ -12,5 +12,6 @@ export const project = prj.table("project", {
   aspectRatio: text("aspect_ratio", { enum: ["16:9", "9:16"] }).notNull(),
   targetDurationS: numeric("target_duration_s", { precision: 5, scale: 1 }).notNull(),
   brief: jsonb("brief").notNull().default({}),
+  audioMixMode: text("audio_mix_mode", { enum: ["native", "music", "mix"] }).notNull().default("native"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

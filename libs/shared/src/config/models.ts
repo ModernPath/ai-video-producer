@@ -43,7 +43,9 @@ export const modelRoutes: Record<Exclude<GenerationKind, "frame" | "image_edit">
 
 /** Provider price table (USD) — INV-GEN-003 cost recording derives from these. */
 export const priceTable = {
-  videoPerSecondUsd: 0.1, // gemini-omni-flash-preview, announcement 2026 (docs/00 §3)
+  // Veo 3.1 Fast (current take route): $0.15/s verified 2026-07-23 (was $0.10 Omni placeholder
+  // — a 50% under-record on real takes, caught by triage). Per-model price map when routes multiply.
+  videoPerSecondUsd: 0.15,
   // Per-image USD, verified 2026-07-23 (Google API pricing: ~$0.067 @1K standard,
   // $0.034 draft/batch tier, ~$0.15 high-res pro). Triage note: earlier draft mis-encoded
   // these as per-1000-images — a 1000x cost under-report. BACKLOG item closed.

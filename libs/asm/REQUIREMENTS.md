@@ -1,14 +1,14 @@
 # Requirements Ledger — ASM (Assembly & Export)
 
 ## Dashboard — ASM (Assembly & Export)
-Totals: 0 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 5 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 5 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-ASM-001 | Snapshot requires ready takes; immutable | P1 | IN_REVIEW | INV-ASM-001/002 | tests/export.int.spec.ts | src/service.ts |
 | REQ-ASM-002 | Export concatenates takes, no generation | P1 | IN_REVIEW | INV-ASM-003 | tests/export.int.spec.ts | src/service.ts |
 | REQ-ASM-003 | Export output downloadable as ready asset | P1 | IN_REVIEW | `docs/15` §5 | tests/export.int.spec.ts + browser E2E | src/service.ts, apps/web (exports UI) |
-| REQ-ASM-004 | Audio mix modes (native/music/mix) | P3 | PROPOSED | BR-ASM-001 | — | — |
+| REQ-ASM-004 | Audio mix modes (native/music/mix) at export | P3 | IN_REVIEW | BR-ASM-001/002 | tests/audio-mix.int.spec.ts + browser/ffprobe | src/service.ts (snapshot audio + mix pass) |
 | REQ-ASM-005 | Export presets + normalization | P3 | PROPOSED | BR-ASM-003, `docs/15` §6 | — | — |
 | REQ-ASM-006 | Failed exports retain error, retryable | P2 | PROPOSED | INV-ASM-004 | — | — |
 | REQ-ASM-007 | Share links (token, revocable) | P5 | PROPOSED | INV-ASM-005 | — | — |
@@ -52,4 +52,14 @@ Totals: 0 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 5 PROPOSED · 0 DEF
   - GIVEN a project with frames WHEN Animatic plays THEN frames advance per durations (browser evidence).
 - **Tests:** `tests/animatic.spec.ts` + browser E2E · **Code:** `src/animatic.ts`, `apps/web/components/AnimaticPlayer.tsx` · **Log:** LOG 2026-07-23 (slice 2)
 
-*(PROPOSED 004–008: statements in `docs/15-assembly-export.md`.)*
+### REQ-ASM-004 — Audio mix modes (native/music/mix) at export
+- **Status:** IN_REVIEW · **Stage:** P3 · **Priority:** must
+- **Source:** BR-ASM-001/002, `docs/17` §1 (completes the Suno round-trip)
+- **Statement:** Snapshots capture the project's audio config (mix mode + attached music track). Export honors it: `native` = take audio concat (current); `music` = takes' audio replaced by the music track (trimmed to cut length, fade-out); `mix` = music bed under native audio at the configured duck level. No generative calls (INV-ASM-003).
+- **Acceptance criteria:**
+  - GIVEN mode `music` with an attached track THEN the output MP4 has one audio stream and duration ≈ the video cut (ffprobe-verified).
+  - GIVEN mode `mix` THEN output contains both sources mixed (audio stream present; music attenuated per config.audio.duckDb).
+  - GIVEN mode `native` or no track THEN behavior unchanged.
+- **Tests:** `tests/audio-mix.int.spec.ts` (ffprobe codec/duration assertions) + browser E2E · **Code:** `src/service.ts`, migration 0009, audio selector UI · **Log:** LOG 2026-07-23 (slice 3)
+
+*(PROPOSED 005–008: statements in `docs/15-assembly-export.md`.)*

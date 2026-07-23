@@ -124,3 +124,9 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 **Done:** AI image editing (REQ-GEN-012 IN_REVIEW) — user requirement #2 functional: edit entity refs by instruction, lineage preserved, originals immutable; mock + real + browser evidence.
 **Recurring papercut (3rd occurrence):** pre-hydration submit drops on freshly compiled routes — inbox: consider next dev warmup or E2E retry helper; production build won't have per-route compile lag.
 **Next:** review sweep (28 IN_REVIEW) or remaining arms: per-shot entities, edit add-alongside, export mix modes.
+
+## 2026-07-23 — Build loop iteration 18 (triage + build)
+**Triage:** Veo pricing verified/corrected ($0.15/s — real takes were under-recorded 50%). Promoted+built REQ-ASM-004.
+**Done:** Audio mix modes at export — the Suno round-trip now reaches the final file (ffprobe: mp3 audio in downloaded export). False-green caught and hardened with codec assertions.
+**Inbox:** ref-based clicks unreliable on submit buttons (use coordinates/form_input in E2E) · music-mode -shortest trims to music length when takes exceed cut (mock 10s fixtures) — revisit with BR-ASM-003 normalization.
+**Next:** review sweep (29 IN_REVIEW) · REQ-ASM-005 normalization · per-shot entities.

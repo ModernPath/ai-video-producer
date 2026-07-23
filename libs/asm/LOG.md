@@ -25,3 +25,10 @@
 **Also:** SubmitButton (useFormStatus) replaces raw buttons on export/batch — pending labels, no double-submit; home hides archived; duplicate empty "Wake the City" archived.
 **Deferred:** music under animatic (needs music attach, REQ-ASM-004 arm); scrubbing.
 **Gate:** full suite 31/31 green (see commit).
+
+## 2026-07-23 — ASM slice 3: audio mix modes (REQ-ASM-004 → IN_REVIEW)
+**Done:** red-first (after catching my own false-green: initial assertions couldn't distinguish modes — strengthened to codec-level: native→aac, music→mp3 replace w/ fade, mix→aac amix duck). Snapshot captures audio config (mode from project, track from music brief, duck/fade from config); exporter second ffmpeg pass. Migration 0009 (prj.audio_mix_mode) + header selector UI. Browser: 5/5 takes selected, music mode set (form_input — native selects ignore synthetic arrow keys), exported; downloaded file ffprobe-verified mp3 audio (the Suno track).
+**Triage (same tick):** Veo 3.1 Fast is $0.15/s (was $0.10 placeholder — 50% under-record on real takes); price table + tests fixed red/green.
+**E2E learnings:** a11y ref-clicks on these submit buttons silently no-op — coordinate clicks or form_input are reliable; ffprobe-in-docker is a solid assertion tool.
+**Deferred:** per-shot native-audio overrides (OQ-103), music shorter-than-cut padding (BR-ASM-002 arm), presets/normalization (REQ-ASM-005).
+**Gate:** full suite green (see commit); browser+ffprobe evidence.

@@ -9,7 +9,9 @@ import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import { asset } from "@avd/ast/schema";
 import { getObject, putObject } from "@avd/ast/storage";
-import { shot, take } from "@avd/stb/schema";
+import { musicBrief, shot, take } from "@avd/stb/schema";
+import { project } from "@avd/prj/schema";
+import { config } from "@avd/shared/config";
 import { exportJob, storyboardSnapshot } from "./schema";
 
 const exec = promisify(execFile);
@@ -68,12 +70,23 @@ export async function createSnapshot(db: Db, input: { projectId: string; princip
     };
   });
 
+  const [proj] = await db.select().from(project).where(eq(project.id, input.projectId));
+  const [mb] = await db.select().from(musicBrief).where(eq(musicBrief.projectId, input.projectId));
+  const mixMode = proj?.audioMixMode ?? "native";
+  const audio = {
+    mixMode: mb?.activeTrackAssetId ? mixMode : "native", // no track -> native (BR-ASM-001)
+    musicAssetId: mb?.activeTrackAssetId ?? null,
+    duckDb: config.audio.duckDb,
+    fadeOutS: config.audio.fadeOutSeconds,
+  };
+
   const id = uuidv7();
   await db.insert(storyboardSnapshot).values({
     id,
     organizationId: shots[0]!.organizationId,
     projectId: input.projectId,
     items,
+    audio,
     createdBy: input.principal,
   });
   return id;
@@ -160,7 +173,36 @@ async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Pro
     }
 
     await db.update(exportJob).set({ progressStage: "concat" }).where(eq(exportJob.id, job.id));
-    await ffmpegConcat(dir, files, "final.mp4");
+    const audio = (snap!.audio ?? {}) as { mixMode?: string; musicAssetId?: string | null; duckDb?: number; fadeOutS?: number };
+    const needsMusic = (audio.mixMode === "music" || audio.mixMode === "mix") && audio.musicAssetId;
+    await ffmpegConcat(dir, files, needsMusic ? "base.mp4" : "final.mp4");
+
+    if (needsMusic) {
+      await db.update(exportJob).set({ progressStage: "mix" }).where(eq(exportJob.id, job.id));
+      const [musicAsset] = await db.select().from(asset).where(eq(asset.id, audio.musicAssetId!));
+      const music = await getObject(musicAsset!.storageKey);
+      writeFileSync(join(dir, "music.mp3"), Buffer.from(music.bytes));
+      const cutS = items.reduce((acc, i) => acc + i.durationS, 0);
+      const fade = audio.fadeOutS ?? 2;
+      const duckLinear = Math.pow(10, (audio.duckDb ?? -12) / 20);
+      const args =
+        audio.mixMode === "music"
+          ? [ // replace take audio with the track, fade out at the cut end (BR-ASM-001/002)
+              "-i", "/work/base.mp4", "-i", "/work/music.mp3",
+              "-map", "0:v", "-map", "1:a",
+              "-c:v", "copy", "-c:a", "libmp3lame",
+              "-af", `afade=t=out:st=${Math.max(0, cutS - fade)}:d=${fade}`,
+              "-shortest", "-movflags", "+faststart", "-y", "/work/final.mp4",
+            ]
+          : [ // mix: music bed ducked under native audio
+              "-i", "/work/base.mp4", "-i", "/work/music.mp3",
+              "-filter_complex", `[1:a]volume=${duckLinear.toFixed(3)}[m];[0:a][m]amix=inputs=2:duration=first:dropout_transition=0[a]`,
+              "-map", "0:v", "-map", "[a]",
+              "-c:v", "copy", "-c:a", "aac",
+              "-shortest", "-movflags", "+faststart", "-y", "/work/final.mp4",
+            ];
+      await exec("docker", ["run", "--rm", "-v", `${dir}:/work`, "jrottenberg/ffmpeg:6.1-alpine", ...args]);
+    }
 
     const outBytes = new Uint8Array(readFileSync(join(dir, "final.mp4")));
     const outAssetId = uuidv7();
