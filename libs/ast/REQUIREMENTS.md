@@ -1,7 +1,7 @@
 # Requirements Ledger — AST (Asset Library)
 
 ## Dashboard — AST (Asset Library)
-Totals: 0 DONE · 7 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -10,7 +10,7 @@ Totals: 0 DONE · 7 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEF
 | REQ-AST-003 | Assets served to UI via streaming route | P1 | IN_REVIEW | `docs/12` §5 | browser E2E (LOG 2026-07-23) | apps/web/app/api/assets/[id]/route.ts |
 | REQ-AST-004 | Uploads (presigned + direct) with validation | P3 | IN_REVIEW | INV-AST-005 | tests/uploads.int.spec.ts + browser E2E | src/uploads.ts |
 | REQ-AST-009 | Client-side image shrink + previews + any format | P1 | IN_REVIEW | USER BUG 2026-07-23 (1MB action limit) | browser E2E pending (extension dropped; user to retry) | components/ImagePicker.tsx, next.config, config.clientResize |
-| REQ-AST-005 | Derivatives (thumb/poster) on ready | P2 | PROPOSED | BR-AST-002 | — | — |
+| REQ-AST-005 | Derivatives (thumb/poster) on ready | P2 | IN_REVIEW | BR-AST-002 | tests/derivatives.int.spec.ts + browser E2E | migration 0016, src/derivatives.ts, executor+uploads hooks, ?thumb=1 route, UI |
 | REQ-AST-006 | Entity library: org entities, refs, project cast | P4 | IN_REVIEW | INV-AST-004/006, BR-AST-001/003 | tests/entities.int.spec.ts, ../stb/tests/cast.int.spec.ts + browser | src/entities.ts, apps/web (library, cast) |
 | REQ-AST-007 | Style kits org-scoped + project attachment | P4 | IN_REVIEW | INV-AST-006, BR-AST-001 | tests/style-kits.int.spec.ts + stb/tests/style-in-prompts + browser E2E | migration 0015, entities.ts, prj setProjectStyleKit, library + storyboard UI |
 | REQ-AST-008 | Soft-delete protection for referenced assets | P2 | PROPOSED | INV-AST-003 | — | — |
@@ -83,4 +83,16 @@ Totals: 0 DONE · 7 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEF
 - **Tests:** `tests/style-kits.int.spec.ts`, `libs/stb/tests/style-in-prompts.int.spec.ts`, browser E2E (create kit → select on project → style visible in auto scripts) · **Code:** migration 0015, `src/entities.ts` (createStyleKit/listStyleKits/projectStylePrompt), `libs/prj` setProjectStyleKit, library + storyboard UI · **Log:** LOG 2026-07-23
 - **Deferred / notes:** style reference images (kit refs feeding image gen) deferred until needed; custom user scripts intentionally NOT styled (verbatim rule).
 
-*(PROPOSED 005 + 008: statements in `docs/12-asset-library.md`; elaborate when promoted.)*
+### REQ-AST-005 — Derivatives (thumb/poster) on ready
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** should · **Owner:** —
+- **Raised-by:** promoted this slice — storyboard shipped ~1MB originals into 128px tiles
+- **Source:** BR-AST-002 (`docs/12`)
+- **Statement:** Every ready image/video asset gets a small JPEG derivative (downscaled thumb / first-frame poster) generated failure-tolerantly; the asset API serves it via `?thumb=1` with original fallback; UI thumbnails request derivatives while the lightbox loads originals.
+- **Acceptance criteria:**
+  - GIVEN a ready image asset WHEN derivative runs THEN a JPEG exists in storage and thumb_storage_key is set; idempotent on re-run.
+  - GIVEN `?thumb=1` THEN the derivative is served (original if absent); unsupported mimes skip silently.
+  - GIVEN the storyboard THEN tiles/chips load derivatives (measured 945KB → 21KB) and click-to-zoom loads the original.
+- **Tests:** `tests/derivatives.int.spec.ts` + browser/network E2E · **Code:** migration 0016, `src/derivatives.ts` (ffmpeg docker, ADR-007), executor + uploads hooks, asset route, page/ZoomImage · **Log:** LOG 2026-07-23
+- **Deferred / notes:** existing 12 dev assets backfilled; config.derivative in shared config.
+
+*(PROPOSED 008: statement in `docs/12-asset-library.md`; elaborate when promoted.)*

@@ -7,6 +7,7 @@ import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import { config } from "@avd/shared/config";
 import { asset, uploadSession } from "./schema";
+import { makeAssetThumb } from "./derivatives";
 import { assetKey, bucketName, putObject } from "./storage";
 
 export class AstValidationError extends Error {
@@ -98,6 +99,7 @@ export async function completeUpload(db: Db, sessionId: string): Promise<string>
     bytes: size,
   });
   await db.update(uploadSession).set({ status: "completed" }).where(eq(uploadSession.id, sessionId));
+  await makeAssetThumb(db, assetId); // REQ-AST-005
   return assetId;
 }
 
@@ -122,5 +124,6 @@ export async function uploadBytesDirect(
     mime: input.mime,
     bytes: input.bytes.byteLength,
   });
+  await makeAssetThumb(db, assetId); // REQ-AST-005
   return assetId;
 }

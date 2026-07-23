@@ -20,6 +20,7 @@ export const asset = ast.table("asset", {
   durationS: numeric("duration_s", { precision: 5, scale: 1 }),
   generationId: uuid("generation_id"),
   editOf: uuid("edit_of"),
+  thumbStorageKey: text("thumb_storage_key"), // REQ-AST-005
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });

@@ -1,5 +1,13 @@
 # Build Log — AST (Asset Library)
 
+## 2026-07-23 — REQ-AST-005 derivatives on ready (PROPOSED → IN_REVIEW)
+**Done:** red-first makeAssetThumb (ffmpeg docker; images downscale, videos poster-frame; failure-tolerant + idempotent; unsupported mimes skip); hooks at both ready points (gen executor, uploads); asset API ?thumb=1 with fallback; UI tiles/chips use thumbs, lightbox loads originals. Backfilled 12 existing dev assets. Measured: tile payload 945KB → 21KB.
+**Decisions:** derivative stored as sibling storage key + column (not a separate asset row) — simplest provenance-preserving cut; config.derivative {thumbWidth 320, jpegQuality 4}.
+**Deferred:** —
+**Discovered:** zsh doesn't word-split unquoted vars (backfill args); root scripts can't import drizzle directly (pnpm strict) — pass ids as args instead.
+**Follow-ups:** —
+**Gate:** full suite green (108 passed); browser + network verified.
+
 ## 2026-07-23 — REQ-AST-007 style kits (PROPOSED → IN_REVIEW)
 **Done:** org-level style kits (migration 0015: ast.style_kit + prj.project.style_kit_id): create/list in library UI, one selectable per project on the storyboard header; projectStylePrompt feeds stylePrompt in every auto frame/take prompt (STB wiring) and the page's auto-script placeholders show it. Browser E2E: created "Golden Hour Film", selected on Aurora, style text visible in both auto scripts. Closes USER original requirement #3 (styles retained across videos).
 **Decisions:** single kit per project (select-at-start model); custom scripts stay verbatim (never styled behind the user's back); AST reads prj.project read-only (allowed-reader), PRJ writes the attachment.

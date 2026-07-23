@@ -39,7 +39,7 @@ function Tile({ label, selected, assetId, video }: { label: string; selected: bo
       {video ? (
         <video src={`/api/assets/${assetId}`} muted playsInline preload="metadata" controls style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       ) : (
-        <ZoomImage src={`/api/assets/${assetId}`} alt={label} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <ZoomImage src={`/api/assets/${assetId}?thumb=1`} alt={label} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       )}
       <span className="mono" style={{ position: "absolute", left: 5, top: 5, fontSize: 9, background: "rgba(10,12,16,.8)", borderRadius: 4, padding: "1px 5px" }}>
         {label}
@@ -320,7 +320,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                         <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 5 }}>
                           <p className="mono muted" style={{ fontSize: 10 }}>IMAGE SCRIPT {s.imagePrompt ? "· custom" : "· auto"}</p>
                           {effectiveRefs.map((rid) => (
-                            <ZoomImage key={rid} src={`/api/assets/${rid}`} alt="reference image" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
+                            <ZoomImage key={rid} src={`/api/assets/${rid}?thumb=1`} alt="reference image" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
                           ))}
                         </div>
                         <textarea name="imagePrompt" rows={3} defaultValue={s.imagePrompt ?? ""} placeholder={autoImage}
@@ -331,10 +331,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                           <p className="mono muted" style={{ fontSize: 10 }}>VIDEO SCRIPT {s.videoPrompt ? "· custom" : "· auto"}</p>
                           {selFrame && (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <ZoomImage src={`/api/assets/${selFrame.imageAssetId}`} alt="start frame" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--accent)" }} />
+                            <ZoomImage src={`/api/assets/${selFrame.imageAssetId}?thumb=1`} alt="start frame" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--accent)" }} />
                           )}
                           {effectiveRefs.map((rid) => (
-                            <ZoomImage key={rid} src={`/api/assets/${rid}`} alt="reference image" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
+                            <ZoomImage key={rid} src={`/api/assets/${rid}?thumb=1`} alt="reference image" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
                           ))}
                         </div>
                         <textarea name="videoPrompt" rows={3} defaultValue={s.videoPrompt ?? ""} placeholder={autoVideo}
@@ -359,7 +359,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                           {cast.map((e) => e.refAssetIds.map((rid) => (
                             <label key={rid} style={{ display: "flex", gap: 5, alignItems: "center", fontSize: 10 }} className="mono muted">
                               <input type="checkbox" name="refAssetIds" value={rid} defaultChecked={(s.refAssetIds ?? castRefs).includes(rid)} />
-                              <ZoomImage src={`/api/assets/${rid}`} alt={`${e.name} ref`} style={{ width: 26, height: 26, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
+                              <ZoomImage src={`/api/assets/${rid}?thumb=1`} alt={`${e.name} ref`} style={{ width: 26, height: 26, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
                               {e.name}
                             </label>
                           )))}

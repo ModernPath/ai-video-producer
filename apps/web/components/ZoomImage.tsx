@@ -33,7 +33,7 @@ export function ZoomImage({ src, alt, style }: { src: string; alt: string; style
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={src} alt={alt} style={{ maxWidth: "94vw", maxHeight: "92vh", borderRadius: 10, border: "1px solid var(--line)", boxShadow: "0 24px 80px rgba(0,0,0,.6)" }} />
+          <img src={src.replace(/[?&]thumb=1/, "")} alt={alt} style={{ maxWidth: "94vw", maxHeight: "92vh", borderRadius: 10, border: "1px solid var(--line)", boxShadow: "0 24px 80px rgba(0,0,0,.6)" }} />
         </div>
       )}
     </>

@@ -6,6 +6,7 @@ import type { Db } from "@avd/shared/db";
 import { config, providerLimits } from "@avd/shared/config";
 import { asset } from "@avd/ast/schema";
 import { assetKey, getObject, putObject } from "@avd/ast/storage";
+import { makeAssetThumb } from "@avd/ast";
 import { computeCostUsd } from "./cost";
 import { defaultProvider, ProviderError, type GenProvider } from "./provider";
 import { generation } from "./schema";
@@ -180,6 +181,7 @@ async function processGenerationRow(
       generationId: next.id, // INV-GEN-002: new immutable asset per generation
       editOf: next.kind === "image_edit" ? snapshot.refs?.editSourceAssetId ?? null : null, // lineage
     });
+    await makeAssetThumb(db, assetId); // REQ-AST-005: derivative on ready (failure-tolerant)
 
     await db
       .update(generation)

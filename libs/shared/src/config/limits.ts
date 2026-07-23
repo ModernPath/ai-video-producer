@@ -14,6 +14,7 @@ export const config = {
     defaultSeconds: 6,
   },
   frame: { candidatesDefault: 2, candidatesMax: 4 },
+  derivative: { thumbWidth: 320, jpegQuality: 4 }, // BR-AST-002: ffmpeg -q:v scale (2 best .. 31 worst)
   entity: { maxRefs: providerLimits.image.entityConsistencyRefs }, // INV-AST-004
   gen: {
     maxConcurrentVideoPerOrg: 3, // BR-GEN-005
