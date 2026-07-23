@@ -14,7 +14,16 @@ export const config = {
   entity: { maxRefs: providerLimits.image.entityConsistencyRefs }, // INV-AST-004
   gen: { maxConcurrentVideoPerOrg: 3, retryAttempts: 3 }, // BR-GEN-005
   audio: { duckDb: -12, fadeOutSeconds: 2, lufsTarget: -14 }, // BR-ASM-001..003
-  asm: { maxConcurrentExportsPerOrg: 2 },
+  asm: {
+    maxConcurrentExportsPerOrg: 2,
+    // BR-ASM-003 output profile (per aspect ratio); bump to 1080p when real takes warrant
+    normalize: {
+      "16:9": { width: 1280, height: 720 },
+      "9:16": { width: 720, height: 1280 },
+      fps: 24,
+      audioHz: 48000,
+    },
+  },
   project: {
     defaultAspectRatio: "16:9" as const,
     defaultTargetDurationSeconds: 30,

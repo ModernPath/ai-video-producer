@@ -117,8 +117,8 @@ describe("ASM audio mix modes", () => {
     const info = await ffprobe(obj.bytes, join(workDir, "music"));
     expect(info.audioStreams).toBe(1);
     expect(info.audioCodecs).toEqual(["mp3"]); // audio replaced by the mp3 track (copy), not take AAC
-    expect(info.durationS).toBeGreaterThan(8);
-    expect(info.durationS).toBeLessThan(13); // must not stretch to the 30s music
+    expect(info.durationS).toBeGreaterThan(5.5);
+    expect(info.durationS).toBeLessThan(7); // trimmed to the 6s shot (REQ-ASM-005), not the 30s music
   }, 120_000);
 
   it("mix mode: audio present, export succeeds with ducked bed", async () => {

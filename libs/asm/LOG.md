@@ -32,3 +32,9 @@
 **E2E learnings:** a11y ref-clicks on these submit buttons silently no-op — coordinate clicks or form_input are reliable; ffprobe-in-docker is a solid assertion tool.
 **Deferred:** per-shot native-audio overrides (OQ-103), music shorter-than-cut padding (BR-ASM-002 arm), presets/normalization (REQ-ASM-005).
 **Gate:** full suite green (see commit); browser+ffprobe evidence.
+
+## 2026-07-23 — ASM slice 4: normalization + trim (REQ-ASM-005 → IN_REVIEW)
+**Done:** red-first — per-clip normalize pass before concat (scale+pad to config profile per aspect, fps, aac 48k) and trim to snapshot durationS (OQ-104 assembly-side policy). Fixes a real live bug: Aurora mixed a 720p real Veo take with 360p mocks — -c copy concat produced malformed streams. Test: heterogeneous 360p/720p sources → uniform 1280x720, 11s trim. Browser: full Aurora export → ffprobe 1280x720 h264, mp3 music audio, exactly 28.0s (sum of shot durations, was 36–50s untrimmed).
+**Ripple handled honestly:** music-mode test bounds updated — old bounds encoded the untrimmed behavior; trim is the spec'd policy.
+**Deferred:** loudness normalization (lufs target) → with presets; 1080p profile bump when warranted.
+**Gate:** 54 mock green (+4 real skipped).

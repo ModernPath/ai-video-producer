@@ -1,7 +1,7 @@
 # Requirements Ledger — ASM (Assembly & Export)
 
 ## Dashboard — ASM (Assembly & Export)
-Totals: 0 DONE · 5 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -9,7 +9,7 @@ Totals: 0 DONE · 5 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DEF
 | REQ-ASM-002 | Export concatenates takes, no generation | P1 | IN_REVIEW | INV-ASM-003 | tests/export.int.spec.ts | src/service.ts |
 | REQ-ASM-003 | Export output downloadable as ready asset | P1 | IN_REVIEW | `docs/15` §5 | tests/export.int.spec.ts + browser E2E | src/service.ts, apps/web (exports UI) |
 | REQ-ASM-004 | Audio mix modes (native/music/mix) at export | P3 | IN_REVIEW | BR-ASM-001/002 | tests/audio-mix.int.spec.ts + browser/ffprobe | src/service.ts (snapshot audio + mix pass) |
-| REQ-ASM-005 | Export presets + normalization | P3 | PROPOSED | BR-ASM-003, `docs/15` §6 | — | — |
+| REQ-ASM-005 | Take normalization at assembly (res/fps/trim) | P3 | IN_REVIEW | BR-ASM-003, OQ-104 trim policy | tests/normalize.int.spec.ts + browser/ffprobe | src/service.ts (normalize pass), config asm.normalize |
 | REQ-ASM-006 | Failed exports retain error, retryable | P2 | PROPOSED | INV-ASM-004 | — | — |
 | REQ-ASM-007 | Share links (token, revocable) | P5 | PROPOSED | INV-ASM-005 | — | — |
 | REQ-ASM-008 | Explicit exclusion of takeless shots | P2 | PROPOSED | INV-ASM-002 (exclusion arm) | — | — |
@@ -62,4 +62,14 @@ Totals: 0 DONE · 5 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DEF
   - GIVEN mode `native` or no track THEN behavior unchanged.
 - **Tests:** `tests/audio-mix.int.spec.ts` (ffprobe codec/duration assertions) + browser E2E · **Code:** `src/service.ts`, migration 0009, audio selector UI · **Log:** LOG 2026-07-23 (slice 3)
 
-*(PROPOSED 005–008: statements in `docs/15-assembly-export.md`.)*
+### REQ-ASM-005 — Take normalization at assembly (res/fps/trim)
+- **Status:** IN_REVIEW · **Stage:** P3 · **Priority:** must
+- **Source:** BR-ASM-003, OQ-104 (assembly-side trim policy)
+- **Statement:** Before concat, every take is normalized to the configured output profile (resolution by aspect ratio, fps, aac audio) and trimmed to its snapshot durationS. Heterogeneous sources (real Veo 720p + mock 360p, any length) concat into one clean stream; cut length = sum of shot durations.
+- **Acceptance criteria:**
+  - GIVEN takes of different resolutions/lengths THEN the export has one uniform video stream at the configured profile (ffprobe).
+  - GIVEN 10s source takes with snapshot durations [6,5] THEN output duration ≈ 11s (trim, not source length).
+  - Audio modes (REQ-ASM-004) still hold on top.
+- **Tests:** `tests/normalize.int.spec.ts` (mixed 360p/720p → uniform, trim) + browser/ffprobe (28.0s exact) · **Code:** `src/service.ts` normalize pass, `config.asm.normalize` · **Log:** LOG 2026-07-23 (slice 4)
+
+*(PROPOSED 006–008: statements in `docs/15-assembly-export.md`.)*

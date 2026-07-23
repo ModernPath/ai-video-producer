@@ -163,13 +163,31 @@ async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Pro
     const assets = await db.select().from(asset).where(inArray(asset.id, items.map((i) => i.videoAssetId)));
     const assetById = new Map(assets.map((a) => [a.id, a]));
 
+    const [projRow] = await db.select().from(project).where(eq(project.id, job.projectId));
+    const aspect = (projRow?.aspectRatio ?? "16:9") as "16:9" | "9:16";
+    const profile = config.asm.normalize[aspect];
+    const fps = config.asm.normalize.fps;
+    const audioHz = config.asm.normalize.audioHz;
+
     const files: string[] = [];
     for (const [i, item] of items.entries()) {
       const a = assetById.get(item.videoAssetId)!;
       const obj = await getObject(a.storageKey);
+      const raw = `raw-${String(i).padStart(3, "0")}.mp4`;
       const name = `clip-${String(i).padStart(3, "0")}.mp4`;
-      writeFileSync(join(dir, name), Buffer.from(obj.bytes)); // INV-ASM-003: assets in, no generation
+      writeFileSync(join(dir, raw), Buffer.from(obj.bytes)); // INV-ASM-003: assets in, no generation
+      // REQ-ASM-005 / BR-ASM-003: normalize to one profile and trim to the shot's duration (OQ-104 policy)
+      await exec("docker", [
+        "run", "--rm", "-v", `${dir}:/work`, "jrottenberg/ffmpeg:6.1-alpine",
+        "-i", `/work/${raw}`,
+        "-t", String(item.durationS),
+        "-vf", `scale=${profile.width}:${profile.height}:force_original_aspect_ratio=decrease,pad=${profile.width}:${profile.height}:(ow-iw)/2:(oh-ih)/2,fps=${fps}`,
+        "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
+        "-c:a", "aac", "-ar", String(audioHz), "-ac", "2",
+        "-movflags", "+faststart", "-y", `/work/${name}`,
+      ]);
       files.push(name);
+      await db.update(exportJob).set({ progressStage: `normalize ${i + 1}/${items.length}` }).where(eq(exportJob.id, job.id));
     }
 
     await db.update(exportJob).set({ progressStage: "concat" }).where(eq(exportJob.id, job.id));

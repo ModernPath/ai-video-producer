@@ -130,3 +130,7 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 **Done:** Audio mix modes at export — the Suno round-trip now reaches the final file (ffprobe: mp3 audio in downloaded export). False-green caught and hardened with codec assertions.
 **Inbox:** ref-based clicks unreliable on submit buttons (use coordinates/form_input in E2E) · music-mode -shortest trims to music length when takes exceed cut (mock 10s fixtures) — revisit with BR-ASM-003 normalization.
 **Next:** review sweep (29 IN_REVIEW) · REQ-ASM-005 normalization · per-shot entities.
+
+## 2026-07-23 — Build loop iteration 19
+**Done:** REQ-ASM-005 normalization + trim (IN_REVIEW) — mixed real/mock sources now export as one clean uniform stream at exact storyboard length (browser+ffprobe: 1280x720, 28.0s). Fixed a live mixed-resolution concat bug.
+**Next:** review sweep (30 IN_REVIEW) · REQ-ASM-006 retry / REQ-ASM-008 exclusions · per-shot entities · loudness pass.
