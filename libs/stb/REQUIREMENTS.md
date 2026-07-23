@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 12 IN_REVIEW · 0 IN_PROGRESS · 2 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 14 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,8 +15,8 @@ Totals: 0 DONE · 12 IN_REVIEW · 0 IN_PROGRESS · 2 READY · 3 PROPOSED · 0 DE
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
-| REQ-STB-016 | Per-shot reference images on the image script | P1 | READY | USER spec revisit 2026-07-23 (2d) | — | — |
-| REQ-STB-017 | First frames auto-offered on plan apply | P1 | READY | USER spec revisit 2026-07-23 (3) | — | — |
+| REQ-STB-016 | Per-shot reference images on the image script | P1 | IN_REVIEW | USER spec revisit 2026-07-23 (2d) | tests/shot-refs-and-first-frames.int.spec.ts | migration 0013, src/schema.ts, src/service.ts (updateShotRefs) |
+| REQ-STB-017 | First frames auto-offered on plan apply | P1 | IN_REVIEW | USER spec revisit 2026-07-23 (3) | tests/shot-refs-and-first-frames.int.spec.ts | src/service.ts (applyShotPlan), apps/web (applyPlanAction + script page) |
 | REQ-STB-015 | Generate from script + prose auto-prompts (no slop) | P1 | IN_REVIEW | USER FEEDBACK #2 2026-07-23 | tests (prompt prose + scripts) + browser (buttons live; user-driving) | prompt v2, saveScriptsAndGenerateAction |
 | REQ-STB-014 | Shot plan authors per-shot scripts (ready image prompts) | P1 | IN_REVIEW | USER 2026-07-23 directives combined | tests/plan-scripts.int.spec.ts | fixtures+prompt+applyShotPlan (browser pending w/ 015) |
 | REQ-STB-013 | Per-shot editable image & video scripts (visible refs) | P1 | IN_REVIEW | USER FEEDBACK 2026-07-23 | tests/shot-scripts.int.spec.ts + browser | src/service.ts, ../gen/src/prompt.ts, shot-card scripts UI |
@@ -68,14 +68,30 @@ Totals: 0 DONE · 12 IN_REVIEW · 0 IN_PROGRESS · 2 READY · 3 PROPOSED · 0 DE
 - **Tests:** `tests/script.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 2)
 
 ### REQ-STB-016 — Per-shot reference images on the image script
-- **Status:** READY · **Stage:** P1 · **Priority:** must
+- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
 - **Raised-by:** USER spec revisit 2026-07-23 ("every shot contains … possible reference images for image generation")
 - **Statement:** Each shot can select which reference images attach to ITS image generation (from cast refs + any project image), shown and toggleable on the image script; default = current whole-cast behavior.
+- **Acceptance criteria:**
+  - GIVEN a shot with no per-shot selection (NULL) WHEN a frame generates THEN the whole cast's ref images attach (unchanged default).
+  - GIVEN `updateShotRefs` with a subset WHEN a frame or take generates THEN only that subset attaches (snapshot `refAssetIds`); selected start-frame attachment on takes unchanged.
+  - GIVEN `updateShotRefs(null)` THEN behavior returns to the whole-cast default.
+  - GIVEN a non-ready or non-image asset id WHEN `updateShotRefs` THEN rejected `asset_not_ready`.
+- **Tests:** `tests/shot-refs-and-first-frames.int.spec.ts`
+- **Code:** migration `0013_shot_refs.sql`, `src/schema.ts` (shot.refAssetIds), `src/service.ts` (updateShotRefs, resolveShotRefs in requestFrame/requestTake)
+- **Log:** LOG 2026-07-23 (slice 7)
+- **Deferred / notes:** per-shot ref checkbox UI on the storyboard page lands separately (another agent integrates `apps/web/app/p/[id]/page.tsx`).
 
 ### REQ-STB-017 — First frames auto-offered on plan apply
-- **Status:** READY · **Stage:** P1 · **Priority:** must
+- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
 - **Raised-by:** USER spec revisit 2026-07-23 ("You can generate first set of images already with the image script")
 - **Statement:** Applying a shot plan offers one-click generation of the first frames from all authored image scripts (queue batch); user then reprompts individual scripts before making video.
+- **Acceptance criteria:**
+  - GIVEN a proposal WHEN `applyShotPlan` THEN it returns the created shot ids in proposal order.
+  - GIVEN the script page WHEN "Apply + first frames" is submitted (form field `generateFrames=1`) THEN the plan applies AND a start-frame generation is requested for every created shot and dispatched via the queue/inline drain.
+  - GIVEN plain "Apply N shots" THEN behavior is unchanged (no generations).
+- **Tests:** `tests/shot-refs-and-first-frames.int.spec.ts`
+- **Code:** `src/service.ts` (applyShotPlan → `Promise<string[]>`), `apps/web/app/actions.ts` (applyPlanAction generateFrames arm), `apps/web/app/p/[id]/script/page.tsx` (two submit buttons)
+- **Log:** LOG 2026-07-23 (slice 7)
 
 ### REQ-STB-015 — Generate from script + prose auto-prompts
 - **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must

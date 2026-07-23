@@ -1,5 +1,5 @@
 // REQ-STB-001..004 + golden-thread frame/take requests (STB decides, GEN executes).
-import { and, asc, eq, isNull, max } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, max } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import { config } from "@avd/shared/config";
@@ -88,6 +88,11 @@ async function resolveCast(db: Db, projectId: string) {
   };
 }
 
+/** REQ-STB-016: per-shot ref selection wins; null falls back to the whole-cast default. */
+function resolveShotRefs(shotRefAssetIds: string[] | null, castRefAssetIds: string[]): string[] {
+  return shotRefAssetIds ?? castRefAssetIds;
+}
+
 /** Requests a start/end frame generation; materializes the candidate on completion event/return. */
 export async function requestFrame(
   db: Db,
@@ -96,6 +101,7 @@ export async function requestFrame(
   const s = await getShotOrThrow(db, input.shotId);
   const d = s.direction as DirectionJson;
   const cast = await resolveCast(db, s.projectId);
+  const refAssetIds = resolveShotRefs(s.refAssetIds, cast.entityRefAssetIds); // REQ-STB-016
   return enqueueGeneration(db, {
     organizationId: s.organizationId,
     projectId: s.projectId,
@@ -103,7 +109,7 @@ export async function requestFrame(
     kind: "frame",
     commandId: uuidv7(),
     target: { shotId: s.id, slot: input.slot },
-    refs: cast.entityRefAssetIds.length ? { entityRefAssetIds: cast.entityRefAssetIds } : undefined,
+    refs: refAssetIds.length ? { entityRefAssetIds: refAssetIds } : undefined,
     promptInput: {
       aspectRatio: input.aspectRatio,
       durationSeconds: Number(s.durationS),
@@ -125,12 +131,13 @@ export async function requestTake(
   const d = s.direction as DirectionJson;
   // REQ-GEN-009: attach the selected start frame for image conditioning (BR-STB-002).
   const cast = await resolveCast(db, s.projectId);
+  const refAssetIds = resolveShotRefs(s.refAssetIds, cast.entityRefAssetIds); // REQ-STB-016
   let refs: { startFrameAssetId?: string; entityRefAssetIds?: string[] } | undefined;
   if (s.selectedStartFrameId) {
     const [fc] = await db.select().from(frameCandidate).where(eq(frameCandidate.id, s.selectedStartFrameId));
     if (fc) refs = { startFrameAssetId: fc.imageAssetId };
   }
-  if (cast.entityRefAssetIds.length) refs = { ...(refs ?? {}), entityRefAssetIds: cast.entityRefAssetIds };
+  if (refAssetIds.length) refs = { ...(refs ?? {}), entityRefAssetIds: refAssetIds };
   return enqueueGeneration(db, {
     organizationId: s.organizationId,
     projectId: s.projectId,
@@ -253,13 +260,17 @@ export interface PlannedShot {
   videoPrompt?: string | undefined;
 }
 
-/** MVP: additive apply. Update/remove arms with paid-work protection land with REQ-STB-007. */
-export async function applyShotPlan(db: Db, input: { proposalId: string; principal: string }) {
+/**
+ * MVP: additive apply. Update/remove arms with paid-work protection land with REQ-STB-007.
+ * Returns created shot ids in proposal order (REQ-STB-017: one-gesture first frames).
+ */
+export async function applyShotPlan(db: Db, input: { proposalId: string; principal: string }): Promise<string[]> {
   const [proposal] = await db.select().from(shotPlanProposal).where(eq(shotPlanProposal.id, input.proposalId));
   if (!proposal) throw new StbValidationError("not_found", "Proposal not found");
   if (proposal.status !== "proposed") throw new StbValidationError("conflict", "Proposal already resolved");
   const [p] = await db.select().from(project).where(eq(project.id, proposal.projectId));
   const shots = proposal.changes as PlannedShot[];
+  const createdShotIds: string[] = [];
   for (const s of shots) {
     const shotId = await createShot(db, {
       organizationId: p!.organizationId,
@@ -271,8 +282,10 @@ export async function applyShotPlan(db: Db, input: { proposalId: string; princip
     if (s.imagePrompt || s.videoPrompt) {
       await updateShotScripts(db, { shotId, imagePrompt: s.imagePrompt ?? null, videoPrompt: s.videoPrompt ?? null }); // REQ-STB-014
     }
+    createdShotIds.push(shotId);
   }
   await db.update(shotPlanProposal).set({ status: "applied" }).where(eq(shotPlanProposal.id, input.proposalId));
+  return createdShotIds;
 }
 
 /** STB consumer for gen.GenerationCompleted — materializes candidates (docs/41 choreography). */
@@ -380,6 +393,27 @@ export async function updateShotScripts(
   if (input.imagePrompt !== undefined) patch.imagePrompt = input.imagePrompt?.trim() || null;
   if (input.videoPrompt !== undefined) patch.videoPrompt = input.videoPrompt?.trim() || null;
   if (Object.keys(patch).length) await db.update(shot).set(patch).where(eq(shot.id, input.shotId));
+}
+
+// ---- Per-shot reference images (REQ-STB-016) ----
+
+/** Sets which reference images attach to this shot's generations; null clears back to the whole-cast default. */
+export async function updateShotRefs(
+  db: Db,
+  input: { shotId: string; refAssetIds: string[] | null }
+): Promise<void> {
+  await getShotOrThrow(db, input.shotId);
+  if (input.refAssetIds !== null && input.refAssetIds.length) {
+    const rows = await db.select().from(asset).where(inArray(asset.id, input.refAssetIds));
+    const byId = new Map(rows.map((a) => [a.id, a]));
+    for (const id of input.refAssetIds) {
+      const a = byId.get(id);
+      if (!a || a.kind !== "image" || a.status !== "ready") {
+        throw new StbValidationError("asset_not_ready", "Shot reference images must be ready image assets"); // REQ-STB-016
+      }
+    }
+  }
+  await db.update(shot).set({ refAssetIds: input.refAssetIds }).where(eq(shot.id, input.shotId));
 }
 
 // ---- Candidate removal (REQ-STB-009 / POL-STB-002/003) ----

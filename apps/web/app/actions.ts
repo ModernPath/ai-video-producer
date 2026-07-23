@@ -162,7 +162,18 @@ export async function proposePlanAction(formData: FormData) {
 export async function applyPlanAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));
   const { applyShotPlan } = await import("@avd/stb");
-  await applyShotPlan(db(), { proposalId: String(formData.get("proposalId")), principal: PRINCIPAL });
+  const shotIds = await applyShotPlan(db(), { proposalId: String(formData.get("proposalId")), principal: PRINCIPAL });
+  // REQ-STB-017: one gesture — apply the plan AND generate first frames from the authored image scripts.
+  if (formData.get("generateFrames") === "1") {
+    const [p] = await db().select().from(project).where(eq(project.id, projectId));
+    if (p) {
+      const genIds: string[] = [];
+      for (const shotId of shotIds) {
+        genIds.push(await requestFrame(db(), { shotId, slot: "start", principal: PRINCIPAL, aspectRatio: p.aspectRatio }));
+      }
+      await drainQueueAndMaterialize(genIds);
+    }
+  }
   revalidatePath(`/p/${projectId}`);
   redirect(`/p/${projectId}`);
 }
