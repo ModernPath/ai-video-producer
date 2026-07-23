@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull } from "drizzle-orm";
+import { asset } from "@avd/ast/schema";
 import { v7 as uuidv7 } from "uuid";
 import { project } from "@avd/prj/schema";
 import { archiveProjectAction, createProjectAction, unarchiveProjectAction } from "./actions";
@@ -15,6 +16,17 @@ export default async function Home() {
     .where(eq(project.status, "active"))
     .orderBy(desc(project.createdAt))
     .limit(50);
+  // poster per project: newest ready image (thumb served via ?thumb=1)
+  const posterRows = projects.length
+    ? await db()
+        .select({ id: asset.id, projectId: asset.projectId, createdAt: asset.createdAt })
+        .from(asset)
+        .where(and(inArray(asset.projectId, projects.map((p) => p.id)), eq(asset.kind, "image"), eq(asset.status, "ready"), isNull(asset.deletedAt)))
+        .orderBy(desc(asset.createdAt))
+    : [];
+  const posters = new Map<string, string>();
+  for (const r of posterRows) if (r.projectId && !posters.has(r.projectId)) posters.set(r.projectId, r.id);
+
   const archived = await db()
     .select()
     .from(project)
@@ -54,12 +66,22 @@ export default async function Home() {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14, marginTop: 28 }}>
         {projects.map((p) => (
-          <div key={p.id} style={{ border: "1px solid var(--line)", background: "var(--panel)", borderRadius: 10, padding: 16, position: "relative" }}>
+          <div key={p.id} style={{ border: "1px solid var(--line)", background: "var(--panel)", borderRadius: 10, overflow: "hidden", position: "relative" }}>
             <Link href={`/p/${p.id}`}>
-              <p style={{ fontWeight: 600 }}>{p.title}</p>
-              <p className="mono muted" style={{ fontSize: 11, marginTop: 6 }}>
-                {p.aspectRatio} · target {p.targetDurationS}s · {p.status}
-              </p>
+              {posters.has(p.id) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={`/api/assets/${posters.get(p.id)}?thumb=1`} alt="" style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block", borderBottom: "1px solid var(--line)" }} />
+              ) : (
+                <div style={{ width: "100%", aspectRatio: "16/9", background: "var(--stage)", display: "grid", placeItems: "center", borderBottom: "1px solid var(--line)" }}>
+                  <span className="mono muted" style={{ fontSize: 10 }}>no frames yet</span>
+                </div>
+              )}
+              <div style={{ padding: "12px 16px 14px" }}>
+                <p style={{ fontWeight: 600 }}>{p.title}</p>
+                <p className="mono muted" style={{ fontSize: 11, marginTop: 6 }}>
+                  {p.aspectRatio} · target {p.targetDurationS}s · {p.status}
+                </p>
+              </div>
             </Link>
             <form action={archiveProjectAction} style={{ position: "absolute", right: 10, top: 10 }}>
               <input type="hidden" name="projectId" value={p.id} />

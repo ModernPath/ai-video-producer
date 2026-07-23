@@ -1,5 +1,11 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 37: projects home is a gallery
+**Done:** project cards now lead with a 16:9 poster — each project's newest ready image served as a ~20KB thumbnail (?thumb=1, REQ-AST-005 derivatives paying off), honest "no frames yet" placeholder otherwise. Browser-verified: Pasi testaa and Aurora show real posters; layout holds.
+**Decisions:** poster = newest ready image (simple, self-updating as work progresses).
+**Deferred:** — **Discovered:** — **Follow-ups:** —
+**Gate:** suite green (133); home 200.
+
 ## 2026-07-23 — slice 36: browser QA sweep of all post-flake controls
 **Done:** systematic storyboard sweep — inventory confirmed present and correctly priced: captions select (off/lyrics/dialogue), style select (Golden Hour selected), audio select, directing-era budget meter (today $10.95/$20.00 with raised cap), reorder ↑↓, remove cut, 2-frames $0.13, per-duration take prices ($0.60/6s, $0.80/8s), template select (title/kinetic) + animate + retake/overlay inputs on every card, style-infused auto-script placeholders. ANIMATIC exercised for the first time in-browser: full-screen playback with cue progress (5.7s/17s), per-shot titles, honest "skipped (no frame)" listing, music playing; opened via the documented space shortcut (pointer clicks flaked extension-side — component verified correct).
 **Decisions:** no app defects found — sweep closes the verification debt from the click-flake sessions.
