@@ -98,3 +98,8 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 - Kept: per-suite DB isolation (chore), idempotent createProject (next), SSE outbox upgrade (later).
 **Done:** Music brief slice browser-verified (Suno prompt card on script page).
 **Next:** REQ-AST-004 presigned uploads (unblocks music attach + entity refs) or idempotent createProject; review queue 24 IN_REVIEW.
+
+## 2026-07-23 — Build loop iteration 13
+**Done:** REQ-AST-004 uploads (presigned+direct) IN_REVIEW; music track attach + animatic audio — Suno round-trip complete in browser. **Real-API E2E ring live** (user key): pnpm test:real 2/2 green (~$0.04/run); DoD §9.8 added.
+**Unblocked:** Omni video spike (OQ-101/102/104) — run next tick with real key (~$0.40–1.00, covered by user's e2e mandate).
+**Next:** Omni real video adapter spike → real take E2E; then idempotent createProject.

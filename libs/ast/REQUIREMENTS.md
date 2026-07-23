@@ -1,14 +1,14 @@
 # Requirements Ledger — AST (Asset Library)
 
 ## Dashboard — AST (Asset Library)
-Totals: 0 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 5 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-AST-001 | Object storage put/get round-trip | P1 | IN_REVIEW | INV-AST-002 | tests/storage.int.spec.ts | src/storage.ts |
 | REQ-AST-002 | Generated assets carry real validated bytes | P1 | IN_REVIEW | INV-AST-002 | tests/generated-bytes.int.spec.ts | ../gen/src/executor.ts, ../gen/src/fixtures.ts |
 | REQ-AST-003 | Assets served to UI via streaming route | P1 | IN_REVIEW | `docs/12` §5 | browser E2E (LOG 2026-07-23) | apps/web/app/api/assets/[id]/route.ts |
-| REQ-AST-004 | Upload sessions (presigned) with validation | P3 | PROPOSED | INV-AST-005 | — | — |
+| REQ-AST-004 | Uploads (presigned + direct) with validation | P3 | IN_REVIEW | INV-AST-005 | tests/uploads.int.spec.ts + browser E2E | src/uploads.ts |
 | REQ-AST-005 | Derivatives (thumb/poster) on ready | P2 | PROPOSED | BR-AST-002 | — | — |
 | REQ-AST-006 | Entities org-scoped, 1–5 refs | P4 | PROPOSED | INV-AST-004/006 | — | — |
 | REQ-AST-007 | Style kits org-scoped + project attachment | P4 | PROPOSED | INV-AST-006, BR-AST-001 | — | — |
@@ -41,4 +41,14 @@ Totals: 0 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 5 PROPOSED · 0 DEF
   - GIVEN a ready asset THEN the route returns 200 + bytes + mime; unknown id → 404.
 - **Tests:** see dashboard row · **Code:** see dashboard row · **Log:** LOG 2026-07-23 (slice 1)
 
-*(PROPOSED 004–008: statements in `docs/12-asset-library.md`; elaborate when promoted.)*
+### REQ-AST-004 — Uploads (presigned + direct) with validation
+- **Status:** IN_REVIEW · **Stage:** P3 · **Priority:** must
+- **Source:** INV-AST-005, `docs/12` §2/§4
+- **Statement:** Uploads validate mime allowlist + size caps from config before any asset becomes `ready`. Two paths share one core: presigned PUT sessions (browser→storage, prod path) and direct server-side bytes (dev/simple path). Media probe (duration/dimensions) deferred to derivatives slice (REQ-AST-005).
+- **Acceptance criteria:**
+  - GIVEN a disallowed mime or oversize payload THEN session creation is rejected `validation_failed`.
+  - GIVEN a presigned session WHEN bytes are PUT to the URL and the session completed THEN a ready asset exists with matching byte size.
+  - GIVEN direct bytes THEN a ready asset exists (browser evidence: attach a music track).
+- **Tests:** `tests/uploads.int.spec.ts` + browser E2E (track attach) · **Code:** `src/uploads.ts`, migration 0007 · **Log:** LOG 2026-07-23 (slice 2)
+
+*(PROPOSED 005–008: statements in `docs/12-asset-library.md`; elaborate when promoted.)*

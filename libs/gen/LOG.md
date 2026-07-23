@@ -40,3 +40,8 @@
 **Done:** red-first activity fingerprint (libs/prj/activity — cross-context read model per docs/02 §5) covering generations, shots, selections, candidates, exports, scripts, proposals; SSE route (events: hello/changed + keepalives, abort cleanup) polling the fingerprint at 1.5s; LiveRefresh client (EventSource → router.refresh, live/reconnecting indicator) on storyboard + script pages. Browser-verified: queued take appeared with zero manual reloads; ● live indicator green.
 **Deferred (explicit):** poll-bridge → outbox push when event volume warrants (the SSE contract to the client stays identical). Recorded here per non-negotiable 2.
 **Gate:** 37/37 green.
+
+## 2026-07-23 — Real-API E2E ring established (user-provided GEMINI_API_KEY)
+**Done:** `pnpm test:real` (RUN_REAL_API=1, key from .env, never logged): real gemini-3.6-flash text + real Nano Banana draft image through the full pipeline (provider → storage → ready asset → billed cost). 2/2 green, ≈$0.04 spent. DoD updated: root CLAUDE.md §9.8 requires this ring for provider-facing requirements; docs/82 §6 updated.
+**Next:** Omni video real E2E = the OQ-101/102/104 spike (user's key now covers it; ~$0.40–1.00).
+**Gate:** real ring 2/2 green.

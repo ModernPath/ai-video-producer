@@ -5,7 +5,7 @@ import { config } from "@avd/shared/config";
 import { project } from "@avd/prj/schema";
 import { generation } from "@avd/gen/schema";
 import { exportJob } from "@avd/asm/schema";
-import { listCandidates, listShots } from "@avd/stb";
+import { getMusicBrief, listCandidates, listShots } from "@avd/stb";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
   selectFrameAction, selectTakeAction,
@@ -71,6 +71,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     .limit(5);
 
   const generated = shots.filter((s) => s.selectedTakeId).length;
+  const music = await getMusicBrief(d, id);
   const exports_ = await d
     .select()
     .from(exportJob)
@@ -98,6 +99,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             const frame = cands.frames.find((f) => f.id === s.selectedStartFrameId) ?? cands.frames[0];
             return { id: s.id, durationS: Number(s.durationS), frameAssetId: frame?.imageAssetId ?? null, title: s.title };
           })}
+          musicAssetId={music?.activeTrackAssetId}
         />
         <form action={generateMissingFramesAction}>
           <input type="hidden" name="projectId" value={id} />

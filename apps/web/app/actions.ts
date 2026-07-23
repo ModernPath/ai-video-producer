@@ -186,3 +186,22 @@ export async function musicBriefAction(formData: FormData) {
   await drainQueueAndMaterialize([genId]);
   revalidatePath(`/p/${projectId}/script`);
 }
+
+export async function uploadTrackAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const file = formData.get("track") as File | null;
+  if (!file || file.size === 0) return;
+  const [p] = await db().select().from(project).where(eq(project.id, projectId));
+  if (!p) return;
+  const { uploadBytesDirect } = await import("@avd/ast");
+  const { attachMusicTrack } = await import("@avd/stb");
+  const assetId = await uploadBytesDirect(db(), {
+    organizationId: p.organizationId,
+    projectId,
+    kind: "audio",
+    mime: file.type || "audio/mpeg",
+    bytes: new Uint8Array(await file.arrayBuffer()),
+  });
+  await attachMusicTrack(db(), { projectId, assetId });
+  revalidatePath(`/p/${projectId}/script`);
+}

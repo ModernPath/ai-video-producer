@@ -285,6 +285,7 @@ A ledger requirement is **`DONE`** only when **all** hold:
 5. Human sign-off where business logic requires it.
 6. Ledger updated, `LOG.md` entry written, deferrals recorded.
 7. **Status in all three ledger places** (§5).
+8. **Provider-facing requirements:** the real-API E2E ring passes (`pnpm test:real` — `RUN_REAL_API=1` with `GEMINI_API_KEY` from `.env`) within its per-run budget cap (keep ≈ $0.05/run for images/text; video E2E per approved spike budget).
 
 Epic / UR completion additionally requires §5B gates and human approval on the parent epic.
 

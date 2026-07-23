@@ -61,4 +61,4 @@ All duration bounds, candidate counts, concurrency caps, cost rates in the same 
 
 ## 6. CI
 
-Rings: unit + contract (every PR, mocked) → integration (Testcontainers) → E2E (Playwright, `MOCK_GEN`) → nightly real-API smoke with budget cap.
+Rings: unit + contract (every PR, mocked) → integration (Testcontainers) → E2E (Playwright, `MOCK_GEN`) → **real-API E2E** (`pnpm test:real`, RUN_REAL_API=1 + GEMINI_API_KEY, ≈$0.05/run budget — required for provider-facing DONE, root CLAUDE.md §9.8).

@@ -17,6 +17,7 @@
     "@avd/plt": "workspace:*",
     "@avd/prj": "workspace:*",
     "@avd/gen": "workspace:*",
-    "uuid": "^11.0.0"
+    "uuid": "^11.0.0",
+    "@aws-sdk/s3-request-presigner": "^3.700.0"
   }
 }

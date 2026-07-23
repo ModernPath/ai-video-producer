@@ -23,3 +23,16 @@ export const asset = ast.table("asset", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });
+
+export const uploadSession = ast.table("upload_session", {
+  id: uuid("id").primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  projectId: uuid("project_id"),
+  kind: text("kind", { enum: ["image", "audio"] }).notNull(),
+  mime: text("mime").notNull(),
+  declaredBytes: integer("declared_bytes").notNull(),
+  storageKey: text("storage_key").notNull(),
+  status: text("status", { enum: ["pending", "completed", "expired"] }).notNull().default("pending"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});

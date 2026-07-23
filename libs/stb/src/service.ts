@@ -206,6 +206,16 @@ export async function getMusicBrief(db: Db, projectId: string) {
   return b ?? null;
 }
 
+export async function attachMusicTrack(db: Db, input: { projectId: string; assetId: string }) {
+  const [a] = await db.select().from(asset).where(eq(asset.id, input.assetId));
+  if (a?.status !== "ready" || a.kind !== "audio") {
+    throw new StbValidationError("asset_not_ready", "Music track must be a ready audio asset");
+  }
+  const [b] = await db.select().from(musicBrief).where(eq(musicBrief.projectId, input.projectId));
+  if (!b) throw new StbValidationError("not_found", "Generate a music brief before attaching a track");
+  await db.update(musicBrief).set({ activeTrackAssetId: input.assetId, updatedAt: new Date() }).where(eq(musicBrief.id, b.id));
+}
+
 export interface PlannedShot {
   title: string;
   durationS: number;

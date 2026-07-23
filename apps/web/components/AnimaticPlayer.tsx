@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { buildCues, cueAtTime, type AnimaticShot } from "@avd/asm/animatic";
 
-export function AnimaticPlayer({ shots }: { shots: AnimaticShot[] }) {
+export function AnimaticPlayer({ shots, musicAssetId }: { shots: AnimaticShot[]; musicAssetId?: string | null }) {
   const [open, setOpen] = useState(false);
   const [t, setT] = useState(0);
   const raf = useRef<number | null>(null);
@@ -11,9 +11,15 @@ export function AnimaticPlayer({ shots }: { shots: AnimaticShot[] }) {
   const cues = buildCues(shots);
   const cue = cueAtTime(cues, t);
 
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   useEffect(() => {
     if (!open) return;
     startedAt.current = performance.now();
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      void audioRef.current.play().catch(() => {});
+    }
     const tick = (now: number) => {
       const elapsed = (now - startedAt.current) / 1000;
       setT(elapsed);
@@ -22,6 +28,7 @@ export function AnimaticPlayer({ shots }: { shots: AnimaticShot[] }) {
     raf.current = requestAnimationFrame(tick);
     return () => {
       if (raf.current) cancelAnimationFrame(raf.current);
+      audioRef.current?.pause();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -51,6 +58,7 @@ export function AnimaticPlayer({ shots }: { shots: AnimaticShot[] }) {
         ▶ Animatic <span className="mono" style={{ fontWeight: 400, color: "var(--ink-2)" }}>{cues.total.toFixed(0)}s</span>
       </button>
 
+      {open && musicAssetId && <audio ref={audioRef} src={`/api/assets/${musicAssetId}`} />}
       {open && (
         <div
           onClick={() => setOpen(false)}

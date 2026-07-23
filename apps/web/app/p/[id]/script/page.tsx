@@ -4,7 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { project } from "@avd/prj/schema";
 import { scriptVersion, shotPlanProposal } from "@avd/stb/schema";
 import { getMusicBrief } from "@avd/stb";
-import { applyPlanAction, draftScriptAction, musicBriefAction, proposePlanAction } from "../../../actions";
+import { applyPlanAction, draftScriptAction, musicBriefAction, proposePlanAction, uploadTrackAction } from "../../../actions";
 import { LiveRefresh } from "../../../../components/LiveRefresh";
 import { db } from "../../../../lib/db";
 
@@ -108,9 +108,21 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
             <pre style={{ whiteSpace: "pre-wrap", fontFamily: "var(--mono)", fontSize: 12, lineHeight: 1.7, marginTop: 10, background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 8, padding: 12 }}>
               {music.prompt}
             </pre>
-            <p className="muted" style={{ fontSize: 11, marginTop: 8 }}>
-              Copy this prompt into Suno, generate the track, then attach the audio here (upload lands with the library slice).
-            </p>
+            <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 10, flexWrap: "wrap" }}>
+              {music.activeTrackAssetId ? (
+                <>
+                  <span className="mono" style={{ fontSize: 11, color: "var(--ok)" }}>track attached ✓</span>
+                  <audio controls src={`/api/assets/${music.activeTrackAssetId}`} style={{ height: 30 }} />
+                </>
+              ) : (
+                <span className="muted" style={{ fontSize: 11 }}>Copy the prompt into Suno, generate, then attach the audio:</span>
+              )}
+              <form action={uploadTrackAction} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input type="hidden" name="projectId" value={id} />
+                <input type="file" name="track" accept="audio/mpeg,audio/wav" className="mono" style={{ fontSize: 11, color: "var(--ink-2)" }} />
+                <button type="submit" style={btn}>{music.activeTrackAssetId ? "Replace track" : "Attach track"}</button>
+              </form>
+            </div>
           </>
         ) : (
           <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>No brief yet — generate one from the project and script.</p>

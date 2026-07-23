@@ -1,0 +1,82 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { eq } from "drizzle-orm";
+import { v7 as uuidv7 } from "uuid";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { createDb } from "@avd/shared/db";
+import { modelRoutes } from "@avd/shared/config";
+import { organization } from "@avd/plt/schema";
+import { project } from "@avd/prj/schema";
+import { asset } from "@avd/ast/schema";
+import { getObject } from "@avd/ast/storage";
+import { generation } from "../src/schema";
+import { enqueueGeneration } from "../src/service";
+import { runNextGeneration } from "../src/executor";
+import { createGeminiProvider } from "../src/provider";
+import { migrate } from "../../../scripts/migrate";
+
+// Real-API E2E ring (Definition of Done §9.8). Opt-in: RUN_REAL_API=1, key from root .env.
+// Budget per run: ≈ $0.04 (one draft image + one short text) — keep it that way.
+function loadRootEnv(): void {
+  try {
+    const env = readFileSync(join(import.meta.dirname, "..", "..", "..", ".env"), "utf8");
+    for (const line of env.split("\n")) {
+      const m = line.match(/^([A-Z_]+)=(.*)$/);
+      if (m && m[1] && !process.env[m[1]]) process.env[m[1]] = m[2];
+    }
+  } catch {
+    /* no .env — skip guard below handles it */
+  }
+}
+loadRootEnv();
+
+const enabled = process.env.RUN_REAL_API === "1" && !!process.env.GEMINI_API_KEY;
+
+describe.skipIf(!enabled)("REAL API e2e: gemini text + draft image (≈$0.04/run)", () => {
+  const { db, client } = createDb();
+  const orgId = uuidv7();
+  const projectId = uuidv7();
+
+  beforeAll(async () => {
+    await migrate();
+    await db.insert(organization).values({ id: orgId, name: "Real E2E Org" });
+    await db.insert(project).values({
+      id: projectId, organizationId: orgId, title: "Real E2E", aspectRatio: "16:9", targetDurationS: "10",
+    });
+  }, 30_000);
+  afterAll(async () => {
+    await db.delete(asset).where(eq(asset.organizationId, orgId));
+    await db.delete(generation).where(eq(generation.organizationId, orgId));
+    await db.delete(project).where(eq(project.id, projectId));
+    await db.delete(organization).where(eq(organization.id, orgId));
+    await client.end();
+  });
+
+  it("real text: script model returns non-empty content", async () => {
+    const provider = createGeminiProvider();
+    const res = await provider.generateText({
+      model: modelRoutes.script,
+      prompt: "Write one short cinematic tagline (max 12 words) for a coffee brand dawn video.",
+    });
+    expect((res.text ?? "").length).toBeGreaterThan(4);
+  }, 60_000);
+
+  it("real image: draft frame flows through the full pipeline with billed cost", async () => {
+    const genId = await enqueueGeneration(db, {
+      organizationId: orgId, projectId, principal: "user:e2e", kind: "frame",
+      commandId: uuidv7(), target: { shotId: uuidv7() }, quality: "draft",
+      promptInput: {
+        aspectRatio: "16:9", durationSeconds: 6, entities: [],
+        direction: { synopsis: "sunrise over a harbor, cinematic", subject: "harbor skyline", action: "still establishing shot" },
+      },
+    });
+    const result = await runNextGeneration(db, { organizationId: orgId, provider: createGeminiProvider() });
+    expect(result?.status).toBe("succeeded");
+    const [g] = await db.select().from(generation).where(eq(generation.id, genId));
+    expect(Number(g!.costUsd)).toBeGreaterThan(0); // billed, from price table
+    const [a] = await db.select().from(asset).where(eq(asset.id, g!.outputAssetIds![0]!));
+    expect(a?.status).toBe("ready");
+    const obj = await getObject(a!.storageKey);
+    expect(obj.bytes.byteLength).toBeGreaterThan(5_000); // a real image, not a stub
+  }, 120_000);
+});

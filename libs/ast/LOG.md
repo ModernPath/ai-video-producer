@@ -25,3 +25,7 @@
 **Deferred:** REQ-AST-003 route unit test → E2E ring (browser evidence recorded); derivatives (thumb/poster) stay PROPOSED.
 **Discovered:** old fixture:// rows purged from dev DB (pre-storage era).
 **Gate:** full suite 23/23 green.
+
+## 2026-07-23 — AST slice 2: uploads (REQ-AST-004 → IN_REVIEW)
+**Done:** red-first — shared validation core (mime allowlist + size caps, INV-AST-005), presigned PUT sessions (tested via real HTTP PUT to MinIO + HEAD-verified complete), direct server-side path; migration 0007. Browser-verified: mp3 attach on script page.
+**Gate:** suite green; real-API ring also green (see GEN LOG).
