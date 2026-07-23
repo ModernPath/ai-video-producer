@@ -1,5 +1,5 @@
 // REQ-GEN-013 — deterministic prompt assembly (docs/14-generation.md §5).
-export const PROMPT_TEMPLATE_VERSION = 1;
+export const PROMPT_TEMPLATE_VERSION = 2; // v2: natural prose (USER feedback #2 — no label slop)
 
 export interface DirectionInput {
   synopsis: string;
@@ -27,22 +27,28 @@ export interface TakePromptInput {
   customPrompt?: string | undefined;
 }
 
+function sentence(text: string): string {
+  const t = text.trim();
+  return /[.!?]$/.test(t) ? t : `${t}.`;
+}
+
+/** Natural-prose video prompt (template v2). Custom text is verbatim + a minimal format tail. */
 export function assembleTakePrompt(i: TakePromptInput): string {
   if (i.customPrompt?.trim()) {
-    return [i.customPrompt.trim(), `FORMAT: ${i.aspectRatio} video, ${i.durationSeconds} seconds.`].join("\n");
+    return `${i.customPrompt.trim()}\n${i.aspectRatio} video, ${i.durationSeconds} seconds.`;
   }
-  const lines: string[] = [];
-  lines.push(`FORMAT: ${i.aspectRatio} video, ${i.durationSeconds} seconds.`);
-  if (i.stylePrompt) lines.push(`STYLE: ${i.stylePrompt}`);
-  for (const e of i.entities) lines.push(`ENTITY: [${e.kind}] ${e.name} — ${e.description}`);
   const d = i.direction;
-  const shot = [d.synopsis, `Subject: ${d.subject}.`, `Action: ${d.action}.`];
-  if (d.camera) shot.push(`Camera: ${d.camera}.`);
-  if (d.mood) shot.push(`Mood: ${d.mood}.`);
-  lines.push(`SHOT: ${shot.join(" ")}`);
-  const audio = [d.dialogue ? `Dialogue: "${d.dialogue}"` : "No dialogue.", d.audioNotes].filter(Boolean);
-  lines.push(`AUDIO: ${audio.join(" ")}`);
-  return lines.join("\n");
+  const parts: string[] = [];
+  parts.push(sentence(d.synopsis));
+  parts.push(sentence(`${d.subject} — ${d.action}`));
+  if (d.camera) parts.push(sentence(`Camera: ${d.camera}`));
+  if (d.mood) parts.push(sentence(d.mood));
+  for (const e of i.entities) parts.push(sentence(`Featuring ${e.name}, ${e.description}`));
+  if (i.stylePrompt) parts.push(sentence(i.stylePrompt));
+  if (d.dialogue) parts.push(sentence(`Spoken line: "${d.dialogue}"`));
+  if (d.audioNotes) parts.push(sentence(`Sound: ${d.audioNotes}`));
+  parts.push(`A cinematic ${i.aspectRatio} video clip, ${i.durationSeconds} seconds, natural motion, with audio.`);
+  return parts.join(" ");
 }
 
 export interface TextPromptInput {
@@ -73,7 +79,7 @@ export function assembleScriptPrompt(i: TextPromptInput): string {
 export function assembleShotPlanPrompt(i: TextPromptInput): string {
   return [
     `TASK: Break the script into 4–10 second shots (structured output) totaling ≈${i.targetDurationSeconds}s.`,
-    `Each shot's direction is a ready image prompt: concrete subject, action, camera, mood.`,
+    `For EACH shot also author: imagePrompt (a complete, production-ready still-image prompt) and videoPrompt (a complete video-generation prompt: motion, camera, mood). Reference cast members by name.`,
     `BRIEF: ${JSON.stringify(i.brief)}`,
     ...castBlock(i.entities),
     i.entities?.length ? `Reference cast members by name in directions where they appear.` : "",
@@ -94,18 +100,19 @@ export function assembleEditPrompt(i: EditPromptInput): string {
   ].join("\n");
 }
 
+/** Natural-prose still-image prompt (template v2). Custom text is verbatim + a minimal format tail. */
 export function assembleFramePrompt(i: Omit<TakePromptInput, "durationSeconds">): string {
   if (i.customPrompt?.trim()) {
-    return [i.customPrompt.trim(), `FORMAT: still image, ${i.aspectRatio} aspect ratio.`].join("\n");
+    return `${i.customPrompt.trim()}\n${i.aspectRatio} still image.`;
   }
-  const lines: string[] = [];
-  lines.push(`FORMAT: still image, ${i.aspectRatio} aspect ratio.`);
-  if (i.stylePrompt) lines.push(`STYLE: ${i.stylePrompt}`);
-  for (const e of i.entities) lines.push(`ENTITY: [${e.kind}] ${e.name} — ${e.description}`);
   const d = i.direction;
-  const shot = [d.synopsis, `Subject: ${d.subject}.`, `Action: ${d.action}.`];
-  if (d.camera) shot.push(`Camera: ${d.camera}.`);
-  if (d.mood) shot.push(`Mood: ${d.mood}.`);
-  lines.push(`SHOT: ${shot.join(" ")}`);
-  return lines.join("\n");
+  const parts: string[] = [];
+  parts.push(sentence(d.synopsis));
+  parts.push(sentence(`${d.subject} — ${d.action}`));
+  if (d.camera) parts.push(sentence(`Camera: ${d.camera}`));
+  if (d.mood) parts.push(sentence(d.mood));
+  for (const e of i.entities) parts.push(sentence(`Featuring ${e.name}, ${e.description}`));
+  if (i.stylePrompt) parts.push(sentence(i.stylePrompt));
+  parts.push(`A cinematic still image, ${i.aspectRatio}, high detail.`);
+  return parts.join(" ");
 }

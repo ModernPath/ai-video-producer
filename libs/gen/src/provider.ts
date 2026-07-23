@@ -51,7 +51,10 @@ export const mockProvider: GenProvider = {
       brief: meta.brief ?? {},
       targetDurationSeconds: meta.targetDurationSeconds ?? config.project.defaultTargetDurationSeconds,
     };
-    if (r.json) return { json: { shots: fixtureShotPlan({ ...ti, minS: config.shot.minSeconds, maxS: config.shot.maxSeconds }) } };
+    if (r.json) {
+      const ents = ((r.meta as { entities?: { name: string }[] } | undefined)?.entities ?? []) as { name: string }[];
+      return { json: { shots: fixtureShotPlan({ ...ti, minS: config.shot.minSeconds, maxS: config.shot.maxSeconds, entities: ents }) } };
+    }
     if ((r.meta as { kind?: string } | undefined)?.kind === "music_brief") return { text: fixtureMusicBrief(ti) };
     return { text: fixtureScript(ti) };
   },

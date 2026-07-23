@@ -329,3 +329,26 @@ export async function updateShotScriptsAction(formData: FormData) {
   });
   revalidatePath(`/p/${projectId}`);
 }
+
+/** REQ-STB-015 (USER #2): one gesture — persist the edited scripts, then generate from them. */
+export async function saveScriptsAndGenerateAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const shotId = String(formData.get("shotId"));
+  const kind = String(formData.get("generate")); // "frame" | "take"
+  const [p] = await db().select().from(project).where(eq(project.id, projectId));
+  if (!p) return;
+  const { updateShotScripts } = await import("@avd/stb");
+  await updateShotScripts(db(), {
+    shotId,
+    imagePrompt: String(formData.get("imagePrompt") ?? ""),
+    videoPrompt: String(formData.get("videoPrompt") ?? ""),
+  });
+  if (kind === "frame") {
+    const genId = await requestFrame(db(), { shotId, slot: "start", principal: PRINCIPAL, aspectRatio: p.aspectRatio });
+    await drainQueueAndMaterialize([genId]);
+  } else if (kind === "take") {
+    const genId = await requestTake(db(), { shotId, principal: PRINCIPAL, aspectRatio: p.aspectRatio });
+    await drainQueueAndMaterialize([genId]);
+  }
+  revalidatePath(`/p/${projectId}`);
+}

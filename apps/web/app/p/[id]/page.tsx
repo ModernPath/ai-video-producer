@@ -10,7 +10,7 @@ import { assembleFramePrompt, assembleTakePrompt } from "@avd/gen";
 import { listEntities, listProjectEntities } from "@avd/ast";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  removeCandidateAction, retryExportAction, retryGenerationAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
+  removeCandidateAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
 } from "../../actions";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
@@ -255,7 +255,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 const selFrame = cands.frames.find((f) => f.id === s.selectedStartFrameId);
                 const castRefs = cast.flatMap((e) => e.refAssetIds);
                 return (
-                  <form action={updateShotScriptsAction} style={{ marginTop: 14, borderTop: "1px solid var(--line)", paddingTop: 10 }}>
+                  <form action={saveScriptsAndGenerateAction} style={{ marginTop: 14, borderTop: "1px solid var(--line)", paddingTop: 10 }}>
                     <input type="hidden" name="projectId" value={id} />
                     <input type="hidden" name="shotId" value={s.id} />
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
@@ -286,9 +286,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                           style={{ width: "100%", background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "6px 8px", color: "var(--ink)", fontSize: 11, fontFamily: "var(--mono)", resize: "vertical" }} />
                       </div>
                     </div>
-                    <div style={{ marginTop: 6 }}>
-                      <SubmitButton small pendingLabel="Saving…">Save scripts</SubmitButton>
-                      <span className="mono muted" style={{ fontSize: 9, marginLeft: 8 }}>empty = auto from direction · custom text is sent verbatim</span>
+                    <div style={{ marginTop: 6, display: "flex", gap: 8, alignItems: "center" }}>
+                      <button type="submit" name="generate" value="none" className="mono" style={{ background: "#1e232d", border: "1px solid var(--line)", borderRadius: 6, color: "var(--ink)", fontSize: 11, padding: "3px 10px", cursor: "pointer" }}>Save</button>
+                      <button type="submit" name="generate" value="frame" style={{ background: "var(--accent)", border: "1px solid var(--accent)", borderRadius: 6, color: "#12151b", fontSize: 11, fontWeight: 600, padding: "3px 10px", cursor: "pointer" }}>Save &amp; generate frame</button>
+                      <button type="submit" name="generate" value="take" style={{ background: "var(--accent)", border: "1px solid var(--accent)", borderRadius: 6, color: "#12151b", fontSize: 11, fontWeight: 600, padding: "3px 10px", cursor: "pointer" }}>Save &amp; generate take</button>
+                      <span className="mono muted" style={{ fontSize: 9 }}>empty = auto · custom text sent verbatim</span>
                     </div>
                   </form>
                 );

@@ -10,11 +10,10 @@
 
 The **AI Video Director** takes a creator from *idea* to *finished video* through a directed, shot-based pipeline — not a traditional multi-track editor. The user works like a director with an AI crew:
 
-1. **Brief** — describe the video (idea, audience, tone, format, target length).
-2. **Script** — `gemini-3.6-flash` drafts and iterates a script with the user.
-3. **Storyboard** — the script is broken into ordered **Shots** of 4–10 seconds. Each shot has a direction (subject, action, camera, mood), a **start frame** and optionally an **end frame**.
-4. **Frames** — start/end frames are generated as images with **Nano Banana** (`gemini-3.1-flash-image` family), using the org's shared **Style Kits** and **Entities** (companies, products, people, characters) for consistency.
-5. **Takes** — each shot's video clip is generated with **Gemini Omni Flash** (`gemini-omni-flash-preview`), conditioned on the frames, style, and entities. Multiple takes per shot; the user selects one.
+1. **Describe** — give the AI a description of what you want (the **video prompt**), plus the cast of reusable entities. *(USER-clarified core flow, 2026-07-23.)*
+2. **Script → Shots with scripts** — `gemini-3.6-flash` turns the description into a script divided into ordered **Shots** (4–8s on the current Veo route). **Every shot carries: (a) a starting-image script, (b) a video script, (c) its duration, (d) its reference images.** These authored, editable scripts are the primary creative artifact; direction fields are supporting metadata.
+3. **First images immediately** — the image scripts generate the first set of start frames right away. The user **reprompts any image script and regenerates** until the frame is right — *before* spending on video.
+4. **Takes** — each shot's video is generated from its video script, conditioned on the chosen start frame and reference images. Multiple takes; the user selects one.
 6. **Audio** — native Omni audio per clip, and/or a **Music Brief** (a prompt the user feeds to Suno) whose resulting track is attached and mixed over the assembly.
 7. **Assembly & Export** — selected takes are concatenated, audio is mixed, and the final video is exported (ffmpeg, no re-generation).
 

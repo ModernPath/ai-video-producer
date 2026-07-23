@@ -75,7 +75,7 @@ describe("STB cast -> generation", () => {
     await runNextGeneration(db, { organizationId: orgId, provider: capturing });
     const [g] = await db.select().from(generation).where(eq(generation.id, genId));
     const snap = g!.promptSnapshot as { prompt: string; refAssetIds?: string[] };
-    expect(snap.prompt).toContain("ENTITY: [product] KAIJU Can");
+    expect(snap.prompt).toContain("Featuring KAIJU Can, green 330ml energy drink can"); // prose v2
     expect(snap.refAssetIds).toContain(refAssetId);
     expect(capturedImages.length).toBe(1);
     expect(capturedImages[0]!.refImages?.length).toBe(1);
@@ -86,6 +86,6 @@ describe("STB cast -> generation", () => {
     const [s] = await db.select().from(shot).where(eq(shot.projectId, projectId));
     const genId = await requestTake(db, { shotId: s!.id, principal: "user:test", aspectRatio: "16:9" });
     const [g] = await db.select().from(generation).where(eq(generation.id, genId));
-    expect((g!.promptSnapshot as { prompt: string }).prompt).toContain("ENTITY: [product] KAIJU Can");
+    expect((g!.promptSnapshot as { prompt: string }).prompt).toContain("Featuring KAIJU Can"); // prose v2
   });
 });

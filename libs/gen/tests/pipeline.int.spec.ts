@@ -54,7 +54,7 @@ describe("GEN pipeline: enqueue -> execute (mock) -> asset", () => {
     expect(row?.status).toBe("queued");
     expect(row?.modelId).toMatch(/veo|omni/);
     const snap = row?.promptSnapshot as { prompt: string; templateVersion: number };
-    expect(snap.prompt).toContain("FORMAT:");
+    expect(snap.prompt).toContain("16:9"); // prose v2
     expect(snap.templateVersion).toBeGreaterThanOrEqual(1);
   });
 

@@ -25,14 +25,17 @@ describe("REQ-GEN-013: deterministic prompt assembly", () => {
     expect(assembleTakePrompt(input)).toBe(assembleTakePrompt(structuredClone(input)));
   });
 
-  it("contains format, style, entity, shot, audio blocks in documented order (docs/14 §5)", () => {
+  it("reads as natural prose with all creative content — no label scaffolding (USER feedback #2)", () => {
     const p = assembleTakePrompt(input);
-    const order = ["FORMAT:", "STYLE:", "ENTITY:", "SHOT:", "AUDIO:"].map((m) => p.indexOf(m));
-    expect(order.every((i) => i >= 0)).toBe(true);
-    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    expect(p).toContain("Mika slides under a neon sign");
+    expect(p).toContain("low dolly");
+    expect(p).toContain("Mika");
+    expect(p).toContain("runner in grey technical jacket");
     expect(p).toContain("16:9");
     expect(p).toContain("6.5");
-    expect(p).toContain("Mika");
+    for (const label of ["FORMAT:", "ENTITY:", "SHOT:", "AUDIO:", "STYLE:"]) {
+      expect(p).not.toContain(label);
+    }
   });
 
   it("exports a template version for snapshot provenance", () => {

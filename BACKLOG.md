@@ -160,3 +160,12 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 **Done:** REQ-STB-013 per-shot editable image & video scripts with visible refs — USER's control complaint addressed end-to-end (tests + browser + DB verbatim proof). Also REQ-GEN-005/ASM-006 retries IN_REVIEW.
 **Inbox:** update docs/features/shot-editor.md with the scripts-first pattern · GEN retry browser click-through evidence.
 **Next:** user re-test invited — the scripts are the new control surface; further roughness → next REQs.
+
+## 2026-07-23 — USER FEEDBACK #2 (priority routing)
+> "How can I call image generation with the image prompt? Also, image prompt is horrible slop."
+**Routed:** REQ-STB-015 (READY, building now) — (a) Save & generate buttons ON the script itself; (b) auto prompts rewritten as natural cinematic prose, no ENTITY:/SHOT: label scaffolding. (Answer to the question: + Frame already uses the saved script — but that connection was invisible, which is the bug.)
+
+## 2026-07-23 — USER SPEC REVISIT (priority routing)
+> 1. Give the AI a description of what you want 2. AI turns it into a script divided into shots — each with (a) starting image script (b) video script (c) duration (d) possible reference images 3. Generate the first set of images from the image scripts; allow reprompting the image before creating the video.
+**Routed:** docs/00 §1, docs/06 journeys, docs/13 §7, features/{script-studio,shot-editor,storyboard} updated to the canonical flow. Steps 1–2 + reprompting shipped (REQ-STB-012/013/014/015). Gaps promoted: REQ-STB-016 (per-shot reference images) + REQ-STB-017 (first frames on apply) — both READY, next ticks.
+**Note:** user is driving the shared browser tab — loop yields it; browser evidence for Save & generate deferred to user's own clicks + next tick.

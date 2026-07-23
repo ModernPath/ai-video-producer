@@ -81,7 +81,14 @@ All commands carry `command_id` (idempotency key) per `07-api-contracts.md`.
 
 ---
 
-## 7. Shot direction schema (contract, canonical in Zod)
+## 7. Shot creative artifact (contract, canonical in Zod)
+
+**Scripts-first (USER 2026-07-23):** every shot's primary creative artifact is its pair of authored prompts —
+`imageScript` (starting-image prompt) and `videoScript` (video prompt) — plus `durationSeconds` and its
+**reference images** (entity refs; per-shot selection is REQ-STB-016). The shot plan authors these scripts;
+the user reprompts them freely; generation sends the script text verbatim (plus format tail and attached refs).
+The Direction fields below are supporting metadata used to auto-compose scripts when none are authored.
+
 
 ```typescript
 Direction = {

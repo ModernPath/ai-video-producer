@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 12 IN_REVIEW · 0 IN_PROGRESS · 2 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,6 +15,10 @@ Totals: 0 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
+| REQ-STB-016 | Per-shot reference images on the image script | P1 | READY | USER spec revisit 2026-07-23 (2d) | — | — |
+| REQ-STB-017 | First frames auto-offered on plan apply | P1 | READY | USER spec revisit 2026-07-23 (3) | — | — |
+| REQ-STB-015 | Generate from script + prose auto-prompts (no slop) | P1 | IN_REVIEW | USER FEEDBACK #2 2026-07-23 | tests (prompt prose + scripts) + browser (buttons live; user-driving) | prompt v2, saveScriptsAndGenerateAction |
+| REQ-STB-014 | Shot plan authors per-shot scripts (ready image prompts) | P1 | IN_REVIEW | USER 2026-07-23 directives combined | tests/plan-scripts.int.spec.ts | fixtures+prompt+applyShotPlan (browser pending w/ 015) |
 | REQ-STB-013 | Per-shot editable image & video scripts (visible refs) | P1 | IN_REVIEW | USER FEEDBACK 2026-07-23 | tests/shot-scripts.int.spec.ts + browser | src/service.ts, ../gen/src/prompt.ts, shot-card scripts UI |
 | REQ-STB-012 | Video prompt drives script & image prompts with cast | P2 | IN_REVIEW | USER 2026-07-23, BR-STB-001 | tests/video-prompt.int.spec.ts + browser | src/service.ts, ../gen/src/prompt.ts, web UI |
 | REQ-STB-011 | Shot plan proposal materializes and applies | P2 | IN_REVIEW | `docs/13` §6 ProposeShotPlan/ApplyShotPlan | tests/script.int.spec.ts | src/service.ts |
@@ -62,6 +66,36 @@ Totals: 0 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
   - GIVEN a project with a brief WHEN DraftScript completes THEN script_version v1 exists with non-empty content and generation_id.
   - GIVEN an existing v1 WHEN DraftScript again THEN v2 exists; v1 unchanged.
 - **Tests:** `tests/script.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 2)
+
+### REQ-STB-016 — Per-shot reference images on the image script
+- **Status:** READY · **Stage:** P1 · **Priority:** must
+- **Raised-by:** USER spec revisit 2026-07-23 ("every shot contains … possible reference images for image generation")
+- **Statement:** Each shot can select which reference images attach to ITS image generation (from cast refs + any project image), shown and toggleable on the image script; default = current whole-cast behavior.
+
+### REQ-STB-017 — First frames auto-offered on plan apply
+- **Status:** READY · **Stage:** P1 · **Priority:** must
+- **Raised-by:** USER spec revisit 2026-07-23 ("You can generate first set of images already with the image script")
+- **Statement:** Applying a shot plan offers one-click generation of the first frames from all authored image scripts (queue batch); user then reprompts individual scripts before making video.
+
+### REQ-STB-015 — Generate from script + prose auto-prompts
+- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Raised-by:** USER FEEDBACK #2 ("How can I call image generation with the image prompt? Also, image prompt is horrible slop.")
+- **Statement:** (a) The scripts form carries **Save & generate frame** / **Save & generate take** — editing a prompt and firing generation is one gesture. (b) Auto-composed frame/take prompts are natural cinematic prose (no ENTITY:/SHOT:/FORMAT: label scaffolding); custom text remains verbatim.
+- **Acceptance criteria:**
+  - GIVEN an edited image script WHEN Save & generate frame THEN one action persists the script and generates from it.
+  - GIVEN auto mode THEN the frame prompt reads as prose containing synopsis/subject/cast naturally and contains no "ENTITY:"/"SHOT:"/"FORMAT:" labels.
+- **Tests:** — · **Code:** — · **Log:** —
+
+### REQ-STB-014 — Shot plan authors per-shot scripts (ready image prompts)
+- **Status:** READY · **Stage:** P1 · **Priority:** must
+- **Raised-by:** USER 2026-07-23 ("generate a script and ready image prompts using potentially the assets" + "every clip MUST have an image script … and video script")
+- **Source:** `docs/13` §6, REQ-STB-013 fields
+- **Statement:** ProposeShotPlan asks the model for an explicit `imagePrompt` and `videoPrompt` per shot — rich, cast-referencing, production-ready prompts. ApplyShotPlan writes them into the shots' script fields, so every planned clip lands with authored scripts (editable per REQ-STB-013), not just direction fields.
+- **Acceptance criteria:**
+  - GIVEN a proposal THEN every planned shot carries non-empty imagePrompt and videoPrompt (mock + real ring).
+  - GIVEN apply THEN the created shots have those scripts set, and frame/take generation uses them verbatim.
+  - Browser: applying a plan shows shot cards with IMAGE/VIDEO SCRIPT · custom pre-filled.
+- **Tests:** — · **Code:** — · **Log:** —
 
 ### REQ-STB-013 — Per-shot editable image & video scripts (visible refs)
 - **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must

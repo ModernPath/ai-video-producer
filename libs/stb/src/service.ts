@@ -249,6 +249,8 @@ export interface PlannedShot {
   title: string;
   durationS: number;
   direction: DirectionJson;
+  imagePrompt?: string | undefined; // REQ-STB-014: plan-authored scripts
+  videoPrompt?: string | undefined;
 }
 
 /** MVP: additive apply. Update/remove arms with paid-work protection land with REQ-STB-007. */
@@ -259,13 +261,16 @@ export async function applyShotPlan(db: Db, input: { proposalId: string; princip
   const [p] = await db.select().from(project).where(eq(project.id, proposal.projectId));
   const shots = proposal.changes as PlannedShot[];
   for (const s of shots) {
-    await createShot(db, {
+    const shotId = await createShot(db, {
       organizationId: p!.organizationId,
       projectId: proposal.projectId,
       title: s.title,
       direction: s.direction,
       durationS: s.durationS, // INV-STB-001 enforced by createShot
     });
+    if (s.imagePrompt || s.videoPrompt) {
+      await updateShotScripts(db, { shotId, imagePrompt: s.imagePrompt ?? null, videoPrompt: s.videoPrompt ?? null }); // REQ-STB-014
+    }
   }
   await db.update(shotPlanProposal).set({ status: "applied" }).where(eq(shotPlanProposal.id, input.proposalId));
 }

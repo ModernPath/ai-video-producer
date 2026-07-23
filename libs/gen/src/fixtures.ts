@@ -51,20 +51,29 @@ export function fixtureMusicBrief(i: { projectTitle: string; brief: Record<strin
 
 const beatTitles = ["Cold open", "The wake", "Momentum", "Close-up beat", "Crowd swell", "Hero reveal", "Logo out"];
 
-export function fixtureShotPlan(i: { projectTitle: string; targetDurationSeconds: number; minS: number; maxS: number }) {
+export function fixtureShotPlan(i: { projectTitle: string; targetDurationSeconds: number; minS: number; maxS: number; entities?: { name: string }[] }) {
   const n = Math.min(beatTitles.length, Math.max(3, Math.round(i.targetDurationSeconds / 6)));
   const base = Math.min(i.maxS, Math.max(i.minS, Math.round(i.targetDurationSeconds / n)));
-  return beatTitles.slice(0, n).map((title, idx) => ({
-    title: `${title}`,
-    durationS: Math.min(i.maxS, Math.max(i.minS, base + (idx % 2 === 0 ? 0 : -1))),
-    direction: {
-      synopsis: `${title} of ${i.projectTitle}`,
-      subject: "hero subject",
-      action: idx === 0 ? "slow reveal" : idx === n - 1 ? "hold and settle" : "dynamic movement",
-      camera: idx % 2 === 0 ? "wide, slow push-in" : "close, handheld energy",
-      mood: "cinematic dawn light",
-    },
-  }));
+  const castNames = (i.entities ?? []).map((e) => e.name).join(", ");
+  return beatTitles.slice(0, n).map((title, idx) => {
+    const camera = idx % 2 === 0 ? "wide, slow push-in" : "close, handheld energy";
+    const action = idx === 0 ? "slow reveal" : idx === n - 1 ? "hold and settle" : "dynamic movement";
+    const castPart = castNames ? ` featuring ${castNames}` : "";
+    return {
+      title: `${title}`,
+      durationS: Math.min(i.maxS, Math.max(i.minS, base + (idx % 2 === 0 ? 0 : -1))),
+      direction: {
+        synopsis: `${title} of ${i.projectTitle}`,
+        subject: "hero subject",
+        action,
+        camera,
+        mood: "cinematic dawn light",
+      },
+      // REQ-STB-014: authored, production-ready prompts (mock approximation of the real model's output)
+      imagePrompt: `${title} of ${i.projectTitle}${castPart} — cinematic still, ${camera}, dawn light, high detail (mock)`,
+      videoPrompt: `${title} of ${i.projectTitle}${castPart} — ${action}, ${camera}, cinematic dawn light, natural motion (mock)`,
+    };
+  });
 }
 
 export function fixtureMp4(): Uint8Array {

@@ -16,8 +16,8 @@
 
 ## 2. Primary journeys
 
-1. **Idea → export (golden path):** brief → script draft (chat) → shot plan applied → storyboard review → generate frames (batch) → animatic check → generate takes (batch or per-shot) → select takes → export → share.
-2. **Craft loop (per shot):** open shot → tweak direction → regenerate frame candidates → select → generate take → retake with edit instruction ("slower pan, warmer light") → select.
+1. **Describe → shots-with-scripts → first images → export (golden path, USER-canonical):** type the video description → AI returns shots each carrying image script + video script + duration + reference images → first frames generate from the image scripts immediately → reprompt image scripts until frames are right → generate takes from video scripts → select → export.
+2. **Craft loop (per shot):** edit the image script → Save & generate frame → repeat until right → edit the video script → Save & generate take → select. Scripts are the control surface; what you read is exactly what the model receives.
 3. **Music flow:** get Music Brief → Suno round-trip → attach track → animatic against music → choose mix mode → export.
 4. **Consistency flow:** build the org library once — **Entities** (company, product, person, character; from uploaded photos/logos or generated sheets, groomed with AI image edits) and **Style Kits**. New project setup asks "who's in this video, and in what style?" — pick from the library and every frame/take carries them. Same cast + look across a whole series of videos.
 

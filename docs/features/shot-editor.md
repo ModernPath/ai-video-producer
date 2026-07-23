@@ -32,3 +32,4 @@
 ## Rules
 
 INV-STB-001/003/004/006, BR-STB-002/003, BR-GEN-002/003.
+\n> **Scripts-first (USER 2026-07-23):** the image script and video script are the primary controls on every shot — fully visible, editable, refs displayed, with Save & generate on the script itself. Reprompt the image until right, then make the video.\n
