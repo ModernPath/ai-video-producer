@@ -23,9 +23,27 @@ importers:
 
   apps/web:
     dependencies:
+      '@avd/ast':
+        specifier: workspace:*
+        version: link:../../libs/ast
+      '@avd/gen':
+        specifier: workspace:*
+        version: link:../../libs/gen
+      '@avd/plt':
+        specifier: workspace:*
+        version: link:../../libs/plt
+      '@avd/prj':
+        specifier: workspace:*
+        version: link:../../libs/prj
       '@avd/shared':
         specifier: workspace:*
         version: link:../../libs/shared
+      '@avd/stb':
+        specifier: workspace:*
+        version: link:../../libs/stb
+      drizzle-orm:
+        specifier: ^0.44.0
+        version: 0.44.7(postgres@3.4.9)
       next:
         specifier: ^15.4.0
         version: 15.5.21(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -35,6 +53,9 @@ importers:
       react-dom:
         specifier: ^19.0.0
         version: 19.2.8(react@19.2.8)
+      uuid:
+        specifier: ^11.0.0
+        version: 11.1.1
     devDependencies:
       '@types/node':
         specifier: 20.17.6
@@ -132,9 +153,27 @@ importers:
 
   libs/stb:
     dependencies:
+      '@avd/ast':
+        specifier: workspace:*
+        version: link:../ast
+      '@avd/gen':
+        specifier: workspace:*
+        version: link:../gen
+      '@avd/plt':
+        specifier: workspace:*
+        version: link:../plt
+      '@avd/prj':
+        specifier: workspace:*
+        version: link:../prj
       '@avd/shared':
         specifier: workspace:*
         version: link:../shared
+      drizzle-orm:
+        specifier: ^0.44.0
+        version: 0.44.7(postgres@3.4.9)
+      uuid:
+        specifier: ^11.0.0
+        version: 11.1.1
       zod:
         specifier: ^3.24.0
         version: 3.25.76

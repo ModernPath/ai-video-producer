@@ -12,7 +12,14 @@
     "@avd/shared": "workspace:*",
     "next": "^15.4.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "@avd/plt": "workspace:*",
+    "@avd/prj": "workspace:*",
+    "@avd/gen": "workspace:*",
+    "@avd/stb": "workspace:*",
+    "@avd/ast": "workspace:*",
+    "drizzle-orm": "^0.44.0",
+    "uuid": "^11.0.0"
   },
   "devDependencies": {
     "@types/node": "20.17.6",

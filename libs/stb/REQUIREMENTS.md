@@ -1,9 +1,54 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 6 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
+| REQ-STB-001 | Shot duration within config bounds | P1 | IN_REVIEW | INV-STB-001 | tests/shots.int.spec.ts | src/service.ts |
+| REQ-STB-002 | Shots hold a strict total order | P1 | IN_REVIEW | INV-STB-002 | tests/shots.int.spec.ts | src/service.ts |
+| REQ-STB-003 | Single selection per slot / take | P1 | IN_REVIEW | INV-STB-003 | tests/shots.int.spec.ts | src/service.ts |
+| REQ-STB-004 | Take selectable only when asset ready | P1 | IN_REVIEW | INV-STB-004 | tests/shots.int.spec.ts | src/service.ts |
+| REQ-STB-005 | Take belongs to its shot, never moved | P2 | PROPOSED | INV-STB-005 | — | — |
+| REQ-STB-006 | Frame re-selection keeps takes + provenance | P2 | PROPOSED | INV-STB-006 | — | — |
+| REQ-STB-007 | Shot-plan apply protects paid shots | P2 | PROPOSED | INV-STB-007, BR-STB-005 | — | — |
+| REQ-STB-008 | Script versions via draft/revise | P2 | PROPOSED | `docs/13` §6 | — | — |
+| REQ-STB-009 | Candidate removal rules (soft, unselected) | P2 | PROPOSED | POL-STB-002/003 | — | — |
+| REQ-STB-010 | Music brief set/attach/mix-mode | P3 | PROPOSED | BR-STB-007 | — | — |
 
-*(Seed via Prompt 1 from `docs/13-storyboard.md`.)*
+---
+
+### REQ-STB-001 — Shot duration within config bounds
+- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Source:** INV-STB-001
+- **Statement:** Creating/updating a shot rejects durations outside `config.shot.minSeconds..maxSeconds`.
+- **Acceptance criteria:**
+  - GIVEN duration 6.5 WHEN CreateShot THEN shot persists with duration 6.5.
+  - GIVEN duration 3 or 11 WHEN CreateShot/UpdateShot THEN rejected with `validation_failed` naming the bounds.
+- **Tests:** `tests/shots.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 1)
+
+### REQ-STB-002 — Shots hold a strict total order
+- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Source:** INV-STB-002
+- **Statement:** Each shot has a unique position within its project; new shots append at the end.
+- **Acceptance criteria:**
+  - GIVEN two created shots THEN positions are 1 and 2; listing returns them in order.
+- **Tests:** `tests/shots.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 1)
+
+### REQ-STB-003 — Single selection per slot / take
+- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Source:** INV-STB-003
+- **Statement:** A shot has at most one selected start frame, one selected end frame, one selected take; selecting replaces the previous selection.
+- **Acceptance criteria:**
+  - GIVEN take A selected WHEN SelectTake(B) THEN only B is selected.
+- **Tests:** `tests/shots.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 1)
+
+### REQ-STB-004 — Take selectable only when asset ready
+- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Source:** INV-STB-004
+- **Statement:** SelectTake requires the take's video asset status `ready`.
+- **Acceptance criteria:**
+  - GIVEN a take whose asset is `pending`/`failed` WHEN SelectTake THEN rejected `asset_not_ready`.
+- **Tests:** `tests/shots.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 1)
+
+*(PROPOSED blocks 005–010: statements live in `docs/13-storyboard.md`; elaborate when promoted.)*
