@@ -30,13 +30,26 @@ export interface SnapshotItem {
   durationS: number;
 }
 
-export async function createSnapshot(db: Db, input: { projectId: string; principal: string }): Promise<string> {
-  const shots = await db
+export async function createSnapshot(
+  db: Db,
+  input: { projectId: string; principal: string; excludeShotIds?: string[] }
+): Promise<string> {
+  const allShots = await db
     .select()
     .from(shot)
     .where(and(eq(shot.projectId, input.projectId), isNull(shot.deletedAt)))
     .orderBy(asc(shot.position));
-  if (!shots.length) throw new AsmValidationError("empty_storyboard", "No shots to assemble");
+  if (!allShots.length) throw new AsmValidationError("empty_storyboard", "No shots to assemble");
+
+  // REQ-ASM-008: exclusions must be explicit and must reference real shots.
+  const excludeIds = new Set(input.excludeShotIds ?? []);
+  const knownIds = new Set(allShots.map((s) => s.id));
+  const unknown = [...excludeIds].filter((id) => !knownIds.has(id));
+  if (unknown.length) throw new AsmValidationError("not_found", "Excluded shot not found in this storyboard");
+
+  const excluded = allShots.filter((s) => excludeIds.has(s.id)).map((s) => ({ shotId: s.id, title: s.title }));
+  const shots = allShots.filter((s) => !excludeIds.has(s.id));
+  if (!shots.length) throw new AsmValidationError("empty_storyboard", "Every shot is excluded — nothing to assemble");
 
   const missing = shots.filter((s) => !s.selectedTakeId);
   if (missing.length) {
@@ -87,6 +100,7 @@ export async function createSnapshot(db: Db, input: { projectId: string; princip
     projectId: input.projectId,
     items,
     audio,
+    excluded,
     createdBy: input.principal,
   });
   return id;

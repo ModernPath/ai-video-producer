@@ -9,6 +9,7 @@ export const storyboardSnapshot = asm.table("storyboard_snapshot", {
   projectId: uuid("project_id").notNull(),
   items: jsonb("items").notNull(), // [{shotId, position, takeId, videoAssetId, durationS}] — INV-ASM-001 immutable
   audio: jsonb("audio").notNull().default({}),
+  excluded: jsonb("excluded").notNull().default([]), // REQ-ASM-008 provenance
   createdBy: text("created_by").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

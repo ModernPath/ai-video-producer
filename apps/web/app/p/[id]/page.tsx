@@ -82,6 +82,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     .where(eq(exportJob.projectId, id))
     .orderBy(desc(exportJob.createdAt))
     .limit(5);
+  const { storyboardSnapshot } = await import("@avd/asm/schema");
+  const snaps = exports_.length
+    ? await d.select().from(storyboardSnapshot).where(inArray(storyboardSnapshot.id, exports_.map((e) => e.snapshotId)))
+    : [];
+  const exportSnapshots = new Map(snaps.map((s) => [s.id, (s.excluded ?? []) as Array<{ shotId: string; title: string }>]));
 
   return (
     <main style={{ maxWidth: 1080, margin: "0 auto", padding: "36px 24px" }}>
@@ -118,12 +123,22 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           </select>
           <SubmitButton small pendingLabel="…">Set</SubmitButton>
         </form>
-        <form action={exportAction}>
-          <input type="hidden" name="projectId" value={id} />
-          <SubmitButton primary disabled={shots.length === 0 || generated < shots.length} pendingLabel="Exporting…">
-            Export cut
-          </SubmitButton>
-        </form>
+        {generated === shots.length ? (
+          <form action={exportAction}>
+            <input type="hidden" name="projectId" value={id} />
+            <SubmitButton primary disabled={shots.length === 0} pendingLabel="Exporting…">
+              Export cut
+            </SubmitButton>
+          </form>
+        ) : (
+          <form action={exportAction} title="Takeless shots are skipped explicitly (INV-ASM-002)">
+            <input type="hidden" name="projectId" value={id} />
+            <input type="hidden" name="excludeShotIds" value={shots.filter((s) => !s.selectedTakeId).map((s) => s.id).join(",")} />
+            <SubmitButton primary disabled={generated === 0} pendingLabel="Exporting…">
+              Export {generated} ready · skip {shots.length - generated}
+            </SubmitButton>
+          </form>
+        )}
       </div>
 
       {orgEntities.length > 0 && (
@@ -256,6 +271,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 </a>
               )}
               {e.status === "failed" && <span className="muted">{e.errorDetail?.slice(0, 80)}</span>}
+              {(() => { const ex = exportSnapshots.get(e.snapshotId) ?? []; return ex.length > 0 ? (
+                <span className="mono muted" style={{ fontSize: 10 }}>skipped: {ex.map((x) => x.title).join(", ")}</span>
+              ) : null; })()}
             </div>
           ))}
         </section>

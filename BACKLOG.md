@@ -138,3 +138,7 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 ## 2026-07-23 — Build loop iteration 20
 **Done:** Candidate removal (REQ-STB-009 IN_REVIEW) — user req #4 fully closed (edit ✓ regenerate ✓ remove ✓, originals immortal). Browser+DB verified.
 **Next:** review sweep (31 IN_REVIEW) · export retry/exclusions · per-shot entities · PLT/PRJ ledger seeds.
+
+## 2026-07-23 — Build loop iteration 21
+**Done:** Explicit export exclusions (REQ-ASM-008 IN_REVIEW) — partial storyboards export the ready subset with recorded, surfaced skips. Bonus: animatic space-key/form-field hijack bug found by E2E typing and fixed.
+**Next:** review sweep (32 IN_REVIEW) · REQ-ASM-006 retry · REQ-GEN-005/011 hardening · PLT/PRJ seeds.

@@ -35,6 +35,8 @@ export function AnimaticPlayer({ shots, musicAssetId }: { shots: AnimaticShot[];
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName)) return; // don't hijack typing (found via E2E)
       if (e.code === "Space" && !open && cues.items.length) {
         e.preventDefault();
         setOpen(true);

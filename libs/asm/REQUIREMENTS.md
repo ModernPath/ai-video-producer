@@ -1,7 +1,7 @@
 # Requirements Ledger — ASM (Assembly & Export)
 
 ## Dashboard — ASM (Assembly & Export)
-Totals: 0 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 7 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -12,7 +12,7 @@ Totals: 0 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEF
 | REQ-ASM-005 | Take normalization at assembly (res/fps/trim) | P3 | IN_REVIEW | BR-ASM-003, OQ-104 trim policy | tests/normalize.int.spec.ts + browser/ffprobe | src/service.ts (normalize pass), config asm.normalize |
 | REQ-ASM-006 | Failed exports retain error, retryable | P2 | PROPOSED | INV-ASM-004 | — | — |
 | REQ-ASM-007 | Share links (token, revocable) | P5 | PROPOSED | INV-ASM-005 | — | — |
-| REQ-ASM-008 | Explicit exclusion of takeless shots | P2 | PROPOSED | INV-ASM-002 (exclusion arm) | — | — |
+| REQ-ASM-008 | Explicit exclusion of takeless shots | P2 | IN_REVIEW | INV-ASM-002 (exclusion arm) | tests/exclusions.int.spec.ts + browser | src/service.ts, migration 0010, partial-export UI |
 | REQ-ASM-009 | Animatic preview (client-side, zero render cost) | P2 | IN_REVIEW | BR-ASM-005 | tests/animatic.spec.ts + browser E2E | src/animatic.ts, apps/web/components/AnimaticPlayer.tsx |
 
 ---
@@ -72,4 +72,14 @@ Totals: 0 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEF
   - Audio modes (REQ-ASM-004) still hold on top.
 - **Tests:** `tests/normalize.int.spec.ts` (mixed 360p/720p → uniform, trim) + browser/ffprobe (28.0s exact) · **Code:** `src/service.ts` normalize pass, `config.asm.normalize` · **Log:** LOG 2026-07-23 (slice 4)
 
-*(PROPOSED 006–008: statements in `docs/15-assembly-export.md`.)*
+### REQ-ASM-008 — Explicit exclusion of takeless shots
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must
+- **Source:** INV-ASM-002 exclusion arm, `docs/features/assembly-export.md`
+- **Statement:** CreateSnapshot accepts an explicit exclusion list; only listed takeless shots may be skipped (silent drops stay impossible). Exclusions are recorded on the snapshot for provenance; the UI offers "Export N ready · skip M" when the storyboard is partial.
+- **Acceptance criteria:**
+  - GIVEN a takeless shot not excluded THEN snapshot creation still rejects naming it.
+  - GIVEN it in excludeShotIds THEN the snapshot contains only ready shots and records the exclusion (title + id).
+  - Browser: partial storyboard exports the ready subset; exports list notes skipped count.
+- **Tests:** `tests/exclusions.int.spec.ts` + browser E2E · **Code:** `src/service.ts` (excludeShotIds + provenance), migration 0010, 'Export N ready · skip M' UI · **Log:** LOG 2026-07-23 (slice 5)
+
+*(PROPOSED 006–007: statements in `docs/15-assembly-export.md`.)*

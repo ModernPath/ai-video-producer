@@ -124,7 +124,9 @@ export async function exportAction(formData: FormData) {
   const { createSnapshot, queueExport, runNextExport } = await import("@avd/asm");
   const [p] = await db().select().from(project).where(eq(project.id, projectId));
   if (!p) return;
-  const snapshotId = await createSnapshot(db(), { projectId, principal: PRINCIPAL });
+  const excludeRaw = String(formData.get("excludeShotIds") ?? "").trim();
+  const excludeShotIds = excludeRaw ? excludeRaw.split(",") : undefined;
+  const snapshotId = await createSnapshot(db(), { projectId, principal: PRINCIPAL, excludeShotIds });
   const jobId = await queueExport(db(), { projectId, snapshotId, principal: PRINCIPAL });
   const { queueMode, createBoss, EXPORT_QUEUE } = await import("@avd/shared/queue");
   if (queueMode() === "queue") {

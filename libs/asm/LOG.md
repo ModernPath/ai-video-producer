@@ -38,3 +38,8 @@
 **Ripple handled honestly:** music-mode test bounds updated — old bounds encoded the untrimmed behavior; trim is the spec'd policy.
 **Deferred:** loudness normalization (lufs target) → with presets; 1080p profile bump when warranted.
 **Gate:** 54 mock green (+4 real skipped).
+
+## 2026-07-23 — ASM slice 5: explicit exclusions (REQ-ASM-008 → IN_REVIEW)
+**Done:** red-first — createSnapshot(excludeShotIds): unlisted takeless shots still reject by name (silent drops impossible), unknown ids rejected, all-excluded rejected; exclusions recorded on the snapshot ({shotId,title}) for provenance. UI: "Export N ready · skip M" replaces the disabled button on partial storyboards; exports list shows "skipped: <titles>". Browser: added takeless "Logo out" → button flipped to "Export 5 ready · skip 1" → export succeeded with skip note.
+**UX bug found+fixed mid-test:** animatic's global space-key listener hijacked typing in form fields (typing "Logo out" opened the overlay) — now ignores INPUT/TEXTAREA/SELECT targets.
+**Gate:** suite green.
