@@ -9,6 +9,7 @@ export const project = prj.table("project", {
   organizationId: uuid("organization_id").notNull().references(() => organization.id), // INV-PRJ-001
   title: text("title").notNull(),
   status: text("status", { enum: ["active", "archived"] }).notNull().default("active"),
+  styleKitId: uuid("style_kit_id"), // REQ-AST-007
   aspectRatio: text("aspect_ratio", { enum: ["16:9", "9:16"] }).notNull(),
   targetDurationS: numeric("target_duration_s", { precision: 5, scale: 1 }).notNull(),
   brief: jsonb("brief").notNull().default({}),

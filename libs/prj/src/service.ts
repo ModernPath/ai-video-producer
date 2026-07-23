@@ -70,3 +70,8 @@ export async function costMeterUsd(db: Db, projectId: string): Promise<number> {
   `); // INV-PRJ-004
   return Number(row?.cost ?? 0);
 }
+
+/** REQ-AST-007: select the org style kit this project uses (null = none). PRJ single-writer of project. */
+export async function setProjectStyleKit(db: Db, input: { projectId: string; styleKitId: string | null }): Promise<void> {
+  await db.update(project).set({ styleKitId: input.styleKitId }).where(eq(project.id, input.projectId));
+}

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { listEntities } from "@avd/ast";
-import { devOrgId } from "../actions";
+import { listEntities, listStyleKits } from "@avd/ast";
+import { createStyleKitAction, devOrgId } from "../actions";
 import { createEntityAction, editEntityRefAction } from "../actions";
 import { SubmitButton } from "../../components/SubmitButton";
 import { ImagePicker } from "../../components/ImagePicker";
@@ -15,6 +15,7 @@ export default async function LibraryPage() {
   const d = db();
   const orgId = await devOrgId();
   const entities = await listEntities(d, orgId);
+  const kits = await listStyleKits(d, orgId);
 
   return (
     <main style={{ maxWidth: 880, margin: "0 auto", padding: "36px 24px" }}>
@@ -68,6 +69,22 @@ export default async function LibraryPage() {
           </div>
         ))}
         {entities.length === 0 && <p className="muted" style={{ fontSize: 12 }}>No entities yet.</p>}
+      </section>
+
+      <section style={{ border: "1px solid var(--line)", background: "var(--panel)", borderRadius: 10, padding: 14, marginTop: 20 }}>
+        <p className="mono muted" style={{ fontSize: 10, marginBottom: 8 }}>STYLE KITS · retained across videos — select one per project on its storyboard</p>
+        <form action={createStyleKitAction} style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+          <input name="name" required placeholder="Style name (e.g. Neon noir)" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "6px 9px", color: "var(--ink)", fontSize: 12, flex: "0 1 200px" }} />
+          <input name="prompt" required placeholder="Style prompt (e.g. gritty 35mm film grain, muted colors, handheld)" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "6px 9px", color: "var(--ink)", fontSize: 12, flex: "1 1 320px" }} />
+          <SubmitButton small pendingLabel="Creating…">＋ Create style</SubmitButton>
+        </form>
+        {kits.map((k) => (
+          <div key={k.id} style={{ display: "flex", gap: 10, alignItems: "baseline", padding: "4px 0", fontSize: 12 }}>
+            <b>{k.name}</b>
+            <span className="muted" style={{ fontSize: 11 }}>{k.prompt}</span>
+          </div>
+        ))}
+        {kits.length === 0 && <p className="muted" style={{ fontSize: 12 }}>No style kits yet.</p>}
       </section>
     </main>
   );

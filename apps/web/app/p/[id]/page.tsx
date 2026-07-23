@@ -8,12 +8,12 @@ import { generation } from "@avd/gen/schema";
 import { exportJob } from "@avd/asm/schema";
 import { getMusicBrief, listCandidates, listShots } from "@avd/stb";
 import { assembleFramePrompt, assembleTakePrompt } from "@avd/gen";
-import { listEntities, listProjectEntities } from "@avd/ast";
+import { listEntities, listProjectEntities, listStyleKits } from "@avd/ast";
 import { costMeterUsd } from "@avd/prj/service";
 import { shareLink } from "@avd/asm/schema";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  createShareLinkAction, removeCandidateAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
+  createShareLinkAction, removeCandidateAction, setProjectStyleAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
 } from "../../actions";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
@@ -96,6 +96,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const generated = shots.filter((s) => s.selectedTakeId).length;
   const music = await getMusicBrief(d, id);
   const orgEntities = await listEntities(d, p.organizationId);
+  const kits = await listStyleKits(d, p.organizationId);
+  const activeStylePrompt = kits.find((k) => k.id === p.styleKitId)?.prompt;
   const cast = await listProjectEntities(d, id);
   const castIds = new Set(cast.map((e) => e.id));
   const exports_ = await d
@@ -141,6 +143,16 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <input type="hidden" name="projectId" value={id} />
           <SubmitButton pendingLabel="Generating frames…">＋ Missing frames</SubmitButton>
         </form>
+        {kits.length > 0 && (
+          <form action={setProjectStyleAction} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <input type="hidden" name="projectId" value={id} />
+            <select name="styleKitId" defaultValue={p.styleKitId ?? ""} className="mono" title="Style kit — its prompt is appended to every frame and take of this project" style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: 7, padding: "5px 8px", color: "var(--ink)", fontSize: 11 }}>
+              <option value="">style: none</option>
+              {kits.map((k) => <option key={k.id} value={k.id}>style: {k.name}</option>)}
+            </select>
+            <SubmitButton small pendingLabel="…">Set</SubmitButton>
+          </form>
+        )}
         <form action={setAudioModeAction} style={{ display: "flex", gap: 6, alignItems: "center" }}>
           <input type="hidden" name="projectId" value={id} />
           <select name="mode" defaultValue={p.audioMixMode} className="mono" style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: 7, padding: "5px 8px", color: "var(--ink)", fontSize: 11 }}>
@@ -293,8 +305,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                   dialogue: (s.direction as { dialogue?: string }).dialogue, audioNotes: (s.direction as { audioNotes?: string }).audioNotes,
                 };
                 const entities = cast.map((e) => ({ kind: e.kind, name: e.name, description: e.description }));
-                const autoImage = assembleFramePrompt({ aspectRatio: p.aspectRatio, entities, direction: dirIn });
-                const autoVideo = assembleTakePrompt({ aspectRatio: p.aspectRatio, durationSeconds: Number(s.durationS), entities, direction: dirIn });
+                const autoImage = assembleFramePrompt({ aspectRatio: p.aspectRatio, entities, direction: dirIn, stylePrompt: activeStylePrompt });
+                const autoVideo = assembleTakePrompt({ aspectRatio: p.aspectRatio, durationSeconds: Number(s.durationS), entities, direction: dirIn, stylePrompt: activeStylePrompt });
                 const selFrame = cands.frames.find((f) => f.id === s.selectedStartFrameId);
                 const castRefs = cast.flatMap((e) => e.refAssetIds);
                 const effectiveRefs = s.refAssetIds ?? castRefs;

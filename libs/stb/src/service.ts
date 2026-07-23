@@ -4,7 +4,7 @@ import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import { config } from "@avd/shared/config";
 import { asset } from "@avd/ast/schema";
-import { listProjectEntities } from "@avd/ast";
+import { listProjectEntities, projectStylePrompt } from "@avd/ast";
 import { enqueueGeneration } from "@avd/gen";
 import { generation } from "@avd/gen/schema";
 import { frameCandidate, musicBrief, scriptVersion, shot, shotPlanProposal, take } from "./schema";
@@ -103,6 +103,7 @@ export async function requestFrame(
   const d = s.direction as DirectionJson;
   const cast = await resolveCast(db, s.projectId);
   const refAssetIds = resolveShotRefs(s.refAssetIds, cast.entityRefAssetIds); // REQ-STB-016
+  const stylePrompt = await projectStylePrompt(db, s.projectId); // REQ-AST-007
   return enqueueGeneration(db, {
     organizationId: s.organizationId,
     projectId: s.projectId,
@@ -115,6 +116,7 @@ export async function requestFrame(
       aspectRatio: input.aspectRatio,
       durationSeconds: Number(s.durationS),
       entities: cast.entities,
+      stylePrompt: stylePrompt ?? undefined, // REQ-AST-007
       referenceImageCount: refAssetIds.length || undefined, // v3 preservation phrasing
       customPrompt: s.imagePrompt ?? undefined, // REQ-STB-013
       direction: {
@@ -151,6 +153,7 @@ export async function requestTake(
     if (fc) refs = { startFrameAssetId: fc.imageAssetId };
   }
   if (refAssetIds.length) refs = { ...(refs ?? {}), entityRefAssetIds: refAssetIds };
+  const stylePrompt = await projectStylePrompt(db, s.projectId); // REQ-AST-007
   return enqueueGeneration(db, {
     organizationId: s.organizationId,
     projectId: s.projectId,
@@ -163,6 +166,7 @@ export async function requestTake(
       aspectRatio: input.aspectRatio,
       durationSeconds: Number(s.durationS),
       entities: cast.entities,
+      stylePrompt: stylePrompt ?? undefined, // REQ-AST-007
       customPrompt: s.videoPrompt ?? undefined, // REQ-STB-013
       direction: {
         synopsis: d.synopsis, subject: d.subject, action: d.action,

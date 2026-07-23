@@ -1,5 +1,13 @@
 # Build Log — AST (Asset Library)
 
+## 2026-07-23 — REQ-AST-007 style kits (PROPOSED → IN_REVIEW)
+**Done:** org-level style kits (migration 0015: ast.style_kit + prj.project.style_kit_id): create/list in library UI, one selectable per project on the storyboard header; projectStylePrompt feeds stylePrompt in every auto frame/take prompt (STB wiring) and the page's auto-script placeholders show it. Browser E2E: created "Golden Hour Film", selected on Aurora, style text visible in both auto scripts. Closes USER original requirement #3 (styles retained across videos).
+**Decisions:** single kit per project (select-at-start model); custom scripts stay verbatim (never styled behind the user's back); AST reads prj.project read-only (allowed-reader), PRJ writes the attachment.
+**Deferred:** kit reference images.
+**Discovered:** tsx transpiles scripts to CJS from repo root — top-level await in migrate.ts broke; wrapped in .catch.
+**Follow-ups:** —
+**Gate:** full suite green.
+
 ## 2026-07-23 — Context scaffolded (Prompt 0B)
 **Done:** lib skeleton, empty ledger, build guide.
 **Decisions:** contracts in `./contracts` (Zod canonical).

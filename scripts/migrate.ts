@@ -25,4 +25,10 @@ export async function migrate(url = process.env.DATABASE_URL ?? "postgres://avd:
   }
 }
 
-if (process.argv[1]?.endsWith("migrate.ts")) await migrate();
+if (process.argv[1]?.endsWith("migrate.ts")) {
+  // no top-level await: tsx transpiles to CJS when cwd lacks "type": "module"
+  migrate().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}

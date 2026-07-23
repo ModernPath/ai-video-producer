@@ -1,9 +1,10 @@
 // REQ-AST-006 — org-scoped entity library (companies, products, people, characters).
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import { config } from "@avd/shared/config";
-import { asset, entity, projectEntity } from "./schema";
+import { asset, entity, projectEntity, styleKit } from "./schema";
+import { project } from "@avd/prj/schema";
 import { AstValidationError } from "./uploads";
 
 export type EntityKind = "company" | "product" | "person" | "character";
@@ -77,4 +78,34 @@ export async function updateEntityRef(
   const next = e.refAssetIds.map((id) => (id === input.oldAssetId ? input.newAssetId : id));
   await assertValidRefs(db, next);
   await db.update(entity).set({ refAssetIds: next }).where(eq(entity.id, input.entityId));
+}
+
+// ---- REQ-AST-007: style kits (styles retained across videos; BR-AST-001 org-scoped) ----
+
+export async function createStyleKit(
+  db: Db,
+  input: { organizationId: string; name: string; prompt: string }
+): Promise<string> {
+  if (!input.name.trim() || !input.prompt.trim()) {
+    throw new AstValidationError("validation_failed", "Style kit needs a name and a style prompt");
+  }
+  const id = uuidv7();
+  await db.insert(styleKit).values({ id, organizationId: input.organizationId, name: input.name.trim(), prompt: input.prompt.trim() });
+  return id;
+}
+
+export async function listStyleKits(db: Db, organizationId: string) {
+  return db
+    .select()
+    .from(styleKit)
+    .where(and(eq(styleKit.organizationId, organizationId), isNull(styleKit.archivedAt)))
+    .orderBy(asc(styleKit.createdAt));
+}
+
+/** The style prompt applied to every frame/take of the project (INV-AST-006: attachment exposes it). */
+export async function projectStylePrompt(db: Db, projectId: string): Promise<string | null> {
+  const [p] = await db.select().from(project).where(eq(project.id, projectId));
+  if (!p?.styleKitId) return null;
+  const [kit] = await db.select().from(styleKit).where(eq(styleKit.id, p.styleKitId));
+  return kit && !kit.archivedAt ? kit.prompt : null;
 }

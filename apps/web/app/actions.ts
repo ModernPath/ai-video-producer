@@ -343,6 +343,24 @@ export async function unarchiveProjectAction(formData: FormData) {
   revalidatePath("/");
 }
 
+/** REQ-AST-007: style kits — create org-level, select per project. */
+export async function createStyleKitAction(formData: FormData) {
+  const { createStyleKit } = await import("@avd/ast");
+  const name = String(formData.get("name") ?? "").trim();
+  const prompt = String(formData.get("prompt") ?? "").trim();
+  if (!name || !prompt) return;
+  await createStyleKit(db(), { organizationId: await devOrgId(), name, prompt });
+  revalidatePath("/library");
+}
+
+export async function setProjectStyleAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { setProjectStyleKit } = await import("@avd/prj/service");
+  const raw = String(formData.get("styleKitId") ?? "");
+  await setProjectStyleKit(db(), { projectId, styleKitId: raw || null });
+  revalidatePath(`/p/${projectId}`);
+}
+
 /** REQ-STB-012: the project's video prompt (brief.idea) — drives script, plan, music, and styling. */
 export async function updateBriefAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));

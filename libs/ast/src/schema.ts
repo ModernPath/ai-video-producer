@@ -52,3 +52,12 @@ export const projectEntity = ast.table("project_entity", {
   projectId: uuid("project_id").notNull(),
   entityId: uuid("entity_id").notNull(),
 });
+
+export const styleKit = ast.table("style_kit", {
+  id: uuid("id").primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  name: text("name").notNull(),
+  prompt: text("prompt").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+});

@@ -1,7 +1,7 @@
 # Requirements Ledger — AST (Asset Library)
 
 ## Dashboard — AST (Asset Library)
-Totals: 0 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 7 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -12,7 +12,7 @@ Totals: 0 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEF
 | REQ-AST-009 | Client-side image shrink + previews + any format | P1 | IN_REVIEW | USER BUG 2026-07-23 (1MB action limit) | browser E2E pending (extension dropped; user to retry) | components/ImagePicker.tsx, next.config, config.clientResize |
 | REQ-AST-005 | Derivatives (thumb/poster) on ready | P2 | PROPOSED | BR-AST-002 | — | — |
 | REQ-AST-006 | Entity library: org entities, refs, project cast | P4 | IN_REVIEW | INV-AST-004/006, BR-AST-001/003 | tests/entities.int.spec.ts, ../stb/tests/cast.int.spec.ts + browser | src/entities.ts, apps/web (library, cast) |
-| REQ-AST-007 | Style kits org-scoped + project attachment | P4 | PROPOSED | INV-AST-006, BR-AST-001 | — | — |
+| REQ-AST-007 | Style kits org-scoped + project attachment | P4 | IN_REVIEW | INV-AST-006, BR-AST-001 | tests/style-kits.int.spec.ts + stb/tests/style-in-prompts + browser E2E | migration 0015, entities.ts, prj setProjectStyleKit, library + storyboard UI |
 | REQ-AST-008 | Soft-delete protection for referenced assets | P2 | PROPOSED | INV-AST-003 | — | — |
 
 ---
@@ -71,4 +71,16 @@ Totals: 0 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEF
   - GIVEN a take THEN entity text blocks appear (image refs for video follow with referenceImages arm).
 - **Tests:** `tests/entities.int.spec.ts`, `../stb/tests/cast.int.spec.ts` + browser E2E · **Code:** `src/entities.ts`, migration 0008, `apps/web/app/library`, cast UI · **Log:** LOG 2026-07-23 (slice 3)
 
-*(PROPOSED 005, 007–008: statements in `docs/12-asset-library.md`; elaborate when promoted.)*
+### REQ-AST-007 — Style kits: styles retained across videos
+- **Status:** IN_REVIEW · **Stage:** P4 · **Priority:** must · **Owner:** —
+- **Raised-by:** USER original requirement #3 (styles retained across videos, selectable at start); promoted this slice
+- **Source:** INV-AST-006, BR-AST-001 (`docs/12`)
+- **Statement:** Style kits (name + style prompt) are org-level and reusable; a project selects at most one; the selected kit's prompt is appended to every auto-assembled frame and take prompt of that project.
+- **Acceptance criteria:**
+  - GIVEN an org WHEN a kit is created THEN it lists org-wide; blank name/prompt rejected.
+  - GIVEN a project with a kit WHEN a frame/take is requested THEN the prompt snapshot contains the kit's prompt; detaching stops it.
+  - GIVEN the storyboard THEN the kit is selectable in the header and the auto-script placeholders show the style text.
+- **Tests:** `tests/style-kits.int.spec.ts`, `libs/stb/tests/style-in-prompts.int.spec.ts`, browser E2E (create kit → select on project → style visible in auto scripts) · **Code:** migration 0015, `src/entities.ts` (createStyleKit/listStyleKits/projectStylePrompt), `libs/prj` setProjectStyleKit, library + storyboard UI · **Log:** LOG 2026-07-23
+- **Deferred / notes:** style reference images (kit refs feeding image gen) deferred until needed; custom user scripts intentionally NOT styled (verbatim rule).
+
+*(PROPOSED 005 + 008: statements in `docs/12-asset-library.md`; elaborate when promoted.)*
