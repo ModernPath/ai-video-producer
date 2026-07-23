@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 24 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 25 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,6 +15,7 @@ Totals: 0 DONE · 24 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
+| REQ-STB-025 | Lyric-synced cut suggestions (♪ MUSIC SYNC) | P6 | IN_REVIEW | USER Lyria epic ("time the change of scene according to song timing") | tests/music-sync.spec.ts + update-duration.int + browser E2E | src/music-sync.ts, updateShotDuration, applySyncAction, SYNC panel |
 | REQ-STB-024 | Plan-authored animation shots (free, no frame spend) | P6 | IN_REVIEW | USER Remotion epic ("purely remotion animations (prompt)") | plan-normalize spec + real E2E frame | migration 0020, normalize/apply, plan prompt, applyPlanAction branch, badge+prefill UI |
 | REQ-STB-023 | Music brief includes timed lyrics unless instrumental | P5 | IN_REVIEW | USER 2026-07-23 (Lyria epic) | libs/gen/tests/prompt.spec.ts + real-model check | assembleMusicBriefPrompt lyrics rule |
 | REQ-STB-022 | Reorder shots (animatic/export follow) | P2 | IN_REVIEW | SCN-STB-010, INV-STB-002 | tests/reorder.int.spec.ts + browser E2E | reorderShot (3-step swap), ↑↓ UI |
@@ -73,6 +74,17 @@ Totals: 0 DONE · 24 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a project with a brief WHEN DraftScript completes THEN script_version v1 exists with non-empty content and generation_id.
   - GIVEN an existing v1 WHEN DraftScript again THEN v2 exists; v1 unchanged.
 - **Tests:** `tests/script.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 2)
+
+### REQ-STB-025 — Lyric-synced cut suggestions
+- **Status:** IN_REVIEW · **Stage:** P6 · **Priority:** should · **Owner:** —
+- **Raised-by:** USER Lyria epic — "time the change of scene according to song timing lyrics"
+- **Source:** REQ-GEN-020 transcripts; INV-STB-001 duration bounds
+- **Statement:** When the track transcript exists, the storyboard shows a ♪ MUSIC SYNC panel: section boundaries parsed from [MM:SS] stamps, a greedy pass proposes per-shot duration changes (allowed set only, earlier changes shift later cuts) that land cuts exactly on section changes, with a one-click apply (updateShotDuration, INV-STB-001-validated).
+- **Acceptance criteria:**
+  - GIVEN a transcript THEN section times parse (0:00 excluded); GIVEN shots+boundaries THEN suggestions land cuts on boundaries; no-op when aligned/unreachable.
+  - GIVEN apply THEN durations persist (bounds enforced); existing takes untouched (provenance badges mark stale ones).
+- **Tests:** `tests/music-sync.spec.ts` (parse+suggest), `tests/update-duration.int.spec.ts` · browser E2E: Aurora panel showed sections 0:19–2:32, suggested Momentum 6s→8s (cut → 0:19 exactly), applied and persisted · **Code:** `src/music-sync.ts`, service updateShotDuration, applySyncAction + panel · **Log:** LOG 2026-07-23 (slice 22)
+- **Deferred / notes:** suggestions are exact-hit greedy (no near-miss tolerance) — extend if real briefs need it. Also closed REQ-STB-024's deferred subtext passthrough (plan/user subtext now renders on TitleCard).
 
 ### REQ-STB-024 — Plan-authored animation shots
 - **Status:** IN_REVIEW · **Stage:** P6 · **Priority:** should · **Owner:** —

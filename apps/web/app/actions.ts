@@ -372,6 +372,15 @@ export async function setProjectStyleAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/** REQ-STB-025: apply lyric-sync duration suggestions (JSON [{shotId,toS}] in one field). */
+export async function applySyncAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const changes = JSON.parse(String(formData.get("changes") ?? "[]")) as Array<{ shotId: string; toS: number }>;
+  const { updateShotDuration } = await import("@avd/stb");
+  for (const c of changes) await updateShotDuration(db(), { shotId: c.shotId, durationS: c.toS });
+  revalidatePath(`/p/${projectId}`);
+}
+
 /** REQ-ANM-002: composite a lower-third overlay onto an existing take (free). */
 export async function overlayTakeAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));

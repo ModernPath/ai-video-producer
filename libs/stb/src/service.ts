@@ -183,6 +183,7 @@ export async function requestAnimationTake(
 ) {
   const s = await getShotOrThrow(db, input.shotId);
   if (!input.text.trim()) throw new StbValidationError("validation_failed", "Animation needs the title text");
+  const planSubtext = (s.animation as { subtext?: string } | null)?.subtext; // REQ-STB-024 deferred item
   return enqueueGeneration(db, {
     organizationId: s.organizationId,
     projectId: s.projectId,
@@ -658,6 +659,13 @@ export async function reorderShot(db: Db, input: { shotId: string; direction: "u
     await tx.update(shot).set({ position: s.position }).where(eq(shot.id, other.id));
     await tx.update(shot).set({ position: other.position }).where(eq(shot.id, s.id));
   });
+}
+
+/** REQ-STB-025: duration edit (INV-STB-001 bounds) — used by music-sync apply. */
+export async function updateShotDuration(db: Db, input: { shotId: string; durationS: number }): Promise<void> {
+  assertDuration(input.durationS);
+  await getShotOrThrow(db, input.shotId);
+  await db.update(shot).set({ durationS: String(input.durationS) }).where(eq(shot.id, input.shotId));
 }
 
 export async function removeShot(db: Db, input: { shotId: string; confirmPaid?: boolean }): Promise<void> {

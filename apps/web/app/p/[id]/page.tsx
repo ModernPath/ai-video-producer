@@ -10,10 +10,11 @@ import { getMusicBrief, listCandidates, listShots } from "@avd/stb";
 import { assembleFramePrompt, assembleTakePrompt } from "@avd/gen";
 import { listEntities, listProjectEntities, listStyleKits } from "@avd/ast";
 import { costMeterUsd } from "@avd/prj/service";
+import { parseSectionTimes, suggestSyncDurations } from "@avd/stb/music-sync";
 import { shareLink } from "@avd/asm/schema";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  animationTakeAction, createShareLinkAction, overlayTakeAction, removeCandidateAction, reorderShotAction, retakeAction, setProjectStyleAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
+  animationTakeAction, applySyncAction, createShareLinkAction, overlayTakeAction, removeCandidateAction, reorderShotAction, retakeAction, setProjectStyleAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
 } from "../../actions";
 import { ABCompare } from "../../../components/ABCompare";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
@@ -96,6 +97,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   );
   const generated = shots.filter((s) => s.selectedTakeId).length;
   const music = await getMusicBrief(d, id);
+  const sync = music?.transcript
+    ? suggestSyncDurations(shots.map((s) => ({ id: s.id, title: s.title, durationS: Number(s.durationS) })), parseSectionTimes(music.transcript))
+    : null;
   const orgEntities = await listEntities(d, p.organizationId);
   const kits = await listStyleKits(d, p.organizationId);
   const activeStylePrompt = kits.find((k) => k.id === p.styleKitId)?.prompt;
@@ -205,7 +209,25 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       )}
 
       <section style={{ display: "grid", gap: 14, marginTop: 24 }}>
-        {shots.map((s) => {
+        {sync && sync.suggestions.length > 0 && (
+        <section style={{ ...card, marginTop: 14, borderColor: "var(--accent)" }}>
+          <p className="mono" style={{ fontSize: 10, color: "var(--accent)", marginBottom: 6 }}>
+            ♪ MUSIC SYNC — section changes at {sync.boundaries.map((b) => `${Math.floor(b / 60)}:${String(b % 60).padStart(2, "0")}`).join(", ")}
+          </p>
+          {sync.suggestions.map((g) => (
+            <p key={g.shotId} style={{ fontSize: 12, margin: "2px 0" }}>
+              <b>{g.title}</b>: {g.fromS}s → {g.toS}s <span className="muted">(cut lands on the section change at {Math.floor(g.boundaryS / 60)}:{String(g.boundaryS % 60).padStart(2, "0")})</span>
+            </p>
+          ))}
+          <form action={applySyncAction} style={{ marginTop: 8 }}>
+            <input type="hidden" name="projectId" value={id} />
+            <input type="hidden" name="changes" value={JSON.stringify(sync.suggestions.map((g) => ({ shotId: g.shotId, toS: g.toS })))} />
+            <SubmitButton small primary pendingLabel="Applying…">♪ Apply {sync.suggestions.length} duration change{sync.suggestions.length > 1 ? "s" : ""}</SubmitButton>
+          </form>
+          <p className="mono muted" style={{ fontSize: 9, marginTop: 6 }}>existing takes keep their length — regenerate takes after changing durations (INV-STB-006 badge will mark stale ones)</p>
+        </section>
+      )}
+      {shots.map((s) => {
           const dd = s.direction as { synopsis?: string };
           const cands = candidatesByShot.get(s.id)!;
           return (
