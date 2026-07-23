@@ -6,7 +6,8 @@
 
 ## User outcomes
 
-- Edit the shot's **Direction** as friendly structured fields (synopsis, subject, action, camera, mood, dialogue, audio notes, duration slider 4–10s, entities in this shot from the project's attached set).
+- **Scripts first:** read and edit the shot's **image script** and **video script** — the exact prompts the models receive — with attached reference images displayed beside them and **Save & generate** on the script itself; empty scripts auto-compose (natural prose) from Direction + cast.
+- Edit the shot's **Direction** as friendly structured fields (synopsis, subject, action, camera, mood, dialogue, audio notes, duration slider 4–8s, entities in this shot from the project's attached set) — supporting metadata behind the scripts.
 - Generate **start-frame candidates** (default 2) — pick one, regenerate with a tweak instruction, or **AI-edit an existing candidate** ("same shot but at night") into a new candidate; optional end frame (Phase 4, OQ-101).
 - Remove unwanted candidates (unselected only); every candidate is regenerable, nothing selected is ever destroyed.
 - Generate a **Take** (cost shown before click); watch it inline; keep generating alternatives.

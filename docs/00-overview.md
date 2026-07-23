@@ -31,7 +31,7 @@ Script + Shot Plan + Consistent Look + Cheap Iteration on Frames
 
 1. **The Storyboard is the system of record.** Shots, their order, selected frames and selected takes fully determine the output. Generations are candidates until selected.
 2. **Every generation is traceable and immutable.** Model id, full prompt/context snapshot, reference assets, parameters, and cost are recorded per generation; regeneration creates a new candidate, never overwrites.
-3. **Cheap before expensive.** Iterate on script (≈free) and frames (cents) before video ($0.10/s). The **Animatic** preview lets users judge pacing and look before spending on clips.
+3. **Cheap before expensive.** Iterate on script (≈free) and frames (cents) before video ($0.15/s). The **Animatic** preview lets users judge pacing and look before spending on clips.
 4. **Export never generates.** Assembly is deterministic: concat + mix from immutable, already-rendered takes.
 5. **Everything is revisable, nothing is destroyed.** Every script, image, and clip can be edited, regenerated, or removed at any time — edits and regenerations create new candidates/versions with provenance; removal is soft and never touches anything selected or exported.
 
@@ -72,9 +72,9 @@ Verified 2026-07-23 against Google docs (see `82-tech-stack.md` §4 for links; r
 |---|---|---|
 | Script / shot planning / prompts | `gemini-3.6-flash` | 1M in / 65k out tokens, structured output, function calling |
 | Frame images | `gemini-3.1-flash-image` (Nano Banana), `-lite`, `gemini-3-pro-image` | AR: 1:1, 3:2, 2:3, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9 · res 0.5K–4K (Lite: 1K) · up to 14 reference images · character consistency with 4–5 refs · text-prompt image editing |
-| Video clips | `gemini-omni-flash-preview` | Up to **10s** per generation · 16:9 and 9:16 only · **native audio** in output MP4 · image-conditioned generation + reference subjects · conversational video editing · ~$0.10/s · no extension/interpolation · English prompts |
+| Video clips | **`veo-3.1-fast-generate-preview`** (current route; Omni pending OQ-112) | Durations **{4, 6, 8}s only** (spike-verified) · 16:9 and 9:16 · **native audio** · start-frame conditioning via `image` param, `lastFrame` + `referenceImages` supported · **$0.15/s** (verified) · long-running op + polling |
 
-Consequences baked into the domain: shot duration is capped at 10s; project aspect ratio is 16:9 or 9:16 (MVP); per-take cost is $0.40–$1.00 so takes are explicit, metered objects; "end frame" conditioning is an OQ-101 spike, not an assumed API feature.
+Consequences baked into the domain: shot duration is capped at **8s** (Veo route; snaps to {4,6,8}); aspect ratio 16:9 or 9:16 (MVP); per-take cost **$0.60–$1.20** and per-frame **$0.034–$0.067** (verified per-image pricing) so generation is explicit and metered; end-frame conditioning is API-supported (`lastFrame`, OQ-101 resolved) and ships with the retake/edit arm.
 
 ---
 

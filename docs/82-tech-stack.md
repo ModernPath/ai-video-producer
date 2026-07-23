@@ -31,7 +31,7 @@
 | frame (draft) | `gemini-3.1-flash-lite-image` | ~free iteration |
 | frame (standard) | `gemini-3.1-flash-image` | up to 14 refs |
 | frame (hero) | `gemini-3-pro-image` | 2K/4K key art |
-| take / retake | `gemini-omni-flash-preview` | ≤10s, native audio, $0.10/s |
+| take / retake | `veo-3.1-fast-generate-preview` | {4,6,8}s, native audio, $0.15/s · Omni returns via OQ-112 (Interactions API adapter) |
 
 All duration bounds, candidate counts, concurrency caps, cost rates in the same config module — never literals in code (root `CLAUDE.md` §1.4).
 
@@ -57,7 +57,7 @@ All duration bounds, candidate counts, concurrency caps, cost rates in the same 
 
 ## 5. Local development
 
-`docker compose up`: postgres, minio, web (dev), worker (dev). `MOCK_GEN=1` default — fixture images/videos, zero API cost; `GEMINI_API_KEY` enables real generation.
+`docker compose up`: postgres, minio, web (dev), worker (dev). **Dev app runs REAL generation** (`GEMINI_API_KEY` in env; USER directive 2026-07-23 — no mock artifacts in the product). `MOCK_GEN=1` is used **only by tests/CI** (fixtures, zero cost).
 
 ## 6. CI
 
