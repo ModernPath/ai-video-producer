@@ -362,6 +362,24 @@ export async function setProjectStyleAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/** REQ-ANM-002: composite a lower-third overlay onto an existing take (free). */
+export async function overlayTakeAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const text = String(formData.get("text") ?? "").trim();
+  if (!text) return;
+  const [p] = await db().select().from(project).where(eq(project.id, projectId));
+  if (!p) return;
+  const { requestAnimationOverlay } = await import("@avd/stb");
+  const genId = await requestAnimationOverlay(db(), {
+    takeId: String(formData.get("takeId")),
+    text,
+    principal: PRINCIPAL,
+    aspectRatio: p.aspectRatio,
+  });
+  await drainQueueAndMaterialize([genId]);
+  revalidatePath(`/p/${projectId}`);
+}
+
 /** REQ-GEN-020: transcribe the attached track (MM:SS) for lyric-synced timing. */
 export async function transcribeTrackAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));

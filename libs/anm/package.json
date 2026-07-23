@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/render.ts",
-    "./render": "./src/render.ts"
+    "./render": "./src/render.ts",
+    "./composite": "./src/composite.ts"
   },
   "dependencies": {
     "@avd/shared": "workspace:*",

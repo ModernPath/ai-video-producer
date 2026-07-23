@@ -200,6 +200,34 @@ export async function requestAnimationTake(
   });
 }
 
+/** REQ-ANM-002: composite a transparent Remotion overlay onto an existing take (free, local). */
+export async function requestAnimationOverlay(
+  db: Db,
+  input: { takeId: string; text: string; principal: string; aspectRatio: "16:9" | "9:16" }
+) {
+  const [t] = await db.select().from(take).where(and(eq(take.id, input.takeId), isNull(take.deletedAt)));
+  if (!t) throw new StbValidationError("not_found", "Take not found");
+  if (!input.text.trim()) throw new StbValidationError("validation_failed", "Overlay needs text");
+  const s = await getShotOrThrow(db, t.shotId);
+  return enqueueGeneration(db, {
+    organizationId: s.organizationId,
+    projectId: s.projectId,
+    principal: input.principal,
+    kind: "animation",
+    commandId: uuidv7(),
+    target: { shotId: s.id, retakeOfTakeId: t.id }, // overlay result is lineage-linked to its source
+    refs: { editSourceAssetId: t.videoAssetId },
+    promptInput: {
+      aspectRatio: input.aspectRatio,
+      durationSeconds: Number(t.durationActualS ?? s.durationS),
+      entities: [],
+      template: "lower-third",
+      customPrompt: input.text.trim(),
+      direction: { synopsis: input.text.trim(), subject: "overlay", action: "lower-third" },
+    },
+  });
+}
+
 /** REQ-STB-020 / SCN-STB-021: retake with instruction — same shot, same conditioning frame as the
  * source take (not the current selection), instruction appended to the video prompt; retake_of lineage. */
 export async function requestRetake(

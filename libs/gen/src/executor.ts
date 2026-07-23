@@ -139,10 +139,29 @@ async function processGenerationRow(
 
     if (next.kind === "animation") {
       // REQ-ANM-001: local Remotion render — no provider, no cost. Mock mode uses the video fixture.
-      const anmInput = snapshot.input as { text?: string; subtext?: string; customPrompt?: string; durationSeconds?: number; aspectRatio?: "16:9" | "9:16" };
+      const anmInput = snapshot.input as { text?: string; subtext?: string; customPrompt?: string; template?: string; durationSeconds?: number; aspectRatio?: "16:9" | "9:16" };
+      const overlaySourceId = (snapshot.refs as { editSourceAssetId?: string } | undefined)?.editSourceAssetId;
       let media: { bytes: Uint8Array; mime: string; durationS: number };
       if (mockEnabled()) {
         media = await provider.generateVideo({ model: "mock", prompt: snapshot.prompt, durationSeconds: anmInput.durationSeconds ?? 4, aspectRatio });
+      } else if (anmInput.template === "lower-third" && overlaySourceId) {
+        // REQ-ANM-002: render alpha overlay, composite onto the source take via ffmpeg
+        const { renderAnimation } = await import("@avd/anm");
+        const { compositeOverlay } = await import("@avd/anm/composite");
+        const [src] = await db.select().from(asset).where(eq(asset.id, overlaySourceId));
+        if (!src) throw new Error("overlay source asset missing");
+        const srcMedia = await getObject(src.storageKey);
+        const overlay = await renderAnimation({
+          template: "lower-third",
+          text: anmInput.text ?? anmInput.customPrompt ?? "",
+          durationS: anmInput.durationSeconds ?? 4,
+          aspectRatio,
+        });
+        media = await compositeOverlay({
+          videoBytes: srcMedia.bytes,
+          overlayWebmBytes: overlay.bytes,
+          durationS: anmInput.durationSeconds ?? 4,
+        });
       } else {
         const { renderAnimation } = await import("@avd/anm");
         media = await renderAnimation({

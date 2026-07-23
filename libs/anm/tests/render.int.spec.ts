@@ -12,3 +12,11 @@ describe.skipIf(!enabled)("REQ-ANM-001: Remotion title-card render", () => {
     expect(out.durationS).toBe(4);
   }, 300_000);
 });
+
+describe.skipIf(!enabled)("REQ-ANM-002: transparent lower-third render", () => {
+  it("renders an alpha webm", async () => {
+    const out = await renderAnimation({ template: "lower-third", text: "Pasi — Founder", durationS: 4, aspectRatio: "16:9" });
+    expect(out.mime).toBe("video/webm");
+    expect(out.bytes.length).toBeGreaterThan(5_000);
+  }, 300_000);
+});

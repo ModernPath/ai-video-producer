@@ -13,7 +13,7 @@ import { costMeterUsd } from "@avd/prj/service";
 import { shareLink } from "@avd/asm/schema";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  animationTakeAction, createShareLinkAction, removeCandidateAction, reorderShotAction, retakeAction, setProjectStyleAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
+  animationTakeAction, createShareLinkAction, overlayTakeAction, removeCandidateAction, reorderShotAction, retakeAction, setProjectStyleAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
 } from "../../actions";
 import { ABCompare } from "../../../components/ABCompare";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
@@ -281,6 +281,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                             <span className="mono muted" title="This take was generated from a previously selected start frame (INV-STB-006 — it is preserved, not regenerated)" style={{ fontSize: 9, border: "1px dashed var(--line)", borderRadius: 4, padding: "1px 5px" }}>from older frame</span>
                           ) : null;
                         })()}
+                        <form action={overlayTakeAction} style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                          <input type="hidden" name="projectId" value={id} />
+                          <input type="hidden" name="takeId" value={t.id} />
+                          <input name="text" required placeholder="overlay text…" className="mono" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 5, padding: "2px 6px", color: "var(--ink)", fontSize: 10, width: 120 }} />
+                          <SubmitButton small disabled={(activeByShot.get(s.id)?.take ?? 0) > 0} title="Composite an animated lower-third onto this take — free, local render" pendingLabel="…">✦</SubmitButton>
+                        </form>
                         <form action={retakeAction} style={{ display: "flex", gap: 4, alignItems: "center" }}>
                           <input type="hidden" name="projectId" value={id} />
                           <input type="hidden" name="takeId" value={t.id} />

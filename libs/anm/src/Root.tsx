@@ -1,11 +1,13 @@
 import React from "react";
 import { Composition } from "remotion";
+import { LowerThird, type LowerThirdProps } from "./LowerThird";
 import { TitleCard, type TitleCardProps } from "./TitleCard";
 
 const FPS = 24;
 
 export const Root: React.FC = () => (
-  <Composition
+  <>
+    <Composition
     id="TitleCard"
     component={TitleCard}
     fps={FPS}
@@ -23,4 +25,23 @@ export const Root: React.FC = () => (
       };
     }}
   />
+    <Composition
+      id="LowerThird"
+      component={LowerThird}
+      fps={24}
+      width={1280}
+      height={720}
+      durationInFrames={4 * 24}
+      defaultProps={{ text: "Lower third" } as LowerThirdProps}
+      calculateMetadata={({ props }) => {
+        const p = props as LowerThirdProps & { durationS?: number; aspectRatio?: "16:9" | "9:16" };
+        const portrait = p.aspectRatio === "9:16";
+        return {
+          durationInFrames: Math.round((p.durationS ?? 4) * 24),
+          width: portrait ? 720 : 1280,
+          height: portrait ? 1280 : 720,
+        };
+      }}
+    />
+  </>
 );

@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 export interface AnimationInput {
-  template: "title";
+  template: "title" | "lower-third";
   text: string;
   subtext?: string | undefined;
   durationS: number;
@@ -33,12 +33,28 @@ export async function renderAnimation(input: AnimationInput): Promise<{ bytes: U
     durationS: input.durationS,
     aspectRatio: input.aspectRatio,
   };
-  const composition = await selectComposition({ serveUrl, id: "TitleCard", inputProps });
+  const transparent = input.template === "lower-third"; // REQ-ANM-002: alpha webm for compositing
+  const composition = await selectComposition({
+    serveUrl,
+    id: input.template === "lower-third" ? "LowerThird" : "TitleCard",
+    inputProps,
+  });
   const dir = mkdtempSync(join(tmpdir(), "avd-anm-"));
-  const outputLocation = join(dir, "out.mp4");
+  const outputLocation = join(dir, transparent ? "out.webm" : "out.mp4");
   try {
-    await renderMedia({ composition, serveUrl, codec: "h264", outputLocation, inputProps });
-    return { bytes: new Uint8Array(readFileSync(outputLocation)), mime: "video/mp4", durationS: input.durationS };
+    await renderMedia({
+      composition,
+      serveUrl,
+      codec: transparent ? "vp8" : "h264",
+      ...(transparent ? { imageFormat: "png" as const, pixelFormat: "yuva420p" as const } : {}),
+      outputLocation,
+      inputProps,
+    });
+    return {
+      bytes: new Uint8Array(readFileSync(outputLocation)),
+      mime: transparent ? "video/webm" : "video/mp4",
+      durationS: input.durationS,
+    };
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

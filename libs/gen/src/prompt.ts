@@ -25,6 +25,8 @@ export interface TakePromptInput {
   direction: DirectionInput;
   /** REQ-STB-013: user-authored script — used verbatim as the creative body. */
   customPrompt?: string | undefined;
+  /** REQ-ANM: animation template id (transient metadata; not part of the text prompt). */
+  template?: string | undefined;
   /** v3: number of reference images attached to the request (drives preservation phrasing). */
   referenceImageCount?: number | undefined;
 }

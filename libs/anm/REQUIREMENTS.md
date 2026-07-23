@@ -1,12 +1,12 @@
 # ANM — Requirements Ledger
 
 ## Dashboard — ANM (Animations)
-Totals: 0 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-ANM-001 | Title-card animation takes (pure Remotion scenes) | P6 | IN_REVIEW | USER Remotion epic 2026-07-23 | tests/render.int.spec.ts (RUN_RENDER) + real chain + browser | src/*, gen executor branch, migration 0018, ✦ Animate UI |
-| REQ-ANM-002 | Animation overlays on generated shots (layers/transparency) | P6 | PROPOSED | USER Remotion epic; remotion.dev/docs/layers,transparency,greenscreen | — | — |
+| REQ-ANM-002 | Animation overlays on generated shots | P6 | IN_REVIEW | USER Remotion epic | anm render test (alpha webm) + stb overlay.int + real composite frame | LowerThird.tsx, composite.ts, executor overlay path, ✦ per-take UI |
 | REQ-ANM-003 | Caption/lyric overlays from MM:SS transcripts | P6 | PROPOSED | USER Remotion epic + REQ-GEN-020 | — | — |
 
 ### REQ-ANM-001 — Title-card animation takes
@@ -21,4 +21,16 @@ Totals: 0 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEF
 - **Tests:** `tests/render.int.spec.ts` (real render, 11s) · real chain on dev DB (6s 356KB mp4 → take 7222 on Aurora "Logo out", visible in UI) · **Code:** `src/{TitleCard,Root,index,render}.tsx|ts`, gen executor animation branch, migration 0018, STB requestAnimationTake + materialize, ✦ UI · **Log:** LOG 2026-07-23
 - **Deferred / notes:** more templates (kinetic text, lower-third) + AI template/props selection from prompt → follow-ups under this epic; UI submit verified wired (persistent extension click-drop documented in memory — chain verified server-side + result visible in browser).
 
-*(002–003 elaborate when promoted; overlay mode composits Remotion layers over generated takes per remotion.dev/docs/layers + videos/transparency.)*
+### REQ-ANM-002 — Animation overlays on generated shots
+- **Status:** IN_REVIEW · **Stage:** P6 · **Priority:** should · **Owner:** —
+- **Raised-by:** USER Remotion epic ("add an animation overlay to generated video scenes")
+- **Source:** remotion.dev/docs/videos/transparency + layers
+- **Statement:** Any take can receive a transparent Remotion overlay (LowerThird template: sliding accent-bar text, alpha VP8 webm) composited via ffmpeg (libvpx alpha decode, scale2ref) into a NEW take lineage-linked (`retake_of`) to its source — free and local; original take untouched.
+- **Acceptance criteria:**
+  - GIVEN a take WHEN overlaid THEN kind `animation` with the source video as editSourceAssetId ref and template lower-third in the snapshot.
+  - GIVEN the composite THEN a new h264 take on the same shot with retake_of = source; audio passthrough.
+  - GIVEN the render THEN the webm carries alpha (gated RUN_RENDER test).
+- **Tests:** `tests/render.int.spec.ts` (alpha webm) · `libs/stb/tests/overlay.int.spec.ts` (mock chain: refs/lineage) · real E2E: overlay composited onto Aurora's real Veo take, frame extraction shows the lower-third over the footage · **Code:** `src/LowerThird.tsx`, `src/composite.ts`, executor overlay path, STB requestAnimationOverlay, per-take ✦ overlay UI · **Log:** LOG 2026-07-23
+- **Deferred / notes:** greenscreen keying and multi-layer stacks later; overlay duration = source take duration (no offset control yet).
+
+*(003 elaborates when promoted — caption overlays driven by REQ-GEN-020 transcripts; SRT-burned captions shipped as ASM-009 MVP.)*
