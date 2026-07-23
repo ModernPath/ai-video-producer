@@ -409,7 +409,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           {recentGens.map((g) => (
             <div key={g.id} style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <p className="mono muted" style={{ fontSize: 11 }}>
-                {g.kind} · {g.modelId} · {g.status} · ${g.costUsd ?? "—"}{g.retryOf ? " · retry" : ""}
+                {g.kind} · {g.modelId} · {g.status} · ${g.costUsd ?? "—"}{g.retryOf ? " · retry" : ""}{g.status === "failed" && g.errorCode ? ` · ${g.errorCode}` : ""}
               </p>
               {g.status === "failed" && (
                 <form action={retryGenerationAction}>

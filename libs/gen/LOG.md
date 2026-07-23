@@ -1,5 +1,13 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-23 — REQ-GEN-004 daily per-org spend cap (PROPOSED → IN_REVIEW)
+**Done:** red-first quota guard in enqueueGeneration: sums today's billed spend (succeeded+running, UTC day) per org; at/over config.gen.quota.dailyUsdPerOrg (default $5, env GEN_DAILY_USD_CAP) the row is inserted failed with quota_exceeded — visible in RECENT GENERATIONS with retry, never billed, never reaches a provider. Recent-generations rows now show error codes for failed generations.
+**Decisions:** no PLT quota aggregate — generation table is the billing source of truth; over-quota enqueue records a failed row instead of throwing so the UI surfaces it without new machinery.
+**Deferred:** —
+**Discovered:** after a dev-server restart the already-open page's stale bundle drops ALL form submits silently (no POST) until a fresh navigation — worth remembering for browser E2E (fresh-load before clicking).
+**Follow-ups:** show remaining daily budget in the header (BACKLOG).
+**Gate:** full suite green (92 passed); browser-verified with $0.01 cap then restored.
+
 ## 2026-07-23 — Context scaffolded (Prompt 0B)
 **Done:** lib skeleton, empty ledger, build guide.
 **Decisions:** contracts in `./contracts` (Zod canonical).

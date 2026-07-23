@@ -1,9 +1,10 @@
 // REQ-GEN-001 (provenance before execution) + REQ-GEN-007 + REQ-GEN-013 + REQ-GEN-015 (config guard)
 // + REQ-PRJ-003 (BR-PRJ-003 archived-project enqueue guard).
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import { getProjectStatus } from "@avd/prj/service";
-import type { FrameQuality, GenerationKind } from "@avd/shared/config";
+import { config, type FrameQuality, type GenerationKind } from "@avd/shared/config";
 import {
   PROMPT_TEMPLATE_VERSION, assembleEditPrompt, assembleFramePrompt, assembleScriptPrompt, assembleShotPlanPrompt,
   assembleTakePrompt, type EditPromptInput, type TakePromptInput, type TextPromptInput,
@@ -46,6 +47,16 @@ export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<st
     throw new GenEnqueueError("project_archived", "Project is archived; new generations are blocked");
   }
   const id = uuidv7();
+  // INV-GEN-004: daily per-org spend cap — checked before any provider work.
+  const [{ spentToday }] = await db
+    .select({ spentToday: sql<string>`coalesce(sum(${generation.costUsd}), 0)` })
+    .from(generation)
+    .where(and(
+      eq(generation.organizationId, input.organizationId),
+      inArray(generation.status, ["succeeded", "running"]),
+      sql`${generation.createdAt} >= date_trunc('day', now())`
+    ));
+  const overQuota = Number(spentToday) >= config.gen.quota.dailyUsdPerOrg;
   let prompt: string;
   if (input.kind === "image_edit") prompt = assembleEditPrompt(input.editInput!);
   else if (input.kind === "frame") prompt = assembleFramePrompt(input.promptInput!);
@@ -72,6 +83,14 @@ export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<st
       input: input.promptInput ?? input.textInput ?? input.editInput,
     },
     params: { durationSeconds: input.promptInput?.durationSeconds, quality: input.quality ?? "standard" },
+    // INV-GEN-004: over-quota enqueues fail immediately — visible in the UI, never billed
+    ...(overQuota
+      ? {
+          status: "failed" as const,
+          errorCode: "quota_exceeded",
+          errorDetail: `Daily spend cap $${config.gen.quota.dailyUsdPerOrg} reached for this organization (spent $${Number(spentToday).toFixed(2)} today) — resets at midnight UTC`,
+        }
+      : {}),
     commandId: input.commandId,
     principal: input.principal,
   });

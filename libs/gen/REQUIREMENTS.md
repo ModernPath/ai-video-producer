@@ -1,14 +1,14 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 14 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 15 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-GEN-001 | Provenance recorded before execution | P1 | IN_REVIEW | INV-GEN-001 | tests/pipeline.int.spec.ts | src/service.ts |
 | REQ-GEN-002 | Outputs are new immutable assets | P1 | IN_REVIEW | INV-GEN-002 | tests/pipeline.int.spec.ts | src/executor.ts |
 | REQ-GEN-003 | Cost recorded on completion | P1 | IN_REVIEW | INV-GEN-003 | tests/cost-routing.spec.ts, tests/pipeline.int.spec.ts | src/cost.ts |
-| REQ-GEN-004 | Quota check at enqueue | P5 | PROPOSED | INV-GEN-004 | — | — |
+| REQ-GEN-004 | Daily per-org spend cap at enqueue | P5 | IN_REVIEW | INV-GEN-004 | tests/quota.int.spec.ts + browser E2E | src/service.ts enqueueGeneration, config.gen.quota |
 | REQ-GEN-005 | Retry of terminal failures (retry_of provenance) | P2 | IN_REVIEW | INV-GEN-005 | tests/retry.int.spec.ts (browser: UI wired, click-through pending) | src/retry.ts |
 | REQ-GEN-006 | Content-policy terminal failure mapping | P2 | IN_REVIEW | INV-GEN-006 | tests/provider-path.int.spec.ts | src/provider.ts, src/executor.ts |
 | REQ-GEN-007 | Model routing from versioned config | P1 | IN_REVIEW | BR-GEN-001 | tests/cost-routing.spec.ts | src/routing.ts |
@@ -76,8 +76,16 @@ Totals: 0 DONE · 14 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
   - GIVEN a failed generation THEN `cost_usd` reflects what the provider charged (0 for pre-execution failures).
 - **Tests:** `tests/cost-routing.spec.ts, tests/pipeline.int.spec.ts` · **Code:** `src/cost.ts` · **Log:** LOG 2026-07-23 (slice 1)
 
-### REQ-GEN-004 — Quota check at enqueue
-- **Status:** PROPOSED · **Stage:** P5 · **Source:** INV-GEN-004 — needs PLT quota aggregate first.
+### REQ-GEN-004 — Daily per-org spend cap at enqueue
+- **Status:** IN_REVIEW · **Stage:** P5 · **Priority:** must · **Owner:** —
+- **Raised-by:** BACKLOG priority raise once real mode went live (every take bills real money)
+- **Source:** INV-GEN-004
+- **Statement:** Enqueue shall reject new generations once the organization's billed spend today (succeeded+running, UTC day) reaches `config.gen.quota.dailyUsdPerOrg` (env-overridable via GEN_DAILY_USD_CAP); rejections are recorded as failed generations with `quota_exceeded` and never reach a provider.
+- **Acceptance criteria:**
+  - GIVEN spend under the cap WHEN enqueue THEN row is queued as normal.
+  - GIVEN spend at/over the cap WHEN enqueue THEN row inserted failed with `quota_exceeded`, cost NULL, no provider call.
+- **Tests:** `tests/quota.int.spec.ts` · **Code:** `src/service.ts` (enqueueGeneration), `libs/shared/src/config/limits.ts` (config.gen.quota) · **Log:** LOG 2026-07-23
+- **Deferred / notes:** decided against a separate PLT quota aggregate — the generation table is the billing source of truth (INV-PRJ-004 precedent). Browser-verified with GEN_DAILY_USD_CAP=0.01: UI shows failed · quota_exceeded, $—.
 
 ### REQ-GEN-005 — Retry of terminal failures (retry_of provenance)
 - **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must

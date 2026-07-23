@@ -15,7 +15,12 @@ export const config = {
   },
   frame: { candidatesDefault: 2, candidatesMax: 4 },
   entity: { maxRefs: providerLimits.image.entityConsistencyRefs }, // INV-AST-004
-  gen: { maxConcurrentVideoPerOrg: 3, retryAttempts: 3 }, // BR-GEN-005
+  gen: {
+    maxConcurrentVideoPerOrg: 3, // BR-GEN-005
+    retryAttempts: 3,
+    // INV-GEN-004: daily per-org spend cap; env-overridable for ops without a deploy
+    quota: { dailyUsdPerOrg: Number(process.env.GEN_DAILY_USD_CAP ?? 5) },
+  },
   audio: { duckDb: -12, fadeOutSeconds: 2, lufsTarget: -14 }, // BR-ASM-001..003
   asm: {
     maxConcurrentExportsPerOrg: 2,
