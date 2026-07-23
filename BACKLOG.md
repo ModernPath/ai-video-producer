@@ -2,17 +2,22 @@
 
 Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: route to a context `REQUIREMENTS.md`, `docs/08-open-questions.md`, `docs/gap-register.md`, an epic under `epics/`, or drop with reason.
 
-> **Inbox status:** EMPTY (initialized for AI Video Producer)
+> **Inbox status:** 1 item
 
 ## Inbox
 
 | Discovery | Tracked as |
 |---|---|
-| *No items yet* | — |
+| Image-gen price table: `standard`/`hero` rates are placeholders in `libs/shared/src/config/models.ts` — verify against Google pricing page before enabling real-API cost caps | — (route to REQ-GEN-* when GEN ledger is seeded) |
 
 ---
 
 ## Routing Log
+
+## 2026-07-23 — Build loop iteration 1: Prompt 0B complete
+
+**Done:** git repo (`main`), pnpm workspace, 6 context libs (ledger+log+guide each), `@avd/shared` config (model routes, price table, provider limits — no-literals rule), docker-compose (pg 16 + minio, both up), migrator + `0001_init.sql` (plt.organization, prj.project), vitest harness. **Gate: 5/5 tests green** incl. vertical org→project→query integration test.
+**Next iteration:** Prompt 1 — seed GEN + STB ledgers (golden-thread order per `docs/81` Phase 1); then `apps/web` Next.js scaffold so browser testing can start.
 
 ## 2026-07-23 — Product re-spec (docs v1.0)
 
