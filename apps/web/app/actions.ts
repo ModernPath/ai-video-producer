@@ -328,6 +328,19 @@ export async function updateShotRefsAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/** REQ-PRJ-003: archive lifecycle — archived projects hide from the list and block generation/export. */
+export async function archiveProjectAction(formData: FormData) {
+  const { archiveProject } = await import("@avd/prj/service");
+  await archiveProject(db(), { projectId: String(formData.get("projectId")) });
+  revalidatePath("/");
+}
+
+export async function unarchiveProjectAction(formData: FormData) {
+  const { unarchiveProject } = await import("@avd/prj/service");
+  await unarchiveProject(db(), { projectId: String(formData.get("projectId")) });
+  revalidatePath("/");
+}
+
 /** REQ-STB-012: the project's video prompt (brief.idea) — drives script, plan, music, and styling. */
 export async function updateBriefAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));

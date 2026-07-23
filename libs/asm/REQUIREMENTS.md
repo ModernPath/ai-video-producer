@@ -1,7 +1,7 @@
 # Requirements Ledger — ASM (Assembly & Export)
 
 ## Dashboard — ASM (Assembly & Export)
-Totals: 0 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -12,6 +12,7 @@ Totals: 0 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 | REQ-ASM-005 | Take normalization at assembly (res/fps/trim) | P3 | IN_REVIEW | BR-ASM-003, OQ-104 trim policy | tests/normalize.int.spec.ts + browser/ffprobe | src/service.ts (normalize pass), config asm.normalize |
 | REQ-ASM-006 | Failed exports retain error, retryable | P2 | IN_REVIEW | INV-ASM-004 | tests/retry.int.spec.ts | src/service.ts (retryExport), UI ↻ |
 | REQ-ASM-007 | Share links (token, revocable) | P5 | IN_REVIEW | INV-ASM-005 | tests/share.int.spec.ts | src/share.ts, migration 0014, apps/web /s/[token] |
+| REQ-ASM-008 | Archived projects cannot export | P5 | IN_REVIEW | BR-PRJ-003 (workflow-merge follow-up) | tests/archive-guard.int.spec.ts + browser E2E | src/service.ts createSnapshot guard, archive UI apps/web/app/page.tsx |
 | REQ-ASM-008 | Explicit exclusion of takeless shots | P2 | IN_REVIEW | INV-ASM-002 (exclusion arm) | tests/exclusions.int.spec.ts + browser | src/service.ts, migration 0010, partial-export UI |
 | REQ-ASM-009 | Animatic preview (client-side, zero render cost) | P2 | IN_REVIEW | BR-ASM-005 | tests/animatic.spec.ts + browser E2E | src/animatic.ts, apps/web/components/AnimaticPlayer.tsx |
 
@@ -90,6 +91,18 @@ Totals: 0 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
   - GIVEN a failed export WHEN retried after the cause is fixed THEN a new job succeeds against the same snapshot; the failed job keeps its error.
   - GIVEN a succeeded job WHEN retried THEN rejected `conflict`.
   - Browser: failed exports show ↻ retry.
+
+### REQ-ASM-008 — Archived projects cannot export
+- **Status:** IN_REVIEW · **Stage:** MVP · **Priority:** must · **Owner:** —
+- **Raised-by:** BACKLOG (prj-backfill agent noted BR-PRJ-003 covered generation but not export)
+- **Source:** BR-PRJ-003 (`docs/11`)
+- **Statement:** Export snapshot creation shall reject archived projects with `project_archived`; unarchiving restores the ability. Archive/unarchive is operable from the projects list.
+- **Acceptance criteria:**
+  - GIVEN an archived project WHEN createSnapshot THEN rejected `project_archived`, no snapshot row.
+  - GIVEN the project is unarchived WHEN createSnapshot THEN the archive guard does not fire.
+  - GIVEN the projects list WHEN a project is archived THEN it moves to the ARCHIVED section (unarchive available) and disappears from active.
+- **Tests:** `tests/archive-guard.int.spec.ts` + browser E2E (archive → hidden → unarchive cycle) · **Code:** `src/service.ts` (createSnapshot guard via PRJ getProjectStatus), `apps/web/app/page.tsx` + archive/unarchive actions · **Log:** LOG 2026-07-23
+- **Deferred / notes:** guard placed at snapshot creation (single entry to export pipeline); queueExport inherits it since snapshots are prerequisite.
 
 ### REQ-ASM-007 — Share links (token, revocable)
 - **Status:** IN_REVIEW · **Stage:** P5 · **Priority:** should

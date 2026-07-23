@@ -1,5 +1,13 @@
 # Build Log — ASM (Assembly & Export)
 
+## 2026-07-23 — REQ-ASM-008 archive export guard + archive UI (→ IN_REVIEW)
+**Done:** red-first guard in createSnapshot (project_archived via PRJ getProjectStatus — cross-context service call, no table read); archive/unarchive buttons on projects list with collapsed ARCHIVED section; browser-verified full cycle on scratch project.
+**Decisions:** guard at snapshot creation only — queueExport requires a snapshot, so it inherits.
+**Deferred:** —
+**Discovered:** —
+**Follow-ups:** —
+**Gate:** full suite green (90 passed).
+
 ## 2026-07-23 — Context scaffolded (Prompt 0B)
 **Done:** lib skeleton, empty ledger, build guide.
 **Decisions:** contracts in `./contracts` (Zod canonical).

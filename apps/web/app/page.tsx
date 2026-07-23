@@ -2,7 +2,8 @@ import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import { project } from "@avd/prj/schema";
-import { createProjectAction } from "./actions";
+import { archiveProjectAction, createProjectAction, unarchiveProjectAction } from "./actions";
+import { SubmitButton } from "../components/SubmitButton";
 import { db } from "../lib/db";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +13,12 @@ export default async function Home() {
     .select()
     .from(project)
     .where(eq(project.status, "active"))
+    .orderBy(desc(project.createdAt))
+    .limit(50);
+  const archived = await db()
+    .select()
+    .from(project)
+    .where(eq(project.status, "archived"))
     .orderBy(desc(project.createdAt))
     .limit(50);
 
@@ -47,15 +54,38 @@ export default async function Home() {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14, marginTop: 28 }}>
         {projects.map((p) => (
-          <Link key={p.id} href={`/p/${p.id}`} style={{ border: "1px solid var(--line)", background: "var(--panel)", borderRadius: 10, padding: 16 }}>
-            <p style={{ fontWeight: 600 }}>{p.title}</p>
-            <p className="mono muted" style={{ fontSize: 11, marginTop: 6 }}>
-              {p.aspectRatio} · target {p.targetDurationS}s · {p.status}
-            </p>
-          </Link>
+          <div key={p.id} style={{ border: "1px solid var(--line)", background: "var(--panel)", borderRadius: 10, padding: 16, position: "relative" }}>
+            <Link href={`/p/${p.id}`}>
+              <p style={{ fontWeight: 600 }}>{p.title}</p>
+              <p className="mono muted" style={{ fontSize: 11, marginTop: 6 }}>
+                {p.aspectRatio} · target {p.targetDurationS}s · {p.status}
+              </p>
+            </Link>
+            <form action={archiveProjectAction} style={{ position: "absolute", right: 10, top: 10 }}>
+              <input type="hidden" name="projectId" value={p.id} />
+              <SubmitButton small title="Archive — hides the project and blocks generation/export until unarchived" pendingLabel="…">⌫ archive</SubmitButton>
+            </form>
+          </div>
         ))}
         {projects.length === 0 && <p className="muted">No projects yet — create the first one above.</p>}
       </div>
+
+      {archived.length > 0 && (
+        <details style={{ marginTop: 26 }}>
+          <summary className="mono muted" style={{ fontSize: 11, cursor: "pointer" }}>ARCHIVED · {archived.length}</summary>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14, marginTop: 12 }}>
+            {archived.map((p) => (
+              <div key={p.id} style={{ border: "1px dashed var(--line)", borderRadius: 10, padding: 16, opacity: 0.7 }}>
+                <p style={{ fontWeight: 600 }}>{p.title}</p>
+                <form action={unarchiveProjectAction} style={{ marginTop: 8 }}>
+                  <input type="hidden" name="projectId" value={p.id} />
+                  <SubmitButton small pendingLabel="…">↩ unarchive</SubmitButton>
+                </form>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
     </main>
   );
 }

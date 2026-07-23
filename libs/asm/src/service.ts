@@ -11,6 +11,7 @@ import { asset } from "@avd/ast/schema";
 import { getObject, putObject } from "@avd/ast/storage";
 import { musicBrief, shot, take } from "@avd/stb/schema";
 import { project } from "@avd/prj/schema";
+import { getProjectStatus } from "@avd/prj/service";
 import { config } from "@avd/shared/config";
 import { exportJob, storyboardSnapshot } from "./schema";
 
@@ -34,6 +35,8 @@ export async function createSnapshot(
   db: Db,
   input: { projectId: string; principal: string; excludeShotIds?: string[] }
 ): Promise<string> {
+  const status = await getProjectStatus(db, input.projectId); // BR-PRJ-003: archived projects are read-only
+  if (status === "archived") throw new AsmValidationError("project_archived", "Project is archived — unarchive to export");
   const allShots = await db
     .select()
     .from(shot)
