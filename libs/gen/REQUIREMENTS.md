@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 18 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 19 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -23,7 +23,7 @@ Totals: 0 DONE · 18 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
 | REQ-GEN-016 | Jobs execute via queue worker (pg-boss) | P2 | IN_REVIEW | `docs/03` §1–2 (enabler) | apps/worker/tests/handlers.int.spec.ts + browser E2E | apps/worker/src/*, libs/shared/src/queue.ts |
 | REQ-GEN-019 | Lyria music generation (brief → real track) | P5 | IN_REVIEW | USER 2026-07-23; docs/85 §Music | libs/stb/tests/music-track.int.spec.ts + real E2E ($0.08) | migration 0017, provider generateMusic (Interactions REST), executor music branch, requestMusicTrack, ♫ UI |
 | REQ-GEN-020 | Audio transcription MM:SS (sync) | P5 | IN_REVIEW | USER 2026-07-23; docs/85 §Music | libs/stb/tests/transcript.int.spec.ts + real E2E | migration 0019, provider audio parts, executor ref fetch, requestTranscript, ⏱ UI |
-| REQ-GEN-021 | Dialogue transcription of takes/exports (dialogue captions) | P7 | PROPOSED | eval #6 finding — recipe needs it, music-transcript captions can't cover dialogue | — | — |
+| REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | IN_REVIEW | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
 | REQ-GEN-018 | Race-safe claim across parallel workers | P5 | PROPOSED | `docs/03` §2 (enabler) | — | — |
 
 ### REQ-GEN-016 — Jobs execute via queue worker (pg-boss)
@@ -199,3 +199,15 @@ Totals: 0 DONE · 18 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
   - GIVEN no track THEN rejected `not_found`.
 - **Tests:** `libs/stb/tests/transcript.int.spec.ts` (mock audio part path) + real E2E (Aurora's 2:41 Lyria track → section structure 00:00 Intro … 02:32 Outro, visible in UI) · **Code:** migration 0019, provider inlineData audio parts, executor audio-ref fetch, STB requestTranscript/materialize, ⏱ Transcribe + transcript block · **Log:** LOG 2026-07-23
 - **Deferred / notes:** consuming the timestamps (lyric-synced cut suggestions, ANM-003 caption overlays) is the next epic slice; diarization prompt-ready but unexercised (no multi-voice tracks yet).
+
+### REQ-GEN-021 — Dialogue captions
+- **Status:** IN_REVIEW · **Stage:** P7 · **Priority:** should · **Owner:** —
+- **Raised-by:** eval #6 — the character-story recipe's "captions for dialogue" was unimplementable with music-transcript captions
+- **Source:** docs/85 §Music (audio understanding); docs/87 character-story recipe
+- **Statement:** Exports may burn DIALOGUE captions: the pipeline extracts the assembled cut's own audio, transcribes spoken lines to [MM:SS] (speakers noted, music/SFX ignored, NO_SPEECH → skip), and burns them via the existing SRT path; caption source (off/lyrics/dialogue) chosen per export and captured immutably in the snapshot.
+- **Acceptance criteria:**
+  - GIVEN captions=dialogue WHEN exported THEN the cut's spoken words appear as captions at their timestamps (real E2E frame-verified: the whisper "We're really doing this." on screen at the spoken moment).
+  - GIVEN mock mode THEN the fixture speech path exercises the chain; GIVEN no speech THEN captions skip cleanly.
+  - GIVEN captions=lyrics THEN prior REQ-ASM-009 behavior unchanged.
+- **Tests:** `libs/asm/tests/dialogue-captions.int.spec.ts` (mock ring) + real E2E on "The First Customer" · **Code:** `libs/gen/src/transcribe.ts`, ASM captionSource pipeline (audio extract → transcribe → SRT), captions select on both export forms · **Log:** LOG 2026-07-23 (slice 35)
+- **Deferred / notes:** speaker-colored captions and singing-character lip-timing later; asm→gen dependency added (GEN is the provider gateway — architecturally clean).

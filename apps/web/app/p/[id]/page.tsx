@@ -170,9 +170,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         {generated === shots.length ? (
           <form action={exportAction} style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <input type="hidden" name="projectId" value={id} />
-            <label className="mono muted" style={{ fontSize: 10, display: "flex", gap: 3, alignItems: "center" }} title="Burn MM:SS transcript captions into the export (needs a transcribed track)">
-              <input type="checkbox" name="burnCaptions" value="1" /> captions
-            </label>
+            <select name="captions" className="mono" title="Burned captions: lyrics uses the track transcript; dialogue transcribes the export's own audio" style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: 6, padding: "3px 5px", color: "var(--ink)", fontSize: 10 }}>
+              <option value="">captions: off</option>
+              <option value="lyrics">captions: lyrics</option>
+              <option value="dialogue">captions: dialogue</option>
+            </select>
             <SubmitButton primary disabled={shots.length === 0} pendingLabel="Exporting…">
               Export cut
             </SubmitButton>
@@ -181,9 +183,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <form action={exportAction} title="Takeless shots are skipped explicitly (INV-ASM-002)" style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <input type="hidden" name="projectId" value={id} />
             <input type="hidden" name="excludeShotIds" value={shots.filter((s) => !s.selectedTakeId).map((s) => s.id).join(",")} />
-            <label className="mono muted" style={{ fontSize: 10, display: "flex", gap: 3, alignItems: "center" }} title="Burn MM:SS transcript captions into the export (needs a transcribed track)">
-              <input type="checkbox" name="burnCaptions" value="1" /> captions
-            </label>
+            <select name="captions" className="mono" title="Burned captions: lyrics uses the track transcript; dialogue transcribes the export's own audio" style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: 6, padding: "3px 5px", color: "var(--ink)", fontSize: 10 }}>
+              <option value="">captions: off</option>
+              <option value="lyrics">captions: lyrics</option>
+              <option value="dialogue">captions: dialogue</option>
+            </select>
             <SubmitButton primary disabled={generated === 0} pendingLabel="Exporting…">
               Export {generated} ready · skip {shots.length - generated}
             </SubmitButton>

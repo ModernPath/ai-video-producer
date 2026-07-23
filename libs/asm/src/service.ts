@@ -34,7 +34,7 @@ export interface SnapshotItem {
 
 export async function createSnapshot(
   db: Db,
-  input: { projectId: string; principal: string; excludeShotIds?: string[]; burnCaptions?: boolean }
+  input: { projectId: string; principal: string; excludeShotIds?: string[]; burnCaptions?: boolean; captionSource?: "lyrics" | "dialogue" }
 ): Promise<string> {
   const status = await getProjectStatus(db, input.projectId); // BR-PRJ-003: archived projects are read-only
   if (status === "archived") throw new AsmValidationError("project_archived", "Project is archived — unarchive to export");
@@ -95,9 +95,11 @@ export async function createSnapshot(
     musicAssetId: mb?.activeTrackAssetId ?? null,
     duckDb: config.audio.duckDb,
     fadeOutS: config.audio.fadeOutSeconds,
-    // REQ-ASM-009: captions burned from the MM:SS transcript, captured immutably in the snapshot
-    burnCaptions: Boolean(input.burnCaptions && mb?.transcript),
-    transcript: input.burnCaptions ? (mb?.transcript ?? null) : null,
+    // REQ-ASM-009/REQ-GEN-021: captions — "lyrics" burns the music transcript; "dialogue"
+    // transcribes the export's own audio at render time. Captured immutably in the snapshot.
+    captionSource: input.burnCaptions ? (input.captionSource ?? "lyrics") : null,
+    burnCaptions: Boolean(input.burnCaptions && (input.captionSource === "dialogue" || mb?.transcript)),
+    transcript: input.burnCaptions && (input.captionSource ?? "lyrics") === "lyrics" ? (mb?.transcript ?? null) : null,
   };
 
   const id = uuidv7();
@@ -228,9 +230,9 @@ async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Pro
     }
 
     await db.update(exportJob).set({ progressStage: "concat" }).where(eq(exportJob.id, job.id));
-    const audio = (snap!.audio ?? {}) as { mixMode?: string; musicAssetId?: string | null; duckDb?: number; fadeOutS?: number; burnCaptions?: boolean; transcript?: string | null };
+    const audio = (snap!.audio ?? {}) as { mixMode?: string; musicAssetId?: string | null; duckDb?: number; fadeOutS?: number; burnCaptions?: boolean; transcript?: string | null; captionSource?: "lyrics" | "dialogue" | null };
     const needsMusic = (audio.mixMode === "music" || audio.mixMode === "mix") && audio.musicAssetId;
-    const needsCaptions = Boolean(audio.burnCaptions && audio.transcript);
+    const needsCaptions = Boolean(audio.burnCaptions && (audio.transcript || audio.captionSource === "dialogue"));
     const afterMusicName = needsCaptions ? "precap.mp4" : "final.mp4";
     await ffmpegConcat(dir, files, needsMusic ? "base.mp4" : afterMusicName);
 
@@ -265,7 +267,17 @@ async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Pro
       // REQ-ASM-009: burn MM:SS captions (SRT via libass); host font mounted for alpine ffmpeg
       await db.update(exportJob).set({ progressStage: "captions" }).where(eq(exportJob.id, job.id));
       const cutS = items.reduce((acc, i) => acc + i.durationS, 0);
-      const srt = transcriptToSrt(audio.transcript!, cutS);
+      let transcriptText = audio.transcript ?? null;
+      if (audio.captionSource === "dialogue") {
+        // REQ-GEN-021: transcribe the export's OWN audio — spoken words, not lyrics
+        await exec("docker", [
+          "run", "--rm", "-v", `${dir}:/work`, "jrottenberg/ffmpeg:6.1-alpine",
+          "-i", "/work/precap.mp4", "-vn", "-c:a", "libmp3lame", "-y", "/work/dialogue.mp3",
+        ]);
+        const { transcribeAudio } = await import("@avd/gen");
+        transcriptText = await transcribeAudio(new Uint8Array(readFileSync(join(dir, "dialogue.mp3"))), "audio/mpeg");
+      }
+      const srt = transcriptText ? transcriptToSrt(transcriptText, cutS) : "";
       if (srt) {
         writeFileSync(join(dir, "caps.srt"), srt);
         mkdirSync(join(dir, "fonts"), { recursive: true });

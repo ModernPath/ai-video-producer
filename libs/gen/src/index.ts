@@ -6,3 +6,4 @@ export * from "./executor";
 export * from "./provider";
 export * from "./schema";
 export * from "./retry";
+export * from "./transcribe";

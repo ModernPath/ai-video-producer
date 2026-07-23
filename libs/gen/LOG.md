@@ -1,5 +1,13 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-23 — REQ-GEN-021 dialogue captions (→ IN_REVIEW)
+**Done:** transcribeAudio helper (provider-routed, dialogue instruction, NO_SPEECH sentinel); ASM captionSource off/lyrics/dialogue captured in the snapshot; dialogue path extracts the assembled cut's audio (ffmpeg -vn), transcribes, burns via the existing SRT machinery; captions select replaces the checkbox on both export forms. Real E2E: "The First Customer" re-exported with captions=dialogue — frame shows the whisper "We're really doing this." burned at the spoken moment. Eval #6's filed gap closed same-day.
+**Decisions:** dialogue transcription happens at export time on the final mix (what the viewer hears is what gets captioned); asm→gen dep added (provider gateway).
+**Deferred:** speaker colors; lip-timed singing characters.
+**Discovered:** —
+**Follow-ups:** —
+**Gate:** full suite green (133 passed); real E2E frame-verified.
+
 ## 2026-07-23 — REQ-GEN-020 MM:SS audio transcription (→ IN_REVIEW)
 **Done:** red-first: kind `transcript` (migration 0019 + music_brief.transcript), provider generateText accepts audio (gemini inlineData parts ≤20MB; mock returns timestamped fixture), executor fetches the audio ref's bytes (refs.audioAssetId, in provenance refAssetIds), STB requestTranscript (instruction asks [MM:SS] per lyric line, sections labeled, speakers noted) + materialize onto the brief; ⏱ Transcribe button + transcript block on the script page. Real E2E: Aurora's 2:41 Lyria instrumental → clean section map ([00:00] Intro … [00:36] Chorus … [02:32] Outro) — exactly the scene-timing data the USER described.
 **Decisions:** transcript stored on music_brief (canonical, survives regeneration listing); consuming timestamps (cut suggestions/captions) is a separate slice.
