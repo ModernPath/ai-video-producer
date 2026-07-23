@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 22 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,6 +15,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
+| REQ-STB-022 | Reorder shots (animatic/export follow) | P2 | IN_REVIEW | SCN-STB-010, INV-STB-002 | tests/reorder.int.spec.ts + browser E2E | reorderShot (3-step swap), ↑↓ UI |
 | REQ-STB-021 | A/B take comparison | P2 | IN_REVIEW | docs/features/shot-editor.md | browser E2E (overlay, selectors, play both) | components/ABCompare.tsx, takes-lane wiring |
 | REQ-STB-020 | Retake with instruction | P2 | IN_REVIEW | SCN-STB-021, docs/features/shot-editor.md | tests/retake.int.spec.ts + browser (UI) | requestRetake, retake_of lineage in materialize, per-take UI |
 | REQ-STB-018 | Normalize real-model shot plans (break-into-shots robust) | P0 | IN_REVIEW | USER BUG 2026-07-23 (raw markdown + plan silently dropped) | tests/plan-normalize.spec.ts | src/plan-normalize.ts, service.ts, gen/prompt.ts+provider.ts, script page (Markdown) |
@@ -70,6 +71,18 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a project with a brief WHEN DraftScript completes THEN script_version v1 exists with non-empty content and generation_id.
   - GIVEN an existing v1 WHEN DraftScript again THEN v2 exists; v1 unchanged.
 - **Tests:** `tests/script.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 2)
+
+### REQ-STB-022 — Reorder shots
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** should · **Owner:** —
+- **Raised-by:** last storyboard-doc gap (SCN-STB-010)
+- **Source:** SCN-STB-010, INV-STB-002 (`docs/13`)
+- **Statement:** A shot can be moved earlier/later among live shots; edges are no-ops; the swap is atomic (position uniqueness honored via temp slot); animatic and export order follow automatically (both read position order).
+- **Acceptance criteria:**
+  - GIVEN 3 shots WHEN the middle moves up THEN order swaps and persists; edge moves are no-ops.
+  - GIVEN soft-deleted neighbors THEN they are skipped (live-only ordering).
+  - GIVEN the storyboard THEN ↑↓ on each card work (keyboard-accessible buttons).
+- **Tests:** `tests/reorder.int.spec.ts` + browser E2E (Aurora: moved down, verified in DB, restored) · **Code:** `src/service.ts` reorderShot, `apps/web` reorderShotAction + ↑↓ · **Log:** LOG 2026-07-23 (slice 19)
+- **Deferred / notes:** drag-and-drop deferred — buttons cover the need and are keyboard-accessible.
 
 ### REQ-STB-021 — A/B take comparison
 - **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** could · **Owner:** —

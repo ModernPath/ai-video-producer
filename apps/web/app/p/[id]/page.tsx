@@ -13,7 +13,7 @@ import { costMeterUsd } from "@avd/prj/service";
 import { shareLink } from "@avd/asm/schema";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  createShareLinkAction, removeCandidateAction, retakeAction, setProjectStyleAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
+  createShareLinkAction, removeCandidateAction, reorderShotAction, retakeAction, setProjectStyleAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
 } from "../../actions";
 import { ABCompare } from "../../../components/ABCompare";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
@@ -211,7 +211,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 <span className="mono" style={{ fontSize: 11, color: s.selectedTakeId ? "var(--ok)" : cands.frames.length ? "var(--accent)" : "var(--ink-2)" }}>
                   {s.selectedTakeId ? "generated" : cands.frames.length ? "framed" : "planned"}
                 </span>
-                <form action={removeShotAction} style={{ marginLeft: "auto" }}>
+                <form action={reorderShotAction} style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
+                  <input type="hidden" name="projectId" value={id} />
+                  <input type="hidden" name="shotId" value={s.id} />
+                  <SubmitButton small name="direction" value="up" title="Move shot earlier (animatic & export order follow)" pendingLabel="…">↑</SubmitButton>
+                  <SubmitButton small name="direction" value="down" title="Move shot later" pendingLabel="…">↓</SubmitButton>
+                </form>
+                <form action={removeShotAction}>
                   <input type="hidden" name="projectId" value={id} />
                   <input type="hidden" name="shotId" value={s.id} />
                   {s.selectedTakeId && <input type="hidden" name="confirmPaid" value="1" />}

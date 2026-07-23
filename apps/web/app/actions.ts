@@ -361,6 +361,17 @@ export async function setProjectStyleAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/** REQ-STB-022: reorder shots — animatic and export order follow (SCN-STB-010). */
+export async function reorderShotAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { reorderShot } = await import("@avd/stb");
+  await reorderShot(db(), {
+    shotId: String(formData.get("shotId")),
+    direction: formData.get("direction") === "up" ? "up" : "down",
+  });
+  revalidatePath(`/p/${projectId}`);
+}
+
 /** REQ-STB-020: retake with instruction — new take conditioned like its source, lineage kept. */
 export async function retakeAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));

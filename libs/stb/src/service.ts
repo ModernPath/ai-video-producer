@@ -520,6 +520,24 @@ export async function removeTake(db: Db, input: { takeId: string }): Promise<voi
   await db.update(take).set({ deletedAt: new Date() }).where(eq(take.id, t.id));
 }
 
+/** REQ-STB-022 / SCN-STB-010: swap a live shot with its live neighbor; edges no-op.
+ * Position uniqueness (project_id, position) requires a three-step swap via a temp slot. */
+export async function reorderShot(db: Db, input: { shotId: string; direction: "up" | "down" }): Promise<void> {
+  const s = await getShotOrThrow(db, input.shotId);
+  if (s.deletedAt) throw new StbValidationError("not_found", "Shot not found");
+  const live = await listShots(db, s.projectId); // asc position, live only
+  const idx = live.findIndex((x) => x.id === s.id);
+  const swapIdx = input.direction === "up" ? idx - 1 : idx + 1;
+  if (swapIdx < 0 || swapIdx >= live.length) return; // edge — no-op (INV-STB-002 stays contiguous enough)
+  const other = live[swapIdx]!;
+  const tempPos = -1; // positions are 1-based; -1 is never occupied
+  await db.transaction(async (tx) => {
+    await tx.update(shot).set({ position: tempPos }).where(eq(shot.id, s.id));
+    await tx.update(shot).set({ position: s.position }).where(eq(shot.id, other.id));
+    await tx.update(shot).set({ position: other.position }).where(eq(shot.id, s.id));
+  });
+}
+
 export async function removeShot(db: Db, input: { shotId: string; confirmPaid?: boolean }): Promise<void> {
   const [s] = await db.select().from(shot).where(eq(shot.id, input.shotId));
   if (!s || s.deletedAt) throw new StbValidationError("not_found", "Shot not found");
