@@ -1,5 +1,13 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 28: process refresh — prompts.md learns from the day
+**Done:** prompts.md updated with practiced-and-proven additions: Prompt 2 GATE gains the tsc rule (vitest doesn't typecheck), browser-verify-fresh + server-side-fallback rule, and the real-cost verification tiers; Prompt 4 gains the "epic directive → canonical doc first" pattern; NEW Prompt 5 — the archetype eval taste loop (exact recipe practiced in eval #1, incl. Lyria retry protocol and frame-extraction review); Tips gain config-not-code, prompt-guideline-over-retry-loop, and evidence-beats-assertion. Health pass green (suite 130, all pages 200).
+**Decisions:** process docs record PRACTICED behavior only — nothing speculative added.
+**Deferred:** —
+**Discovered:** —
+**Follow-ups:** evals #2–6 via Prompt 5 on fresh cap.
+**Gate:** suite green; pages healthy.
+
 ## 2026-07-23 — slice 27: music-failure visibility + typecheck catch + review refresh
 **Done:** script-page failure banner now covers `music` and `transcript` kinds with a specific hint for policy blocks ("Regenerate the brief, then Generate track again — failed generations are never charged") — verified rendering live on the eval project's real failed row. Typecheck caught that TextPromptInput.transcript never landed (vitest doesn't typecheck; slice-25 edit had silently missed) — fixed properly. Sign-off review page refreshed: 73 IN_REVIEW, $3.61 total spend, eval evidence noted; same URL.
 **Decisions:** —

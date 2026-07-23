@@ -85,6 +85,19 @@ Run the build loop on up to «3» READY requirements (or promote PROPOSED → RE
 Follow RED → GREEN → GATE → TRACE → LOG; capture discoveries to BACKLOG or PROPOSED rows.
 Verify status hygiene on Totals vs detail blocks.
 
+GATE additions (learned 2026-07-23):
+- ALWAYS run `npx tsc -p apps/web/tsconfig.json --noEmit` — vitest transpiles without
+  typechecking; scripted str.replace edits no-op silently on anchor drift (two prod misses).
+- Provider-facing changes: real-model verification per the cost tiers below.
+- User-visible changes: browser-verify with a FRESH navigation (dev-server restarts kill
+  open pages' submits silently); when extension clicks drop, drive the chain server-side
+  via tsx and confirm the RESULT in the browser + DB.
+
+Real-cost tiers (verify at the cheapest honest level):
+  free — text gens, Remotion renders, exports, transcript-of-attached, plan/apply
+  cents — frames $0.067 · Lyria song $0.08 · frame-batch click $0.13
+  tenths — Veo take $0.10/s (snap {4,6,8}s) — one per slice max, respect the daily cap
+
 Report: completed/blocked/deferred, discoveries, next READY, PROGRESS refresh hint.
 ```
 
@@ -113,8 +126,28 @@ Read /CLAUDE.md §6A.
 **Input:** «user feedback, bug, feature request»
 
 Route: bug → fix REQ in owning context; feature → PROPOSED or OQ; design change → list affected docs and reqs for human decision.
+Epic-scale user directives get a canonical doc first (pattern: docs/85 prompt-guidelines,
+docs/87 directing-playbook), THEN REQ rows referencing it.
 
 Report: routing and next steps.
+```
+
+---
+
+## Prompt 5 — Archetype eval (taste loop, docs/87)
+
+```
+Read docs/87-directing-playbook.md. Archetype: «hype-countdown».
+
+Run one REAL golden path on a fresh project: archetype set → script → plan → cheapest
+honest visuals (1 frame per filmed shot, free animation shots, ONE take on the money shot)
+→ Lyria (retry once on policy block after regenerating the brief) → transcript → export.
+
+Extract frames at the structural beats and REVIEW against the six directing principles —
+name every defect, fix what's fixable in-slice (template scaling, prompt guidelines),
+defer the rest with cost noted. Archive the eval project after.
+
+Report: principle-by-principle verdict, defects found/fixed/deferred, total spend.
 ```
 
 ---
@@ -139,3 +172,9 @@ End with Implementation kickoff prompt (Flow 11) if READY rows exist.
 2. Seed **one context** with Prompt 1, build it, then seed the next.
 3. Use **Prompt E** for cross-cutting user journeys; **Prompt 2** for ledger slices inside a context.
 4. Keep slices to 2–3 requirements or one epic task row per agent run.
+5. Config-not-code for anything a human will want to tune (prices, recipes, styles,
+   effect defaults) — taste iteration must never need a code review.
+6. When a provider misbehaves (policy blocks, shape drift), the fix is usually a PROMPT
+   guideline (docs/85) plus an error-surface improvement — not a retry loop.
+7. Evidence beats assertion: frame extractions for visual claims, DB queries for state
+   claims, prompt snapshots for "the model was told X" claims.
