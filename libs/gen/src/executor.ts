@@ -165,9 +165,9 @@ async function processGenerationRow(
       } else {
         const { renderAnimation } = await import("@avd/anm");
         media = await renderAnimation({
-          template: "title",
+          template: (anmInput.template === "kinetic" ? "kinetic" : "title"),
           text: anmInput.text ?? anmInput.customPrompt ?? "",
-          subtext: anmInput.subtext,
+          subtext: (anmInput as { subtext?: string }).subtext,
           durationS: anmInput.durationSeconds ?? 4,
           aspectRatio,
         });

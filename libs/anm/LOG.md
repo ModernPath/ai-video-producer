@@ -1,5 +1,13 @@
 # ANM — Build Log
 
+## 2026-07-23 — ANM-004 slice 2: KineticText (transforms) + template selection
+**Done:** KineticText template — sequential word pops via @remotion/animation-utils makeTransform (translateY+scale+alternating rotate) with spring physics, every third word accent-colored, effects composed; registered + render map; template choice plumbed STB→executor→UI (title/kinetic select beside ✦ Animate). Gated renders 4/4; frame proof (word spacing polished after review). Covers the transforms + animation-math docs; html-in-canvas remains the last deferred primitive.
+**Decisions:** template select defaults to title; kinetic reserved for explicit choice (and future archetype recipes per docs/87).
+**Deferred:** html-in-canvas; LowerThird effects.
+**Discovered:** USER filed the directing/taste epic mid-tick → docs/87-directing-playbook.md + REQ-STB-026..028.
+**Follow-ups:** archetype recipes will select templates automatically.
+**Gate:** full suite green (126 passed); RUN_RENDER 4/4.
+
 ## 2026-07-23 — REQ-ANM-004 effects library, first slice (→ IN_REVIEW)
 **Done:** src/effects.tsx — LightLeaks (two noise2D-driven radial glows, screen blend, accent-tinted), FilmGrain (feTurbulence, 7-seed shimmer, 0.07 opacity), Highlight (animated sweep behind a word, text-highlights pattern). TitleCard composes them (defaults on, overridable) + highlightWord; render.ts forwards arbitrary effect props. Gated render 3/3; visual frame proof: leaks + grain + completed KAIJU highlight sweep.
 **Decisions:** effect defaults ON for title (tasteful film look, pairs with Golden Hour) — overridable per render; effects are components, props only.

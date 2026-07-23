@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 25 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 25 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,6 +15,9 @@ Totals: 0 DONE · 25 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
+| REQ-STB-026 | Archetype selection injects directing recipe | P7 | PROPOSED | docs/87-directing-playbook.md | — | — |
+| REQ-STB-027 | Archetype-aware planning (durations/animation/audio bias) | P7 | PROPOSED | docs/87 | — | — |
+| REQ-STB-028 | Lyrics-first flow (plan shots from transcript sections) | P7 | PROPOSED | docs/87 | — | — |
 | REQ-STB-025 | Lyric-synced cut suggestions (♪ MUSIC SYNC) | P6 | IN_REVIEW | USER Lyria epic ("time the change of scene according to song timing") | tests/music-sync.spec.ts + update-duration.int + browser E2E | src/music-sync.ts, updateShotDuration, applySyncAction, SYNC panel |
 | REQ-STB-024 | Plan-authored animation shots (free, no frame spend) | P6 | IN_REVIEW | USER Remotion epic ("purely remotion animations (prompt)") | plan-normalize spec + real E2E frame | migration 0020, normalize/apply, plan prompt, applyPlanAction branch, badge+prefill UI |
 | REQ-STB-023 | Music brief includes timed lyrics unless instrumental | P5 | IN_REVIEW | USER 2026-07-23 (Lyria epic) | libs/gen/tests/prompt.spec.ts + real-model check | assembleMusicBriefPrompt lyrics rule |

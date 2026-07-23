@@ -419,6 +419,7 @@ export async function animationTakeAction(formData: FormData) {
   const genId = await requestAnimationTake(db(), {
     shotId: String(formData.get("shotId")),
     text,
+    template: formData.get("template") === "kinetic" ? "kinetic" : "title",
     principal: PRINCIPAL,
     aspectRatio: p.aspectRatio,
   });

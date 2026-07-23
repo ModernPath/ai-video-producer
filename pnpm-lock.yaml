@@ -114,6 +114,9 @@ importers:
       '@avd/shared':
         specifier: workspace:*
         version: link:../shared
+      '@remotion/animation-utils':
+        specifier: ^4.0.498
+        version: 4.0.498(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@remotion/bundler':
         specifier: ^4.0.0
         version: 4.0.498(@swc/helpers@0.5.15)(postcss@8.5.22)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -839,6 +842,12 @@ packages:
 
   '@protobufjs/utf8@1.1.2':
     resolution: {integrity: sha512-b1UQwcEZ4yCnMCD8DAL1VlbvBJE9/IX4FTIp7BG1xYpf29SLazLSrqUkj4w7Y5y7cCVP6E5tcqqcI0xemPkHug==}
+
+  '@remotion/animation-utils@4.0.498':
+    resolution: {integrity: sha512-MZXgxUt77c8ilyE6paqELa0SdE5zAVDdAblvX9yIBbtBvirB/VWuDzb4hAJON3kK9FfwoPJy12r9AZrJczd7cg==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
 
   '@remotion/bundler@4.0.498':
     resolution: {integrity: sha512-lv6c5vxflhvl7NPG7aZOVoSWIRRC07QbMuuNiP6e1W8CPx8PAfm0m6wiWlab+TIQV4zuBRb8eyfk7vhbBpbbVA==}
@@ -3117,6 +3126,12 @@ snapshots:
   '@protobufjs/pool@1.1.0': {}
 
   '@protobufjs/utf8@1.1.2': {}
+
+  '@remotion/animation-utils@4.0.498(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
+      remotion: 4.0.498(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
 
   '@remotion/bundler@4.0.498(@swc/helpers@0.5.15)(postcss@8.5.22)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:

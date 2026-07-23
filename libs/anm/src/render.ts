@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 export interface AnimationInput {
-  template: "title" | "lower-third";
+  template: "title" | "lower-third" | "kinetic";
   text: string;
   subtext?: string | undefined;
   durationS: number;
@@ -32,9 +32,10 @@ export async function renderAnimation(input: AnimationInput): Promise<{ bytes: U
   const { template: _t, ...rest } = input;
   const inputProps = { ...rest };
   const transparent = input.template === "lower-third"; // REQ-ANM-002: alpha webm for compositing
+  const COMPOSITION_IDS = { title: "TitleCard", "lower-third": "LowerThird", kinetic: "KineticText" } as const;
   const composition = await selectComposition({
     serveUrl,
-    id: input.template === "lower-third" ? "LowerThird" : "TitleCard",
+    id: COMPOSITION_IDS[input.template],
     inputProps,
   });
   const dir = mkdtempSync(join(tmpdir(), "avd-anm-"));

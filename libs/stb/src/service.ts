@@ -179,7 +179,7 @@ export async function requestTake(
 /** REQ-ANM-001: a free Remotion animation take (title template) for this shot. */
 export async function requestAnimationTake(
   db: Db,
-  input: { shotId: string; text: string; subtext?: string; principal: string; aspectRatio: "16:9" | "9:16" }
+  input: { shotId: string; text: string; subtext?: string; template?: "title" | "kinetic"; principal: string; aspectRatio: "16:9" | "9:16" }
 ) {
   const s = await getShotOrThrow(db, input.shotId);
   if (!input.text.trim()) throw new StbValidationError("validation_failed", "Animation needs the title text");

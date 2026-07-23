@@ -1,5 +1,6 @@
 import React from "react";
 import { Composition } from "remotion";
+import { KineticText, type KineticTextProps } from "./KineticText";
 import { LowerThird, type LowerThirdProps } from "./LowerThird";
 import { TitleCard, type TitleCardProps } from "./TitleCard";
 
@@ -35,6 +36,24 @@ export const Root: React.FC = () => (
       defaultProps={{ text: "Lower third" } as LowerThirdProps}
       calculateMetadata={({ props }) => {
         const p = props as LowerThirdProps & { durationS?: number; aspectRatio?: "16:9" | "9:16" };
+        const portrait = p.aspectRatio === "9:16";
+        return {
+          durationInFrames: Math.round((p.durationS ?? 4) * 24),
+          width: portrait ? 720 : 1280,
+          height: portrait ? 1280 : 720,
+        };
+      }}
+    />
+    <Composition
+      id="KineticText"
+      component={KineticText}
+      fps={24}
+      width={1280}
+      height={720}
+      durationInFrames={4 * 24}
+      defaultProps={{ text: "Kinetic words" } as KineticTextProps}
+      calculateMetadata={({ props }) => {
+        const p = props as KineticTextProps & { durationS?: number; aspectRatio?: "16:9" | "9:16" };
         const portrait = p.aspectRatio === "9:16";
         return {
           durationInFrames: Math.round((p.durationS ?? 4) * 24),

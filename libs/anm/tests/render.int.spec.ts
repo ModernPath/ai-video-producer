@@ -32,3 +32,11 @@ describe.skipIf(!enabled)("REQ-ANM-004: effects compose into TitleCard", () => {
     expect(out.bytes.length).toBeGreaterThan(10_000);
   }, 300_000);
 });
+
+describe.skipIf(!enabled)("REQ-ANM-004: kinetic text template (transforms)", () => {
+  it("renders sequential word pops", async () => {
+    const out = await renderAnimation({ template: "kinetic", text: "Wake the city with energy", durationS: 4, aspectRatio: "16:9" });
+    expect(out.mime).toBe("video/mp4");
+    expect(out.bytes.length).toBeGreaterThan(10_000);
+  }, 300_000);
+});
