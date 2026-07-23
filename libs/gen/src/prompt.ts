@@ -51,7 +51,10 @@ export function assembleTakePrompt(i: TakePromptInput): string {
   parts.push(sentence(`${d.subject} — ${d.action}`));
   if (d.camera) parts.push(sentence(`Camera: ${d.camera}`));
   if (d.mood) parts.push(sentence(d.mood));
-  for (const e of i.entities) parts.push(sentence(`Featuring ${e.name}, ${e.description}`));
+  for (const e of i.entities) {
+    const desc = e.description.trim().toLowerCase() === e.name.trim().toLowerCase() ? "" : `, ${e.description}`;
+    parts.push(sentence(`Featuring ${e.name}${desc}`)); // skip echo descriptions ("Pasi, Pasi")
+  }
   if (i.stylePrompt) parts.push(sentence(i.stylePrompt));
   // v3 guideline: our takes are single shots — pin it so the model doesn't invent cuts.
   parts.push(`A single continuous shot, no scene cuts. No on-screen text, timestamps, or interface graphics.`);
@@ -150,7 +153,10 @@ export function assembleFramePrompt(i: Omit<TakePromptInput, "durationSeconds">)
   parts.push(sentence(`${d.subject} — ${d.action}`));
   if (d.camera) parts.push(sentence(`Camera: ${d.camera}`));
   if (d.mood) parts.push(sentence(d.mood));
-  for (const e of i.entities) parts.push(sentence(`Featuring ${e.name}, ${e.description}`));
+  for (const e of i.entities) {
+    const desc = e.description.trim().toLowerCase() === e.name.trim().toLowerCase() ? "" : `, ${e.description}`;
+    parts.push(sentence(`Featuring ${e.name}${desc}`)); // skip echo descriptions ("Pasi, Pasi")
+  }
   if (i.stylePrompt) parts.push(sentence(i.stylePrompt));
   if (i.referenceImageCount) {
     // v3 guideline: high-fidelity detail preservation when composing from reference images.

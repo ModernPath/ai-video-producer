@@ -1,5 +1,11 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 38: user's orphaned take completed + prose dedup
+**Done:** the reaped orphan (user's own $-take click on "Momentum", Pasi testaa) completed via the REQ-GEN-014 retry path — real Veo take generated, materialized, left UNSELECTED for the user's judgment; the failed row shows `orphaned` + retry in RECENT GENERATIONS exactly as designed. Micro-fix from reviewing their board: "Featuring Pasi, Pasi" prose echo when an entity's description repeats its name — dedup'd in both take and frame assembly (red-first).
+**Decisions:** never auto-select a take generated on the user's behalf — their creative call.
+**Deferred:** — **Discovered:** — **Follow-ups:** —
+**Gate:** full suite green (135); take verified in UI.
+
 ## 2026-07-23 — slice 37: projects home is a gallery
 **Done:** project cards now lead with a 16:9 poster — each project's newest ready image served as a ~20KB thumbnail (?thumb=1, REQ-AST-005 derivatives paying off), honest "no frames yet" placeholder otherwise. Browser-verified: Pasi testaa and Aurora show real posters; layout holds.
 **Decisions:** poster = newest ready image (simple, self-updating as work progresses).

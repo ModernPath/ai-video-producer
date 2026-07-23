@@ -155,3 +155,14 @@ describe("label fidelity guidance (evals #2/#5 finding)", () => {
     expect(p).not.toMatch(/printed text/i);
   });
 });
+
+describe("entity prose dedup", () => {
+  it("skips the description when it merely repeats the name", () => {
+    const p = assembleFramePrompt({
+      aspectRatio: "16:9", direction: { synopsis: "s", subject: "x", action: "y" },
+      entities: [{ kind: "person", name: "Pasi", description: "Pasi" }],
+    });
+    expect(p).toContain("Featuring Pasi.");
+    expect(p).not.toContain("Pasi, Pasi");
+  });
+});
