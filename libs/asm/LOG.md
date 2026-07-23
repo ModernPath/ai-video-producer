@@ -43,3 +43,11 @@
 **Done:** red-first — createSnapshot(excludeShotIds): unlisted takeless shots still reject by name (silent drops impossible), unknown ids rejected, all-excluded rejected; exclusions recorded on the snapshot ({shotId,title}) for provenance. UI: "Export N ready · skip M" replaces the disabled button on partial storyboards; exports list shows "skipped: <titles>". Browser: added takeless "Logo out" → button flipped to "Export 5 ready · skip 1" → export succeeded with skip note.
 **UX bug found+fixed mid-test:** animatic's global space-key listener hijacked typing in form fields (typing "Logo out" opened the overlay) — now ignores INPUT/TEXTAREA/SELECT targets.
 **Gate:** suite green.
+
+## 2026-07-23 — ASM slice 6: share links (REQ-ASM-007 READY → IN_REVIEW)
+**Done:** red-first — migration 0014 asm.share_link (fk to export_job, unique token, nullable expires_at/revoked_at) + drizzle table; src/share.ts: createShareLink only for succeeded exports (else `conflict`), token = randomBytes(config.asm.share.tokenBytes).toString("base64url") → 32 url-safe chars; revokeShareLink; resolveShareToken → {exportJob, outputAssetId} | null for revoked/expired/unknown (INV-ASM-005 token-scoped). Public page apps/web/app/s/[token]/page.tsx: valid → dark player over /api/assets/<outputAssetId> + project title; invalid → "This link is no longer available". shareExportAction in apps/web/app/share-actions.ts creates + redirects to /s/<token>.
+**Decisions:** token bytes in config (24 → 32 b64url chars, ≥ spec floor), never a literal; expiry optional param on create (no default TTL until a product decision); revoke is idempotent.
+**Deferred:** Share button in the exports list (app/p/[id]/page.tsx) → integrator wires shareExportAction (explicitly out of this slice); revoke/expiry management UI → future P5 arm.
+**Discovered:** /api/assets/[id] serves any ready asset by uuid (dev-only route, REQ-AST-003 note says signed URLs replace it) — share-scoped asset serving should ride that signed-URL slice.
+**Follow-ups:** none.
+**Gate:** share.int.spec.ts red (module missing) → green 4/4; libs/asm 18/18 green; full suite green except 2 pre-existing intentionally-red STB baseline tests (REQ-STB-016 WIP commit b4eee04, fail identically without this slice).

@@ -14,6 +14,16 @@ export const storyboardSnapshot = asm.table("storyboard_snapshot", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// REQ-ASM-007 / INV-ASM-005 — token-scoped, revocable share links (migration 0014).
+export const shareLink = asm.table("share_link", {
+  id: uuid("id").primaryKey(),
+  exportJobId: uuid("export_job_id").notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const exportJob = asm.table("export_job", {
   id: uuid("id").primaryKey(),
   organizationId: uuid("organization_id").notNull(),
