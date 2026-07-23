@@ -11,6 +11,7 @@ import {
   selectFrameAction, selectTakeAction,
 } from "../../actions";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
+import { LiveRefresh } from "../../../components/LiveRefresh";
 import { SubmitButton } from "../../../components/SubmitButton";
 import { db } from "../../../lib/db";
 
@@ -82,6 +83,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       <p className="mono muted" style={{ fontSize: 12, display: "flex", gap: 16 }}>
         <Link href="/">← projects</Link>
         <Link href={`/p/${id}/script`} style={{ color: "var(--accent)" }}>script studio →</Link>
+        <LiveRefresh projectId={id} />
       </p>
       <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap", marginTop: 8 }}>
         <h1 className="disp" style={{ fontSize: 24 }}>{p.title}</h1>

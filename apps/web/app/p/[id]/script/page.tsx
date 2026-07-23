@@ -4,6 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { project } from "@avd/prj/schema";
 import { scriptVersion, shotPlanProposal } from "@avd/stb/schema";
 import { applyPlanAction, draftScriptAction, proposePlanAction } from "../../../actions";
+import { LiveRefresh } from "../../../../components/LiveRefresh";
 import { db } from "../../../../lib/db";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +31,7 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
   return (
     <main style={{ maxWidth: 880, margin: "0 auto", padding: "36px 24px" }}>
       <p className="mono muted" style={{ fontSize: 12 }}>
-        <Link href={`/p/${id}`}>← storyboard</Link>
+        <Link href={`/p/${id}`}>← storyboard</Link> <LiveRefresh projectId={id} />
       </p>
       <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap", marginTop: 8 }}>
         <h1 className="disp" style={{ fontSize: 22 }}>Script — {p.title}</h1>

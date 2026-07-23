@@ -86,3 +86,7 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 **Inbox additions:** SSE project events endpoint + client refetch (ADR-006) — required now that queue mode makes results async (manual reload meanwhile).
 **Still blocked on user:** GEMINI_API_KEY · Omni spike budget (~$1–2).
 **Next:** SSE live updates; review queue 22 IN_REVIEW.
+
+## 2026-07-23 — Build loop iteration 11
+**Done:** SSE live updates (REQ-GEN-017 IN_REVIEW) — fingerprint poll-bridge behind the documented SSE contract; browser-verified zero-reload take arrival. Queue-mode UX gap closed.
+**Next candidates:** approve-review sweep (23 IN_REVIEW) · music brief + attach (REQ-STB-010/ASM-004 arm) · idempotent createProject · real-API spikes (awaiting key + budget).

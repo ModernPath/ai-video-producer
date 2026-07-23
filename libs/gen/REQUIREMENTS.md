@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 6 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 6 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -19,6 +19,7 @@ Totals: 0 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 6 PROPOSED · 0 DEF
 | REQ-GEN-012 | image_edit creates new asset with lineage | P4 | PROPOSED | BR-GEN-006 | — | — |
 | REQ-GEN-013 | Deterministic prompt assembly, snapshotted | P1 | IN_REVIEW | `docs/14` §5 | tests/prompt.spec.ts | src/prompt.ts |
 | REQ-GEN-015 | Mock executor (MOCK_GEN) returns fixture media | P1 | IN_REVIEW | `docs/82` §5 (enabler) | tests/pipeline.int.spec.ts | src/executor.ts, src/service.ts |
+| REQ-GEN-017 | Live progress reaches the UI (SSE) | P2 | IN_REVIEW | `docs/07` §1, ADR-006 (enabler) | libs/prj/tests/activity.int.spec.ts + browser E2E | libs/prj/src/activity.ts, apps/web (events route, LiveRefresh) |
 | REQ-GEN-016 | Jobs execute via queue worker (pg-boss) | P2 | IN_REVIEW | `docs/03` §1–2 (enabler) | apps/worker/tests/handlers.int.spec.ts + browser E2E | apps/worker/src/*, libs/shared/src/queue.ts |
 
 ### REQ-GEN-016 — Jobs execute via queue worker (pg-boss)
@@ -29,6 +30,15 @@ Totals: 0 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 6 PROPOSED · 0 DEF
   - GIVEN a queued pg-boss `gen-execute` job WHEN the worker handler runs THEN the generation succeeds and its STB candidate is materialized.
   - GIVEN queue mode WHEN the UI requests a frame THEN the browser sees the candidate after the worker processes it (browser evidence).
 - **Tests:** `apps/worker/tests/handlers.int.spec.ts` + browser E2E · **Code:** `apps/worker/src/*`, `libs/shared/src/queue.ts` · **Log:** LOG 2026-07-23 (slice 3)
+
+### REQ-GEN-017 — Live progress reaches the UI (SSE)
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must (enabler)
+- **Source:** `docs/07` §1 realtime, `docs/41` §3, ADR-006
+- **Statement:** `GET /api/projects/{id}/events` streams SSE; the client refreshes project views on events, so worker results appear without manual reload. MVP transport: DB activity-fingerprint poll-bridge behind the SSE contract; outbox push replaces the bridge later (deferral logged).
+- **Acceptance criteria:**
+  - GIVEN a project WHEN a generation completes THEN the activity fingerprint changes (integration-tested).
+  - GIVEN the storyboard open in queue mode WHEN the worker finishes a take THEN the take appears without manual reload (browser evidence).
+- **Tests:** `libs/prj/tests/activity.int.spec.ts` + browser E2E · **Code:** `libs/prj/src/activity.ts`, `apps/web/app/api/projects/[id]/events/route.ts`, `apps/web/components/LiveRefresh.tsx` · **Log:** LOG 2026-07-23 (slice 4)
 
 *(REQ-GEN-014 reserved for event emission — folded into 001/003 acceptance for now; split if it grows.)*
 

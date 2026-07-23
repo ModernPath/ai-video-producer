@@ -201,6 +201,12 @@ importers:
 
   libs/prj:
     dependencies:
+      '@avd/ast':
+        specifier: workspace:*
+        version: link:../ast
+      '@avd/gen':
+        specifier: workspace:*
+        version: link:../gen
       '@avd/plt':
         specifier: workspace:*
         version: link:../plt
@@ -210,6 +216,9 @@ importers:
       drizzle-orm:
         specifier: ^0.44.0
         version: 0.44.7(pg@8.22.0)(postgres@3.4.9)
+      uuid:
+        specifier: ^11.0.0
+        version: 11.1.1
       zod:
         specifier: ^3.24.0
         version: 3.25.76

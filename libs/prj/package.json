@@ -6,12 +6,16 @@
   "exports": {
     ".": "./src/index.ts",
     "./contracts": "./contracts/index.ts",
-    "./schema": "./src/schema.ts"
+    "./schema": "./src/schema.ts",
+    "./activity": "./src/activity.ts"
   },
   "dependencies": {
     "@avd/shared": "workspace:*",
     "zod": "^3.24.0",
     "@avd/plt": "workspace:*",
-    "drizzle-orm": "^0.44.0"
+    "drizzle-orm": "^0.44.0",
+    "@avd/ast": "workspace:*",
+    "@avd/gen": "workspace:*",
+    "uuid": "^11.0.0"
   }
 }
