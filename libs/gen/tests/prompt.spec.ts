@@ -142,3 +142,16 @@ describe("REQ-STB-028: transcript reaches the shot-plan prompt for music-led pla
     expect(plan).not.toContain("TRANSCRIPT");
   });
 });
+
+describe("label fidelity guidance (evals #2/#5 finding)", () => {
+  const base = { aspectRatio: "16:9" as const, direction: { synopsis: "s", subject: "x", action: "y" } };
+  it("frame prompts with a product entity warn about printed label text", () => {
+    const p = assembleFramePrompt({ ...base, entities: [{ kind: "product", name: "KAIJU Can", description: "green can" }] });
+    expect(p).toMatch(/label|printed text/i);
+    expect(p).toMatch(/legible|avoid.*close-up/i);
+  });
+  it("no product, no warning", () => {
+    const p = assembleFramePrompt({ ...base, entities: [{ kind: "person", name: "P", description: "d" }] });
+    expect(p).not.toMatch(/printed text/i);
+  });
+});

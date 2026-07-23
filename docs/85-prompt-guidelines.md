@@ -26,6 +26,10 @@
    "Use the provided reference images for the depicted subjects; keep each subject's features
    completely unchanged and integrate them naturally into the scene." (high-fidelity detail preservation)
 
+9. **Label fidelity** (evals #2/#5) — product/company entities trigger: label text must be
+   clearly legible exactly as named OR naturally de-emphasized; never extreme close-ups of
+   printed text. Also: state exact label wording in the entity description.
+
 ## Image edits (image_edit)
 
 8. **Simple instruction + inpainting formula** — overly descriptive edits cause unintended changes:

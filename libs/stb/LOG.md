@@ -1,5 +1,13 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 34: label mitigation shipped + dossier on the review page
+**Done:** twice-observed label garbling mitigated: frame prompts with product/company entities now instruct legible-exactly-as-named OR naturally de-emphasized label text, never extreme close-ups of printed text (red-first, docs/85 §9); sign-off page refreshed with the 6-archetype TASTE dossier section (per-archetype result + highlight) and updated stats (132 tests, $12.6 total spend).
+**Decisions:** —
+**Deferred:** REQ-GEN-021 dialogue transcription (next build item when prioritized).
+**Discovered:** —
+**Follow-ups:** await user batch approval / new direction.
+**Gate:** full suite green (132 passed).
+
 ## 2026-07-23 — slice 33: ARCHETYPE EVAL #6 — Character story ($2.28) — EVAL PROGRAM COMPLETE
 **Done:** "The First Customer" — 6-shot story with concrete beats (setup → notification → disbelief → victory → spoken line → toast); dialogue authored into the video script per recipe (he "whispers softly 'We're really doing this'"); Pasi entity refs attached to every generation; two takes incl. the dialogue shot; FIRST REAL PERFORMANCE RETAKE ("hold the smile a beat longer, warmer eyes, softer whisper") — lineage-linked, conditioned on the source frame, selected over the original; understated Lyria score (recipe musicBias); MIX export preserving the whisper under the bed. Shared. $2.28; today ≈ $11.8/$20.
 **Taste review:** structure ✓ (real beats) · one-idea ✓ · continuity ◐ (refs attached everywhere — the mechanism; frame-level identity match across all shots not deeply audited, single-frame check plausible) · contrast ✓ (close notification vs wide kitchen) · cuts-on-music ◐ (understated score, sync minor) · end-held ✓ (Solo Toast planned as closer). FINDINGS: (1) dialogue lands in video scripts but direction.dialogue stayed empty — cosmetic split, prompts unaffected; (2) REAL GAP: "captions for dialogue" (recipe line) is unimplementable — captions burn the MUSIC transcript; dialogue captioning needs transcribing the EXPORT/take audio → filed REQ-GEN-021 PROPOSED.

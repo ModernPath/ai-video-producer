@@ -156,6 +156,10 @@ export function assembleFramePrompt(i: Omit<TakePromptInput, "durationSeconds">)
     // v3 guideline: high-fidelity detail preservation when composing from reference images.
     parts.push(`Use the provided reference images for the depicted subjects; keep each subject's features completely unchanged and integrate them naturally into the scene.`);
   }
+  if (i.entities.some((e) => e.kind === "product" || e.kind === "company")) {
+    // evals #2/#5: generated printed micro-text garbles — keep labels legible or de-emphasized.
+    parts.push(`Any label or printed text on products must be either clearly legible exactly as named, or naturally de-emphasized (angle, focus) — avoid extreme close-ups of printed text.`);
+  }
   parts.push(`A cinematic still image, ${i.aspectRatio}, high detail.`);
   return parts.join(" ");
 }
