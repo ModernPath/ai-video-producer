@@ -8,6 +8,7 @@ import { listProjectEntities } from "@avd/ast";
 import { enqueueGeneration } from "@avd/gen";
 import { generation } from "@avd/gen/schema";
 import { frameCandidate, musicBrief, scriptVersion, shot, shotPlanProposal, take } from "./schema";
+import { normalizePlannedShots } from "./plan-normalize";
 import { project } from "@avd/prj/schema";
 
 export class StbValidationError extends Error {
@@ -259,7 +260,7 @@ export async function applyShotPlan(db: Db, input: { proposalId: string; princip
   if (!proposal) throw new StbValidationError("not_found", "Proposal not found");
   if (proposal.status !== "proposed") throw new StbValidationError("conflict", "Proposal already resolved");
   const [p] = await db.select().from(project).where(eq(project.id, proposal.projectId));
-  const shots = proposal.changes as PlannedShot[];
+  const shots = normalizePlannedShots(proposal.changes); // old rows may hold raw model shapes
   for (const s of shots) {
     const shotId = await createShot(db, {
       organizationId: p!.organizationId,
@@ -310,8 +311,9 @@ export async function materializeGenerationOutput(db: Db, generationId: string) 
     return { kind: "music_brief" as const, id };
   }
   if (g.kind === "shot_plan") {
-    const out = g.output as { shots?: PlannedShot[] } | null;
-    if (!out?.shots?.length) return null;
+    const normalized = normalizePlannedShots(g.output); // USER BUG: real-model shapes vary
+    if (!normalized.length) return null;
+    const out = { shots: normalized };
     const target = g.target as { scriptVersionId?: string };
     const id = uuidv7();
     await db.insert(shotPlanProposal).values({

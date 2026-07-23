@@ -7,6 +7,10 @@ import { getMusicBrief } from "@avd/stb";
 import { applyPlanAction, draftScriptAction, musicBriefAction, proposePlanAction, updateBriefAction, uploadTrackAction } from "../../../actions";
 import { LiveRefresh } from "../../../../components/LiveRefresh";
 import { db } from "../../../../lib/db";
+import { Markdown } from "../../../../components/Markdown";
+import { normalizePlannedShots } from "@avd/stb/plan-normalize";
+import { generation } from "@avd/gen/schema";
+import { and, inArray } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +27,13 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
   const versions = await d.select().from(scriptVersion).where(eq(scriptVersion.projectId, id)).orderBy(desc(scriptVersion.version));
   const latest = versions[0];
   const music = await getMusicBrief(d, id);
+  const failedGens = await d
+    .select()
+    .from(generation)
+    .where(and(eq(generation.projectId, id), eq(generation.status, "failed"), inArray(generation.kind, ["script", "shot_plan", "music_brief"])))
+    .orderBy(desc(generation.createdAt))
+    .limit(1);
+  const lastFailure = failedGens[0];
   const proposals = await d
     .select()
     .from(shotPlanProposal)
@@ -52,6 +63,15 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
+      {lastFailure && (
+        <section style={{ ...card, marginTop: 16, borderColor: "#7a4b3a" }}>
+          <p className="mono" style={{ fontSize: 11, color: "#e0763a" }}>
+            {lastFailure.kind} failed · {lastFailure.errorCode}: {lastFailure.errorDetail?.slice(0, 220)}
+          </p>
+          <p className="muted" style={{ fontSize: 11, marginTop: 4 }}>Adjust the prompt or try again — nothing was charged for failed text generations.</p>
+        </section>
+      )}
+
       <section style={{ ...card, marginTop: 20 }}>
         <form action={updateBriefAction} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
           <input type="hidden" name="projectId" value={id} />
@@ -75,9 +95,7 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
             <p className="mono muted" style={{ fontSize: 11, marginBottom: 10 }}>
               v{latest.version} · {latest.source} · {versions.length} version{versions.length > 1 ? "s" : ""}
             </p>
-            <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", fontSize: 13.5, lineHeight: 1.7, maxWidth: "62ch" }}>
-              {latest.content}
-            </pre>
+            <Markdown>{latest.content}</Markdown>
           </>
         ) : (
           <p className="muted">No script yet — draft one from the project brief.</p>
@@ -85,7 +103,7 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
       </section>
 
       {proposals.map((prop) => {
-        const shots = prop.changes as Array<{ title: string; durationS: number; direction: { synopsis: string } }>;
+        const shots = normalizePlannedShots(prop.changes); // old rows may hold raw model shapes
         return (
           <section key={prop.id} style={{ ...card, marginTop: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -122,9 +140,9 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
         </div>
         {music ? (
           <>
-            <pre style={{ whiteSpace: "pre-wrap", fontFamily: "var(--mono)", fontSize: 12, lineHeight: 1.7, marginTop: 10, background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 8, padding: 12 }}>
-              {music.prompt}
-            </pre>
+            <div style={{ marginTop: 10, background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 8, padding: 12 }}>
+              <Markdown>{music.prompt}</Markdown>
+            </div>
             <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 10, flexWrap: "wrap" }}>
               {music.activeTrackAssetId ? (
                 <>

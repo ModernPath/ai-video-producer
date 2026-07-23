@@ -89,7 +89,16 @@ export function createGeminiProvider(): GenProvider {
         });
         const text = res.text ?? "";
         if (!text) throw new ProviderError("output_unusable", "empty text response");
-        return r.json ? { json: JSON.parse(text) } : { text };
+        if (!r.json) return { text };
+        // real models sometimes wrap JSON in fences or prose — extract the JSON body
+        const cleaned = text.replace(/```(?:json)?/g, "").trim();
+        const start = Math.min(...["{", "["].map((c) => (cleaned.indexOf(c) + 1 || Infinity)) ) - 1;
+        const jsonText = start >= 0 && Number.isFinite(start) ? cleaned.slice(start) : cleaned;
+        try {
+          return { json: JSON.parse(jsonText) };
+        } catch {
+          throw new ProviderError("output_unusable", `model returned non-JSON structured output: ${text.slice(0, 200)}`);
+        }
       } catch (err) {
         throw mapGeminiError(err);
       }
