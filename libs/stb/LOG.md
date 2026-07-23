@@ -1,5 +1,14 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 29: ARCHETYPE EVAL #2 — Brand pulse ($0.82)
+**Done:** Prompt 5 run on "EVAL Brand Pulse": recipe followed unaided (7 shots: product-forward beats, mid-video kinetic-slot interstitial "ONE CITY. ONE PULSE.", 6s end-card "UNLEASH THE PULSE" — note the recipe's longer-final-shot principle emerged as 6s vs 4s beats without being asked); Lyria passed FIRST TRY (vocabulary guideline from eval #1 held); real hero take "Concrete Slam" — hand slamming the can into a wet neon street, splash frozen mid-burst, NO timecode artifact (eval-#1 fix confirmed working on a new take). Export 3-ready cut (hero → interstitial → end card), shared. Total $0.82; today ≈ $4.43/$5.
+**Taste review:** structure ✓ · one-idea-per-shot ✓ · continuity ✓ (can in every filmed beat) · contrast ✓ (filmed/graphic alternation; splash vs static type) · cuts-on-music untested again (transcript generated but sync not applied — NOTE: apply sync in eval #3) · end-held-frame ✓ (6s card). FINDINGS: (1) generated micro-text on the can label garbles ("JU CM") — mitigation candidates: entity description states label text explicitly, or image scripts avoid tight label close-ups; BACKLOG. (2) interstitial template choice is my script's heuristic — the PLAN should author template (extend plan animation schema with template: title|kinetic); BACKLOG.
+**Decisions:** eval projects archived after review (list hygiene).
+**Deferred:** evals #3–6 (fresh cap); label-fidelity mitigation; plan-authored template.
+**Discovered:** both eval-#1 fixes (no-on-screen-text, Lyria vocabulary) held on fresh runs — the taste loop is compounding.
+**Follow-ups:** eval #3 = lyric-video (music FIRST, sync applied).
+**Gate:** export succeeded; suite untouched since last green.
+
 ## 2026-07-23 — slice 28: process refresh — prompts.md learns from the day
 **Done:** prompts.md updated with practiced-and-proven additions: Prompt 2 GATE gains the tsc rule (vitest doesn't typecheck), browser-verify-fresh + server-side-fallback rule, and the real-cost verification tiers; Prompt 4 gains the "epic directive → canonical doc first" pattern; NEW Prompt 5 — the archetype eval taste loop (exact recipe practiced in eval #1, incl. Lyria retry protocol and frame-extraction review); Tips gain config-not-code, prompt-guideline-over-retry-loop, and evidence-beats-assertion. Health pass green (suite 130, all pages 200).
 **Decisions:** process docs record PRACTICED behavior only — nothing speculative added.
