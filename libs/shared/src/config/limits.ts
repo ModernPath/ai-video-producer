@@ -7,7 +7,7 @@ import { providerLimits } from "./models";
 export const config = {
   shot: {
     minSeconds: 4,
-    maxSeconds: 10, // must never exceed providerLimits.video.maxClipSeconds (INV-STB-001)
+    maxSeconds: 8, // must never exceed providerLimits.video.maxClipSeconds (INV-STB-001; Veo 3.1 route)
     defaultSeconds: 6,
   },
   frame: { candidatesDefault: 2, candidatesMax: 4 },

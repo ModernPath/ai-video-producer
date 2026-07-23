@@ -18,7 +18,7 @@ describe("REQ-GEN-003: cost computation", () => {
 
 describe("REQ-GEN-007: model routing from config only", () => {
   it("resolves kinds to configured models", () => {
-    expect(resolveModel("take")).toMatch(/omni/);
+    expect(resolveModel("take")).toMatch(/veo|omni/);
     expect(resolveModel("frame", "draft")).toMatch(/lite-image/);
     expect(resolveModel("script")).toMatch(/flash/);
   });

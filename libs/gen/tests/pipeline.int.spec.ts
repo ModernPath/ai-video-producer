@@ -52,7 +52,7 @@ describe("GEN pipeline: enqueue -> execute (mock) -> asset", () => {
     const id = await enqueueGeneration(db, takeInput());
     const [row] = await db.select().from(generation).where(eq(generation.id, id));
     expect(row?.status).toBe("queued");
-    expect(row?.modelId).toMatch(/omni/);
+    expect(row?.modelId).toMatch(/veo|omni/);
     const snap = row?.promptSnapshot as { prompt: string; templateVersion: number };
     expect(snap.prompt).toContain("FORMAT:");
     expect(snap.templateVersion).toBeGreaterThanOrEqual(1);

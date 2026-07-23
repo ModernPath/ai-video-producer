@@ -103,3 +103,9 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 **Done:** REQ-AST-004 uploads (presigned+direct) IN_REVIEW; music track attach + animatic audio — Suno round-trip complete in browser. **Real-API E2E ring live** (user key): pnpm test:real 2/2 green (~$0.04/run); DoD §9.8 added.
 **Unblocked:** Omni video spike (OQ-101/102/104) — run next tick with real key (~$0.40–1.00, covered by user's e2e mandate).
 **Next:** Omni real video adapter spike → real take E2E; then idempotent createProject.
+
+## 2026-07-23 — Build loop iteration 14 (the real-video tick)
+**Done:** Omni/Veo spike resolved OQ-101/102/104 (details in docs/08 Resolved) + new OQ-112 (Omni Interactions adapter). Takes → veo-3.1-fast. Duration snapping {4,6,8}s; shot cap 8s. REAL take generated from the UI end-to-end ($0.60 on the live cost meter); real E2E ring covers text+image+video (3/3).
+**Inbox:** verify Veo fast $/s (price table uses 0.10 placeholder) · attach start frame to take requests (REQ-GEN-009 — image param verified working).
+**Spend today:** ≈ $1.20 total (within mandate).
+**Next:** REQ-GEN-009 frame-conditioned takes (start frame → image param), then retake-with-instruction UX.

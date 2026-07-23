@@ -80,3 +80,53 @@ describe.skipIf(!enabled)("REAL API e2e: gemini text + draft image (≈$0.04/run
     expect(obj.bytes.byteLength).toBeGreaterThan(5_000); // a real image, not a stub
   }, 120_000);
 });
+
+// Omni video spike + real take E2E — extra gate: RUN_REAL_VIDEO=1 (≈$0.40/run at 4s).
+const videoEnabled = enabled && process.env.RUN_REAL_VIDEO === "1";
+
+describe.skipIf(!videoEnabled)("REAL API e2e: omni take (≈$0.40/run, 4s)", () => {
+  const { db, client } = createDb();
+  const orgId = uuidv7();
+  const projectId = uuidv7();
+
+  beforeAll(async () => {
+    await migrate();
+    await db.insert(organization).values({ id: orgId, name: "Real Video Org" });
+    await db.insert(project).values({
+      id: projectId, organizationId: orgId, title: "Real Video E2E", aspectRatio: "16:9", targetDurationS: "10",
+    });
+  }, 30_000);
+  afterAll(async () => {
+    await db.delete(asset).where(eq(asset.organizationId, orgId));
+    await db.delete(generation).where(eq(generation.organizationId, orgId));
+    await db.delete(project).where(eq(project.id, projectId));
+    await db.delete(organization).where(eq(organization.id, orgId));
+    await client.end();
+  });
+
+  it("real 4s take flows through the pipeline: ready MP4 asset, billed cost", async () => {
+    const genId = await enqueueGeneration(db, {
+      organizationId: orgId, projectId, principal: "user:e2e", kind: "take",
+      commandId: uuidv7(), target: { shotId: uuidv7() },
+      promptInput: {
+        aspectRatio: "16:9", durationSeconds: 4, entities: [],
+        direction: {
+          synopsis: "steam rising from a coffee cup at dawn, cinematic macro",
+          subject: "coffee cup on a wooden table",
+          action: "slow push-in, steam curling in golden light",
+          mood: "warm dawn glow",
+        },
+      },
+    });
+    const result = await runNextGeneration(db, { organizationId: orgId, provider: createGeminiProvider() });
+    const [g] = await db.select().from(generation).where(eq(generation.id, genId));
+    if (result?.status !== "succeeded") throw new Error(`spike failed: ${g?.errorCode} ${g?.errorDetail}`);
+    expect(Number(g!.costUsd)).toBeCloseTo(0.4, 2);
+    const [a] = await db.select().from(asset).where(eq(asset.id, g!.outputAssetIds![0]!));
+    expect(a?.status).toBe("ready");
+    expect(a?.mime).toContain("video");
+    const obj = await getObject(a!.storageKey);
+    expect(Buffer.from(obj.bytes.slice(4, 8)).toString("ascii")).toBe("ftyp");
+    console.log(`[spike] real take: ${obj.bytes.byteLength} bytes, cost $${g!.costUsd}`);
+  }, 360_000);
+});

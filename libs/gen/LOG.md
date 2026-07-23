@@ -45,3 +45,9 @@
 **Done:** `pnpm test:real` (RUN_REAL_API=1, key from .env, never logged): real gemini-3.6-flash text + real Nano Banana draft image through the full pipeline (provider → storage → ready asset → billed cost). 2/2 green, ≈$0.04 spent. DoD updated: root CLAUDE.md §9.8 requires this ring for provider-facing requirements; docs/82 §6 updated.
 **Next:** Omni video real E2E = the OQ-101/102/104 spike (user's key now covers it; ~$0.40–1.00).
 **Gate:** real ring 2/2 green.
+
+## 2026-07-23 — Omni/Veo video spike + REAL take in product (REQ-GEN-010 completed for video)
+**Done:** paid spike sequence (~$1.00 total): (1) SDK types closed OQ-101/102/104 free (lastFrame/referenceImages/resolution/durationSeconds exist); (2) generateAudio is Vertex-only ($0 probe); (3) gemini-omni-flash-preview serves ONLY the Interactions API — not wrapped by SDK 1.52 → new OQ-112; takes routed to veo-3.1-fast-generate-preview (BR-GEN-001 config change only); (4) Veo durations are {4,6,8}s — provider snaps, shot cap now 8s; (5) real 4s take through pipeline in E2E ($0.40) and real 6s take from the UI through queue+worker+SSE ($0.60) — cost meter shows real spend.
+**Worker ops learning:** pkill pattern must match `tsx/dist/cli.mjs` — a surviving mock worker raced the real one and stole two jobs (caught via cost=0 + SVG mime). Single-worker check added to restart routine.
+**Discovered → BACKLOG:** verify Veo 3.1 fast per-second pricing (table still uses Omni's $0.10/s); take request should attach selected start frame (REQ-GEN-009 now high value — image param verified).
+**Gate:** mock suite 42/45 green (3 real skipped by default); real ring 3/3 green.

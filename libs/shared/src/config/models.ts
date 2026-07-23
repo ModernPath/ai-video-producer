@@ -34,8 +34,11 @@ export const modelRoutes: Record<Exclude<GenerationKind, "frame" | "image_edit">
     standard: "gemini-3.1-flash-image",
     hero: "gemini-3-pro-image",
   },
-  take: "gemini-omni-flash-preview",
-  retake: "gemini-omni-flash-preview",
+  // Spike 2026-07-23: gemini-omni-flash-preview only serves the (SDK-unwrapped) Interactions
+  // API; the generateVideos path is served by the Veo 3.1 family on the same key. Route takes
+  // to veo-3.1-fast until the Omni Interactions adapter lands (OQ-112). Native audio included.
+  take: "veo-3.1-fast-generate-preview",
+  retake: "veo-3.1-fast-generate-preview",
 };
 
 /** Provider price table (USD) — INV-GEN-003 cost recording derives from these. */
@@ -49,6 +52,8 @@ export const priceTable = {
 
 /** Provider capability facts the domain depends on (docs/00 §3 — re-verify per phase). */
 export const providerLimits = {
-  video: { maxClipSeconds: 10, aspectRatios: ["16:9", "9:16"] as const, maxReferenceImages: 3 },
+  // Veo 3.1 (current take route): durations 4–8s, even values (spike 2026-07-23).
+  // Omni restores 10s when its Interactions adapter lands (OQ-112).
+  video: { maxClipSeconds: 8, allowedDurationsS: [4, 6, 8] as const, aspectRatios: ["16:9", "9:16"] as const, maxReferenceImages: 3 },
   image: { maxReferenceImages: 14, entityConsistencyRefs: 5 },
 } as const;

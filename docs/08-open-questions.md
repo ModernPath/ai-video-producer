@@ -4,10 +4,8 @@ Design ambiguities that block or shape requirements. Mark affected `REQ-*` as `B
 
 | ID | Source | Question | Owner | Blocking | Status |
 |----|--------|----------|-------|----------|--------|
-| OQ-101 | `13`/`14` | **End-frame conditioning:** does Omni Flash accept an explicit last-frame parameter, or only reference images + prompt language? Needs an API spike; determines `RequestTake` contract for end frames. | — | REQ-STB-* (end frame), REQ-GEN-* | OPEN |
-| OQ-102 | `14`/`15` | **Omni output resolution:** what resolutions does `gemini-omni-flash-preview` return per aspect ratio? Determines whether `master` preset upscales and what we promise in export presets. | — | REQ-ASM-* | OPEN |
+| OQ-112 | `14` spike | **Omni Interactions adapter:** `gemini-omni-flash-preview` serves only the Interactions API (SDK 1.52 doesn't wrap it; generateContent+VIDEO rejected). Takes route to Veo 3.1 fast meanwhile. Needed for conversational retakes + 10s clips. | — | REQ-GEN-012 retake arm | OPEN |
 | OQ-103 | `15` | **Mix mode defaults:** ducking depth, music gain, per-shot native-audio overrides (e.g. keep dialogue in 2 shots, music elsewhere)? | — | REQ-ASM-* (mix) | OPEN |
-| OQ-104 | `13`/`14` | **Duration precision:** can we request an exact clip length (e.g. 6.5s) or only bands? If output length ≠ requested, do we trim at assembly or accept drift? | — | REQ-STB-001, REQ-ASM-* | OPEN |
 | OQ-105 | `14`/`06` | **Content-policy UX:** wording and remediation guidance when Google rejects a generation; do we pre-screen directions with `gemini-3.6-flash` before spending? | — | REQ-GEN-* (errors) | OPEN |
 | OQ-106 | `03` | **Worker heartbeat/resume:** on worker crash mid-video-generation, do we re-poll the provider operation or restart the generation (double cost)? | — | REQ-GEN-* (reliability) | OPEN |
 | OQ-107 | `10`/`11` | **Billing model:** subscription with included generation credits vs pure usage; affects quota semantics and cost-meter UX. | — | REQ-PLT-* (quota) | OPEN |
@@ -21,5 +19,8 @@ Design ambiguities that block or shape requirements. Mark affected `REQ-*` as `B
 ## Resolved
 
 | ID | Resolution | Date |
+| OQ-101 | **Resolved by spike:** `GenerateVideosConfig` supports `lastFrame` + `referenceImages` (and `image` = start frame) on the generateVideos path — end-frame conditioning is a first-class parameter. | 2026-07-23 |
+| OQ-102 | **Resolved by spike:** `resolution` is a config field on generateVideos; real 4s take returned 553KB MP4 (720p-class default). Presets stay source-resolution until upscale need is proven. | 2026-07-23 |
+| OQ-104 | **Resolved by spike:** durations are discrete — Veo 3.1 accepts {4,6,8}s only (5 rejected by API). Provider snaps requested duration; shot cap lowered to 8s (INV-STB-001) until Omni's 10s returns via OQ-112. | 2026-07-23 |
 |----|------------|------|
 | OQ-t-001…008 (template) | Superseded by product pivot to shot-based director; decisions recorded as ADR-001…007 in `82-tech-stack.md` and domain docs (no timecode model, no OT/CRDT, SSE, session auth). | 2026-07-23 |

@@ -1,5 +1,5 @@
 // REQ-GEN-010 — GenProvider port. Implementations: mock (fixtures), gemini (real), test stubs.
-import { config } from "@avd/shared/config";
+import { config, providerLimits } from "@avd/shared/config";
 import { fixtureMp4, fixtureMusicBrief, fixtureScript, fixtureShotPlan, fixtureSvg } from "./fixtures";
 
 export type ProviderErrorCode = "content_policy" | "provider_unavailable" | "invalid_reference" | "output_unusable";
@@ -109,11 +109,54 @@ export function createGeminiProvider(): GenProvider {
         throw mapGeminiError(err);
       }
     },
-    async generateVideo() {
-      throw new ProviderError(
-        "provider_unavailable",
-        "Omni video adapter pending OQ-101/102 spike (async URI delivery + polling)"
-      );
+    async generateVideo(r) {
+      // OQ-101/102/104 resolved 2026-07-23: SDK GenerateVideosConfig supports durationSeconds,
+      // resolution, lastFrame + referenceImages, generateAudio. Long-running op + polling.
+      const { GoogleGenAI } = await import("@google/genai");
+      const client = new GoogleGenAI({ apiKey });
+      try {
+        let op = await client.models.generateVideos({
+          model: r.model,
+          prompt: r.prompt,
+          ...(r.startFrame
+            ? { image: { imageBytes: Buffer.from(r.startFrame.bytes).toString("base64"), mimeType: r.startFrame.mime } }
+            : {}),
+          config: {
+            aspectRatio: r.aspectRatio,
+            // Veo 3.1 accepts only {4,6,8}s (spike 2026-07-23: 5 rejected, 4 accepted) — snap up on ties.
+            durationSeconds: [...providerLimits.video.allowedDurationsS].reduce((best, d) =>
+              Math.abs(d - r.durationSeconds) < Math.abs(best - r.durationSeconds) || (Math.abs(d - r.durationSeconds) === Math.abs(best - r.durationSeconds) && d > best) ? d : best),
+            numberOfVideos: 1,
+            // NB: generateAudio is Vertex-only (spike 2026-07-23) — Gemini API rejects it;
+            // Omni outputs native audio by default (docs/00 §3).
+          },
+        });
+        const deadline = Date.now() + 5 * 60_000;
+        while (!op.done) {
+          if (Date.now() > deadline) throw new ProviderError("provider_unavailable", "video operation timed out (5m)");
+          await new Promise((res) => setTimeout(res, 5000));
+          op = await client.operations.getVideosOperation({ operation: op });
+        }
+        const vid = op.response?.generatedVideos?.[0]?.video;
+        if (!vid) {
+          throw new ProviderError("output_unusable", `no video in response: ${JSON.stringify(op.error ?? {}).slice(0, 300)}`);
+        }
+        let bytes: Uint8Array;
+        if (vid.videoBytes) {
+          bytes = Uint8Array.from(Buffer.from(vid.videoBytes, "base64"));
+        } else if (vid.uri) {
+          const res = await fetch(vid.uri, { headers: { "x-goog-api-key": apiKey } });
+          if (!res.ok) throw new ProviderError("output_unusable", `video download failed: ${res.status}`);
+          bytes = new Uint8Array(await res.arrayBuffer());
+        } else {
+          throw new ProviderError("output_unusable", "video has neither bytes nor uri");
+        }
+        const snapped = [...providerLimits.video.allowedDurationsS].reduce((best, d) =>
+          Math.abs(d - r.durationSeconds) < Math.abs(best - r.durationSeconds) || (Math.abs(d - r.durationSeconds) === Math.abs(best - r.durationSeconds) && d > best) ? d : best);
+        return { bytes, mime: vid.mimeType ?? "video/mp4", durationS: snapped };
+      } catch (err) {
+        throw mapGeminiError(err);
+      }
     },
   };
 }

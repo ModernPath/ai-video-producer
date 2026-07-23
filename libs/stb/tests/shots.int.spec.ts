@@ -49,7 +49,7 @@ describe("STB golden-thread slice (REQ-STB-001..004)", () => {
 
   it("REQ-STB-001: rejects out-of-bounds durations, accepts in-bounds", async () => {
     await expect(createShot(db, { ...base, title: "bad", durationS: 3 })).rejects.toThrow(StbValidationError);
-    await expect(createShot(db, { ...base, title: "bad", durationS: 11 })).rejects.toThrow(/between 4 and 10/);
+    await expect(createShot(db, { ...base, title: "bad", durationS: 11 })).rejects.toThrow(/between 4 and 8/);
     const id = await createShot(db, { ...base, title: "ok", durationS: 6.5 });
     expect(id).toBeTruthy();
   });

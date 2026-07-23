@@ -13,7 +13,7 @@ describe("shared config invariants", () => {
   });
 
   it("BR-GEN-001: every generation kind resolves to a model id", () => {
-    expect(modelRoutes.take).toMatch(/omni/);
+    expect(modelRoutes.take).toMatch(/veo|omni/); // routed to Veo 3.1 until Omni Interactions adapter (OQ-112)
     expect(modelRoutes.frame.draft).toMatch(/image/);
     expect(modelRoutes.script.length).toBeGreaterThan(0);
   });
