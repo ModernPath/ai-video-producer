@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 6 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 1 READY · 6 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -19,6 +19,16 @@ Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 6 PROPOSED · 0 DEF
 | REQ-GEN-012 | image_edit creates new asset with lineage | P4 | PROPOSED | BR-GEN-006 | — | — |
 | REQ-GEN-013 | Deterministic prompt assembly, snapshotted | P1 | IN_REVIEW | `docs/14` §5 | tests/prompt.spec.ts | src/prompt.ts |
 | REQ-GEN-015 | Mock executor (MOCK_GEN) returns fixture media | P1 | IN_REVIEW | `docs/82` §5 (enabler) | tests/pipeline.int.spec.ts | src/executor.ts, src/service.ts |
+| REQ-GEN-016 | Jobs execute via queue worker (pg-boss) | P2 | READY | `docs/03` §1–2 (enabler) | — | — |
+
+### REQ-GEN-016 — Jobs execute via queue worker (pg-boss)
+- **Status:** READY · **Stage:** P2 · **Priority:** must (enabler)
+- **Source:** `docs/03` §1–2, ADR-002
+- **Statement:** Generations and exports run in `apps/worker` via pg-boss jobs (`gen-execute`, `asm-export`) addressed by row id; the web tier enqueues and never blocks on model/ffmpeg work. Dev fallback: `WORKER_MODE=inline` keeps single-process ergonomics.
+- **Acceptance criteria:**
+  - GIVEN a queued pg-boss `gen-execute` job WHEN the worker handler runs THEN the generation succeeds and its STB candidate is materialized.
+  - GIVEN queue mode WHEN the UI requests a frame THEN the browser sees the candidate after the worker processes it (browser evidence).
+- **Tests:** — · **Code:** — · **Log:** —
 
 *(REQ-GEN-014 reserved for event emission — folded into 001/003 acceptance for now; split if it grows.)*
 

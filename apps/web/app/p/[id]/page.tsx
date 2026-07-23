@@ -142,7 +142,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     <form action={generateFrameAction}>
                       <input type="hidden" name="projectId" value={id} />
                       <input type="hidden" name="shotId" value={s.id} />
-                      <button type="submit" style={btn}>＋ Frame</button>
+                      <SubmitButton pendingLabel="Framing…">＋ Frame</SubmitButton>
                     </form>
                   </div>
                 </div>
@@ -158,7 +158,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                             <input type="hidden" name="projectId" value={id} />
                             <input type="hidden" name="shotId" value={s.id} />
                             <input type="hidden" name="takeId" value={t.id} />
-                            <button type="submit" style={{ ...btn, padding: "3px 9px", fontSize: 11 }}>Select take</button>
+                            <SubmitButton small pendingLabel="Selecting…">Select take</SubmitButton>
                           </form>
                         )}
                       </div>
@@ -166,9 +166,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     <form action={generateTakeAction}>
                       <input type="hidden" name="projectId" value={id} />
                       <input type="hidden" name="shotId" value={s.id} />
-                      <button type="submit" style={btnPrimary}>
-                        ▸ Take <span className="mono" style={{ fontWeight: 400 }}>≈ ${(Number(s.durationS) * 0.0).toFixed(2)}·mock</span>
-                      </button>
+                      <SubmitButton primary pendingLabel="Generating take…">▸ Take · mock $0</SubmitButton>
                     </form>
                   </div>
                 </div>
@@ -187,7 +185,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <input name="subject" placeholder="Subject" style={{ ...input, flex: "1 1 120px" }} />
           <input name="action" placeholder="Action" style={{ ...input, flex: "1 1 120px" }} />
           <input name="durationS" type="number" step="0.5" min={config.shot.minSeconds} max={config.shot.maxSeconds} defaultValue={config.shot.defaultSeconds} style={{ ...input, width: 80 }} />
-          <button type="submit" style={btn}>Add shot</button>
+          <SubmitButton pendingLabel="Adding…">Add shot</SubmitButton>
         </form>
       </section>
 

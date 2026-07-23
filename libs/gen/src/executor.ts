@@ -26,10 +26,28 @@ export async function runNextGeneration(
     : eq(generation.status, "queued");
   const [next] = await db.select().from(generation).where(scope).orderBy(asc(generation.createdAt)).limit(1);
   if (!next) return null;
+  return processGenerationRow(db, next, opts.provider);
+}
 
+/** Executes a specific generation by id (worker path, REQ-GEN-016). */
+export async function runGenerationById(
+  db: Db,
+  generationId: string,
+  provider?: GenProvider
+): Promise<RunResult | null> {
+  const [row] = await db.select().from(generation).where(eq(generation.id, generationId));
+  if (!row || row.status !== "queued") return null;
+  return processGenerationRow(db, row, provider);
+}
+
+async function processGenerationRow(
+  db: Db,
+  next: typeof generation.$inferSelect,
+  injectedProvider?: GenProvider
+): Promise<RunResult> {
   await db.update(generation).set({ status: "running", startedAt: new Date() }).where(eq(generation.id, next.id));
 
-  const provider = opts.provider ?? defaultProvider();
+  const provider = injectedProvider ?? defaultProvider();
   const snapshot = next.promptSnapshot as {
     prompt: string;
     input?: { aspectRatio?: "16:9" | "9:16" } & Record<string, unknown>;

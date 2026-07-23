@@ -129,7 +129,17 @@ export async function runNextExport(db: Db, opts: { organizationId?: string } = 
     : eq(exportJob.status, "queued");
   const [job] = await db.select().from(exportJob).where(scope).orderBy(asc(exportJob.createdAt)).limit(1);
   if (!job) return null;
+  return processExportJob(db, job);
+}
 
+/** Executes a specific export job by id (worker path, REQ-GEN-016). */
+export async function runExportById(db: Db, exportJobId: string): Promise<ExportResult | null> {
+  const [job] = await db.select().from(exportJob).where(eq(exportJob.id, exportJobId));
+  if (!job || job.status !== "queued") return null;
+  return processExportJob(db, job);
+}
+
+async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Promise<ExportResult> {
   await db.update(exportJob).set({ status: "running", startedAt: new Date(), progressStage: "fetch" }).where(eq(exportJob.id, job.id));
   const dir = join(workDir(), job.id);
   mkdirSync(dir, { recursive: true });

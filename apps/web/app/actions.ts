@@ -60,8 +60,17 @@ export async function createShotAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
-/** Dev-inline worker: run queue + materialize immediately (real worker app in Phase 2+). */
+/**
+ * Dispatch generations: queue mode sends pg-boss jobs to apps/worker (REQ-GEN-016);
+ * inline mode keeps single-process dev ergonomics (WORKER_MODE unset).
+ */
 async function drainQueueAndMaterialize(generationIds: string[]) {
+  const { queueMode, createBoss, GEN_QUEUE } = await import("@avd/shared/queue");
+  if (queueMode() === "queue") {
+    const boss = await createBoss();
+    for (const id of generationIds) await boss.send(GEN_QUEUE, { generationId: id });
+    return;
+  }
   const d = db();
   for (let i = 0; i < generationIds.length; i++) await runNextGeneration(d);
   for (const id of generationIds) await materializeGenerationOutput(d, id);
@@ -116,8 +125,14 @@ export async function exportAction(formData: FormData) {
   const [p] = await db().select().from(project).where(eq(project.id, projectId));
   if (!p) return;
   const snapshotId = await createSnapshot(db(), { projectId, principal: PRINCIPAL });
-  await queueExport(db(), { projectId, snapshotId, principal: PRINCIPAL });
-  await runNextExport(db(), { organizationId: p.organizationId }); // dev-inline worker
+  const jobId = await queueExport(db(), { projectId, snapshotId, principal: PRINCIPAL });
+  const { queueMode, createBoss, EXPORT_QUEUE } = await import("@avd/shared/queue");
+  if (queueMode() === "queue") {
+    const boss = await createBoss();
+    await boss.send(EXPORT_QUEUE, { exportJobId: jobId });
+  } else {
+    await runNextExport(db(), { organizationId: p.organizationId });
+  }
   revalidatePath(`/p/${projectId}`);
 }
 
