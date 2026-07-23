@@ -139,7 +139,7 @@ Report: routing and next steps.
 ```
 Read docs/87-directing-playbook.md. Archetype: «hype-countdown».
 
-Run one REAL golden path on a fresh project: archetype set → script → plan → cheapest
+Run one REAL golden path on a fresh project (give it a REAL-sounding title — project titles leak into prompts and 'EVAL …' names contaminate the creative output): archetype set → script → plan → cheapest
 honest visuals (1 frame per filmed shot, free animation shots, ONE take on the money shot)
 → Lyria (retry once on policy block after regenerating the brief) → transcript → export.
 

@@ -28,7 +28,7 @@ export const archetypes: Record<string, ArchetypeRecipe> = {
     directing:
       "DIRECTING (Lyric video): typography carries the piece. Lyrics are the visual subject; filmed shots are texture between type moments. Structure follows the song's sections exactly.",
     planBias:
-      "Most shots are animation shots (template kinetic or title) carrying the lyric lines; filmed shots only as atmosphere between sections.",
+      "STRICT: at least two thirds of the shots MUST be animation shots, and each animation shot's text MUST be the exact lyric line(s) sung during that shot's part of the song, copied verbatim from the transcript — never invented text, never the project title. Filmed shots only as brief atmosphere between sung sections.",
     musicBias: "Vocal-forward song with clear, singable lyrics; verses and choruses strongly differentiated.",
     defaults: { audioMode: "music" },
   },
