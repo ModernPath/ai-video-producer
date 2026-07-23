@@ -13,7 +13,7 @@ import { costMeterUsd } from "@avd/prj/service";
 import { shareLink } from "@avd/asm/schema";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  createShareLinkAction, removeCandidateAction, reorderShotAction, retakeAction, setProjectStyleAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
+  animationTakeAction, createShareLinkAction, removeCandidateAction, reorderShotAction, retakeAction, setProjectStyleAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
 } from "../../actions";
 import { ABCompare } from "../../../components/ABCompare";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
@@ -83,7 +83,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     if (!shotId) continue;
     const e = activeByShot.get(shotId) ?? { frame: 0, take: 0 };
     if (g.kind === "frame" || g.kind === "image_edit") e.frame++;
-    if (g.kind === "take" || g.kind === "retake") e.take++;
+    if (g.kind === "take" || g.kind === "retake" || g.kind === "animation") e.take++;
     activeByShot.set(shotId, e);
   }
 
@@ -299,6 +299,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                         )}
                       </div>
                     ))}
+                    <form action={animationTakeAction} style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                      <input type="hidden" name="projectId" value={id} />
+                      <input type="hidden" name="shotId" value={s.id} />
+                      <input name="text" required placeholder="✦ title text…" className="mono" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 5, padding: "3px 7px", color: "var(--ink)", fontSize: 10, width: 110 }} />
+                      <SubmitButton small disabled={(activeByShot.get(s.id)?.take ?? 0) > 0} title="Free Remotion title-card animation rendered locally — lands as a take" pendingLabel="Rendering…">✦ Animate · free</SubmitButton>
+                    </form>
                     <form action={generateTakeAction}>
                       <input type="hidden" name="projectId" value={id} />
                       <input type="hidden" name="shotId" value={s.id} />

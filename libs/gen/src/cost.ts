@@ -18,6 +18,8 @@ export function computeCostUsd(kind: GenerationKind, opts: CostOpts = {}): numbe
       return priceTable.imagePerImageUsd[opts.quality ?? "standard"];
     case "music":
       return priceTable.musicPerTrackUsd; // REQ-GEN-019: per-song
+    case "animation":
+      return 0; // REQ-ANM-001: rendered locally
     default:
       return 0; // text kinds: negligible; metered later (BACKLOG price-table item)
   }

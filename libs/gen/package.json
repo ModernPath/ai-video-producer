@@ -16,6 +16,7 @@
     "@avd/ast": "workspace:*",
     "@avd/plt": "workspace:*",
     "@avd/prj": "workspace:*",
-    "@google/genai": "^1.0.0"
+    "@google/genai": "^1.0.0",
+    "@avd/anm": "workspace:*"
   }
 }

@@ -8,6 +8,7 @@ import { asset } from "@avd/ast/schema";
 import { assetKey, getObject, putObject } from "@avd/ast/storage";
 import { makeAssetThumb } from "@avd/ast";
 import { computeCostUsd } from "./cost";
+import { mockEnabled } from "./service";
 import { defaultProvider, ProviderError, type GenProvider } from "./provider";
 import { generation } from "./schema";
 
@@ -125,6 +126,38 @@ async function processGenerationRow(
           finishedAt: new Date(),
         })
         .where(eq(generation.id, next.id));
+      return { generationId: next.id, status: "succeeded" };
+    }
+
+    if (next.kind === "animation") {
+      // REQ-ANM-001: local Remotion render — no provider, no cost. Mock mode uses the video fixture.
+      const anmInput = snapshot.input as { text?: string; subtext?: string; customPrompt?: string; durationSeconds?: number; aspectRatio?: "16:9" | "9:16" };
+      let media: { bytes: Uint8Array; mime: string; durationS: number };
+      if (mockEnabled()) {
+        media = await provider.generateVideo({ model: "mock", prompt: snapshot.prompt, durationSeconds: anmInput.durationSeconds ?? 4, aspectRatio });
+      } else {
+        const { renderAnimation } = await import("@avd/anm");
+        media = await renderAnimation({
+          template: "title",
+          text: anmInput.text ?? anmInput.customPrompt ?? "",
+          subtext: anmInput.subtext,
+          durationS: anmInput.durationSeconds ?? 4,
+          aspectRatio,
+        });
+      }
+      const assetId = uuidv7();
+      const key = assetKey(next.organizationId, next.projectId, assetId, "mp4");
+      await putObject(key, media.bytes, media.mime);
+      await db.insert(asset).values({
+        id: assetId, organizationId: next.organizationId, projectId: next.projectId,
+        kind: "video", source: "generated", status: "ready",
+        storageKey: key, mime: media.mime, bytes: media.bytes.byteLength,
+        durationS: String(media.durationS), generationId: next.id,
+      });
+      await db.update(generation).set({
+        status: "succeeded", outputAssetIds: [assetId],
+        costUsd: computeCostUsd(next.kind, {}).toFixed(4), finishedAt: new Date(),
+      }).where(eq(generation.id, next.id));
       return { generationId: next.id, status: "succeeded" };
     }
 

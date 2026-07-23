@@ -70,6 +70,7 @@ export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<st
   else if (input.kind === "shot_plan") prompt = assembleShotPlanPrompt(input.textInput!);
   else if (input.kind === "music_brief") prompt = assembleMusicBriefPrompt(input.textInput!); // was falling through to the SCRIPT prompt (QA 2026-07-23)
   else if (input.kind === "music") prompt = input.textInput!.scriptText ?? ""; // REQ-GEN-019: brief verbatim
+  else if (input.kind === "animation") prompt = `Remotion ${String((input.promptInput as { template?: string } | undefined)?.template ?? "title")}: ${input.promptInput?.customPrompt ?? ""}`; // REQ-ANM-001: provenance only — render is deterministic from props
   else prompt = assembleScriptPrompt(input.textInput!);
 
   await db.insert(generation).values({

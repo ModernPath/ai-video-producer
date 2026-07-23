@@ -176,6 +176,30 @@ export async function requestTake(
   });
 }
 
+/** REQ-ANM-001: a free Remotion animation take (title template) for this shot. */
+export async function requestAnimationTake(
+  db: Db,
+  input: { shotId: string; text: string; subtext?: string; principal: string; aspectRatio: "16:9" | "9:16" }
+) {
+  const s = await getShotOrThrow(db, input.shotId);
+  if (!input.text.trim()) throw new StbValidationError("validation_failed", "Animation needs the title text");
+  return enqueueGeneration(db, {
+    organizationId: s.organizationId,
+    projectId: s.projectId,
+    principal: input.principal,
+    kind: "animation",
+    commandId: uuidv7(),
+    target: { shotId: s.id },
+    promptInput: {
+      aspectRatio: input.aspectRatio,
+      durationSeconds: Number(s.durationS),
+      entities: [],
+      customPrompt: input.text.trim(),
+      direction: { synopsis: input.text.trim(), subject: "title card", action: "animated text" },
+    },
+  });
+}
+
 /** REQ-STB-020 / SCN-STB-021: retake with instruction — same shot, same conditioning frame as the
  * source take (not the current selection), instruction appended to the video prompt; retake_of lineage. */
 export async function requestRetake(
@@ -463,7 +487,7 @@ export async function materializeGenerationOutput(db: Db, generationId: string) 
     });
     return { kind: "frame" as const, id };
   }
-  if (g.kind === "take" || g.kind === "retake") {
+  if (g.kind === "take" || g.kind === "retake" || g.kind === "animation") { // animation lands as a take (REQ-ANM-001)
     const id = uuidv7();
     const params = g.params as { durationSeconds?: number };
     await db.insert(take).values({
