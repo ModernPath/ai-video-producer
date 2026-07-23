@@ -174,3 +174,9 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 **Done:** REQ-AST-009 — client-side shrink to 2048px JPEG + previews + any-format tolerance + 30MB action backstop. The 1MB "Body exceeded" crash is structurally gone (typical processed ref ≈ 200–600KB).
 **Pending:** browser click-through (extension disconnected — Chrome updating); user retry with their real image is the best evidence.
 **Next:** REQ-STB-016/017 (per-shot refs, first-frames-on-apply) remain READY.
+
+## 2026-07-23 — Build loop iteration 27 (three user directives)
+**1. "prioritize nano banana / remove ALL mock stuff":** dev app now runs REAL generation (web+worker on the user's key; MOCK_GEN only inside tests). All mock artifacts purged from the product DB (23 mock media gens+assets, mock scripts/plans/briefs, mock-era exports; entity refs repaired to original uploads). Buttons show true costs (frame ≈$0.07, take ≈$0.90 at 6s Veo). User's own real frames confirmed live in "Pasi testaa".
+**2. "launch multiple subagent workflows":** workflow wf_4ff2a6ca running — 4 parallel worktree agents: req/stb-016-017 (per-shot refs + first frames on apply), req/prj-backfill (archive+cost meter), req/asm-share (share links), req/gen-concurrency (video cap). Integration/merge next tick on completion.
+**Ops learnings:** docker exec needs -i for stdin SQL (silent no-op otherwise — bit twice); purge FK order (proposals before script versions).
+**Real-mode caution now active:** every Take click costs real money — concurrency cap agent + quota (REQ-GEN-004) rising in priority.

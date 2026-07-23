@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { desc, eq, inArray, sql } from "drizzle-orm";
-import { config } from "@avd/shared/config";
+import { config, priceTable, providerLimits } from "@avd/shared/config";
 import { project } from "@avd/prj/schema";
 import { generation } from "@avd/gen/schema";
 import { exportJob } from "@avd/asm/schema";
@@ -204,7 +204,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     <form action={generateFrameAction}>
                       <input type="hidden" name="projectId" value={id} />
                       <input type="hidden" name="shotId" value={s.id} />
-                      <SubmitButton pendingLabel="Framing…">＋ Frame</SubmitButton>
+                      <SubmitButton pendingLabel="Framing…">＋ Frame ≈ ${priceTable.imagePerImageUsd.standard.toFixed(2)}</SubmitButton>
                     </form>
                   </div>
                 </div>
@@ -236,7 +236,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     <form action={generateTakeAction}>
                       <input type="hidden" name="projectId" value={id} />
                       <input type="hidden" name="shotId" value={s.id} />
-                      <SubmitButton primary pendingLabel="Generating take…">▸ Take · mock $0</SubmitButton>
+                      <SubmitButton primary pendingLabel="Generating take…">
+                        ▸ Take ≈ ${(([...providerLimits.video.allowedDurationsS].reduce((b, d) => Math.abs(d - Number(s.durationS)) < Math.abs(b - Number(s.durationS)) || (Math.abs(d - Number(s.durationS)) === Math.abs(b - Number(s.durationS)) && d > b) ? d : b)) * priceTable.videoPerSecondUsd).toFixed(2)}
+                      </SubmitButton>
                     </form>
                   </div>
                 </div>
