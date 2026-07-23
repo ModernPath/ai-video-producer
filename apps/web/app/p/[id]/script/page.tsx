@@ -112,9 +112,10 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
                 <form action={applyPlanAction} style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
                   <input type="hidden" name="projectId" value={id} />
                   <input type="hidden" name="proposalId" value={prop.id} />
-                  <button type="submit" style={btn}>Apply {shots.length} shots</button>
+                  <button type="submit" style={btn} title="Replaces current shots that have no takes; shots with takes are kept (INV-STB-007)">Apply {shots.length} shots</button>
                   {/* REQ-STB-017: apply + generate first frames from the authored image scripts in one gesture */}
-                  <button type="submit" name="generateFrames" value="1" style={btnPrimary}>Apply + first frames</button>
+                  <button type="submit" name="generateFrames" value="1" style={btnPrimary} title="Replaces current shots that have no takes; shots with takes are kept (INV-STB-007)">Apply + first frames</button>
+                  <span className="mono muted" style={{ fontSize: 9 }}>replaces unpaid shots · shots with takes are kept</span>
                 </form>
               )}
             </div>

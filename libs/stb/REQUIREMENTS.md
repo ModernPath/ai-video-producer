@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 17 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 18 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -11,7 +11,7 @@ Totals: 0 DONE · 17 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 | REQ-STB-004 | Take selectable only when asset ready | P1 | IN_REVIEW | INV-STB-004 | tests/shots.int.spec.ts | src/service.ts |
 | REQ-STB-005 | Take belongs to its shot, never moved | P2 | PROPOSED | INV-STB-005 | — | — |
 | REQ-STB-006 | Frame re-selection keeps takes + provenance | P2 | IN_REVIEW | INV-STB-006 | tests/frame-reselect.int.spec.ts | takeProvenance, 'from older frame' badge (page.tsx) |
-| REQ-STB-007 | Shot-plan apply protects paid shots | P2 | PROPOSED | INV-STB-007, BR-STB-005 | — | — |
+| REQ-STB-007 | Shot-plan apply replaces unpaid, protects takes | P2 | IN_REVIEW | INV-STB-007, BR-STB-005 | tests/replan-protect.int.spec.ts + browser E2E | applyShotPlan (replace arm), apply-button hint |
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
@@ -199,4 +199,16 @@ Totals: 0 DONE · 17 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Tests:** `tests/frame-reselect.int.spec.ts` · **Code:** `src/service.ts` (takeProvenance), `apps/web` takes strip badge · **Log:** LOG 2026-07-23 (slice 13)
 - **Deferred / notes:** —
 
-*(PROPOSED blocks 005 + 007: statements live in `docs/13-storyboard.md`; elaborate when promoted.)*
+### REQ-STB-007 — Shot-plan apply replaces unpaid shots, protects takes
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must · **Owner:** —
+- **Raised-by:** promoted this slice; user-visible pain — plans stacked (user's board showed 5 stale + 6 new shots)
+- **Source:** INV-STB-007, BR-STB-005 (`docs/13`, script-studio re-plan)
+- **Statement:** Applying a shot plan shall soft-remove existing shots that carry no takes and append the plan's shots; shots with takes (paid work) are preserved untouched.
+- **Acceptance criteria:**
+  - GIVEN unpaid shots WHEN a plan is applied THEN they are soft-removed and the new shots appended.
+  - GIVEN a shot with a take WHEN a plan is applied THEN it survives with its position, selection, and candidates intact.
+  - GIVEN the Apply buttons THEN the replace behavior is labeled.
+- **Tests:** `tests/replan-protect.int.spec.ts` · browser E2E (Replan Test project: 5 → replaced by 4, no stacking) · **Code:** `src/service.ts` (applyShotPlan), script page hint · **Log:** LOG 2026-07-23 (slice 14)
+- **Deferred / notes:** full selective diff UI (per-shot toggle before apply) deferred — this replace-unpaid MVP covers the stacking pain; frames on unpaid shots are accepted losses (cheap), takes are the protected asset.
+
+*(PROPOSED block 005: statement lives in `docs/13-storyboard.md`; elaborate when promoted.)*

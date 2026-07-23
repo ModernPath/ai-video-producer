@@ -283,6 +283,13 @@ export async function applyShotPlan(db: Db, input: { proposalId: string; princip
   if (proposal.status !== "proposed") throw new StbValidationError("conflict", "Proposal already resolved");
   const [p] = await db.select().from(project).where(eq(project.id, proposal.projectId));
   const shots = normalizePlannedShots(proposal.changes); // old rows may hold raw model shapes
+  // REQ-STB-007 / INV-STB-007: a new plan replaces shots that carry no takes; shots with
+  // takes (paid work) are preserved untouched — never silently destroyed.
+  const existing = await listShots(db, proposal.projectId);
+  for (const ex of existing) {
+    const [anyTake] = await db.select().from(take).where(and(eq(take.shotId, ex.id), isNull(take.deletedAt))).limit(1);
+    if (!anyTake) await removeShot(db, { shotId: ex.id });
+  }
   const createdShotIds: string[] = [];
   for (const s of shots) {
     const shotId = await createShot(db, {
