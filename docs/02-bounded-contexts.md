@@ -46,6 +46,9 @@ Value chain: **PRJ** opens a production → **STB** plans script and shots → *
 | **GEN** | Generation | Core | `14-generation.md` |
 | **AST** | Asset Library | Core | `12-asset-library.md` |
 | **ASM** | Assembly & Export | Core | `15-assembly-export.md` |
+| **ANM** | Animations (Remotion) | Supporting — render engine | `docs/features/animations.md` |
+
+ANM (added 2026-07-23, USER Remotion epic) is a pure render engine: no database tables, no single-writer concerns — GEN's executor invokes it for kind `animation` (engine id `remotion-local`, $0). Templates are parameterized React components; the model/user supplies props, never code.
 
 Collaboration (comments/review) and external publishing are **not contexts yet** — gap register GAP-104/105; Suno handoff lives in `17-integrations.md` as a pattern inside STB/AST, not a separate context.
 

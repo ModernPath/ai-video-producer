@@ -28,3 +28,21 @@ Only GEN integrates with Google Gemini APIs (`14-generation.md` §8). Any additi
 ## 3. Future publish targets (GAP-105)
 
 YouTube/TikTok/Instagram upload from a completed export. When built: new INT context with anti-corruption layer; `asm.ExportCompleted` is the trigger event; no provider ids in core tables without a mapping table.
+
+
+## Lyria 3 music generation (USER epic 2026-07-23 — implemented)
+
+The Suno round-trip now has a one-click sibling: the music brief (always with timed lyrics
+unless instrumental, §docs/85) runs verbatim against `lyria-3-pro-preview` via the
+Interactions REST API ($0.08/full song, OQ-114 resolved). The returned MP3 attaches as the
+project's active track exactly like an uploaded Suno file. Kind `music`, provider
+`generateMusic`, REQ-GEN-019.
+
+## Track transcription & lyric sync (implemented)
+
+Any attached track can be transcribed (kind `transcript`, gemini-3.6-flash audio input,
+inline ≤20MB) into `[MM:SS]` lines — lyrics for vocal tracks, labeled sections for
+instrumentals — stored on the music brief (REQ-GEN-020). First consumer: burned captions
+on export (REQ-ASM-009, transcript → SRT → ffmpeg subtitles/libass). Future consumers:
+lyric-synced cut suggestions, animated Remotion caption overlays (REQ-ANM-003), singing
+characters (timed lyric into the shot's video script).

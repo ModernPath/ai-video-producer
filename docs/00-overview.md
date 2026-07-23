@@ -137,3 +137,12 @@ Full map: `02-bounded-contexts.md`.
 ---
 
 *When this overview disagrees with a domain doc on domain detail, the domain doc wins. When a domain doc disagrees on context codes or glossary terms, **01** and **02** win.*
+
+
+## Capability deltas (2026-07-23, USER epics)
+
+- **Music:** brief → timed lyrics ([Verse]/[Chorus]) unless instrumental → one-click Lyria 3
+  full song ($0.08) attached as the track → MM:SS transcription → captions burned on export.
+- **Animations (ANM):** free Remotion title-card takes + transparent lower-third overlays
+  composited onto generated takes (see `docs/features/animations.md`).
+- **Veo price:** $0.10/s at 720p (pricing page 2026-07-23); estimates corrected from $0.15/s.
