@@ -15,13 +15,15 @@ import { db } from "../lib/db";
 
 const PRINCIPAL = "user:dev"; // auth lands in Phase 5 (ADR-005)
 
-/** Dev tenancy: a single local org until PLT auth slice lands. */
-async function devOrgId(): Promise<string> {
+/** Dev tenancy: a single local org until PLT auth slice lands.
+ * Resolved BY NAME — `limit 1` without order returned arbitrary rows once
+ * integration tests left other orgs behind (USER BUG: entities landed in test orgs). */
+export async function devOrgId(): Promise<string> {
   const d = db();
-  const [existing] = await d.select().from(organization).limit(1);
+  const [existing] = await d.select().from(organization).where(eq(organization.name, config.platform.devOrgName)).limit(1);
   if (existing) return existing.id;
   const id = uuidv7();
-  await d.insert(organization).values({ id, name: "Local Studio" });
+  await d.insert(organization).values({ id, name: config.platform.devOrgName });
   return id;
 }
 

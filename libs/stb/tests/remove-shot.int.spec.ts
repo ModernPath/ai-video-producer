@@ -1,4 +1,4 @@
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb } from "@avd/shared/db";
@@ -27,6 +27,11 @@ afterAll(async () => {
     await db.delete(take).where(inArray(take.shotId, shotIds));
     await db.delete(shot).where(inArray(shot.id, shotIds));
   }
+  // leave no org/project debris: stray orgs broke dev-org resolution (USER BUG 2026-07-23)
+  await db.delete(generation).where(eq(generation.organizationId, orgId));
+  await db.delete(asset).where(eq(asset.organizationId, orgId));
+  await db.delete(project).where(eq(project.id, projectId));
+  await db.delete(organization).where(eq(organization.id, orgId));
 });
 
 describe("REQ-STB-019: remove shot", () => {

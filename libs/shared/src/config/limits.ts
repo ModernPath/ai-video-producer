@@ -5,6 +5,9 @@
 import { providerLimits } from "./models";
 
 export const config = {
+  platform: {
+    devOrgName: "Local Studio", // single-tenant dev org until PLT auth lands; resolution must be by name, deterministic
+  },
   shot: {
     minSeconds: 4,
     maxSeconds: 8, // must never exceed providerLimits.video.maxClipSeconds (INV-STB-001; Veo 3.1 route)

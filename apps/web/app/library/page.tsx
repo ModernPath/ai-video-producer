@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { listEntities } from "@avd/ast";
-import { organization } from "@avd/plt/schema";
+import { devOrgId } from "../actions";
 import { createEntityAction, editEntityRefAction } from "../actions";
 import { SubmitButton } from "../../components/SubmitButton";
 import { ImagePicker } from "../../components/ImagePicker";
@@ -13,8 +13,8 @@ const input: React.CSSProperties = { background: "var(--stage)", border: "1px so
 
 export default async function LibraryPage() {
   const d = db();
-  const [org] = await d.select().from(organization).limit(1);
-  const entities = org ? await listEntities(d, org.id) : [];
+  const orgId = await devOrgId();
+  const entities = await listEntities(d, orgId);
 
   return (
     <main style={{ maxWidth: 880, margin: "0 auto", padding: "36px 24px" }}>
