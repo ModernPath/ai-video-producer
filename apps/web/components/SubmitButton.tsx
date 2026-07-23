@@ -5,13 +5,18 @@ import { useFormStatus } from "react-dom";
 import type { CSSProperties, ReactNode } from "react";
 
 export function SubmitButton({
-  children, primary, disabled, small, pendingLabel,
+  children, primary, disabled, small, pendingLabel, name, value, title, style: styleOverride, className,
 }: {
   children: ReactNode;
   primary?: boolean;
   disabled?: boolean;
   small?: boolean;
   pendingLabel?: string;
+  name?: string; // submitted only when THIS button triggers the form
+  value?: string;
+  title?: string;
+  style?: CSSProperties;
+  className?: string;
 }) {
   const { pending } = useFormStatus();
   const style: CSSProperties = {
@@ -24,9 +29,18 @@ export function SubmitButton({
     fontWeight: 600,
     cursor: pending || disabled ? "default" : "pointer",
     opacity: pending || disabled ? 0.55 : 1,
+    ...styleOverride,
   };
   return (
-    <button type="submit" disabled={pending || disabled} style={style}>
+    <button
+      type="submit"
+      disabled={pending || disabled}
+      style={style}
+      {...(name !== undefined ? { name } : {})}
+      {...(value !== undefined ? { value } : {})}
+      {...(title !== undefined ? { title } : {})}
+      {...(className !== undefined ? { className } : {})}
+    >
       {pending ? (pendingLabel ?? "Working…") : children}
     </button>
   );

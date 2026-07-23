@@ -13,7 +13,7 @@ import { costMeterUsd } from "@avd/prj/service";
 import { shareLink } from "@avd/asm/schema";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  createShareLinkAction, removeCandidateAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
+  createShareLinkAction, removeCandidateAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
 } from "../../actions";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
@@ -280,7 +280,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 const autoVideo = assembleTakePrompt({ aspectRatio: p.aspectRatio, durationSeconds: Number(s.durationS), entities, direction: dirIn });
                 const selFrame = cands.frames.find((f) => f.id === s.selectedStartFrameId);
                 const castRefs = cast.flatMap((e) => e.refAssetIds);
+                const effectiveRefs = s.refAssetIds ?? castRefs;
                 return (
+                  <>
                   <form action={saveScriptsAndGenerateAction} style={{ marginTop: 14, borderTop: "1px solid var(--line)", paddingTop: 10 }}>
                     <input type="hidden" name="projectId" value={id} />
                     <input type="hidden" name="shotId" value={s.id} />
@@ -288,8 +290,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                       <div>
                         <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 5 }}>
                           <p className="mono muted" style={{ fontSize: 10 }}>IMAGE SCRIPT {s.imagePrompt ? "· custom" : "· auto"}</p>
-                          {castRefs.map((rid) => (
-                            // eslint-disable-next-line @next/next/no-img-element
+                          {effectiveRefs.map((rid) => (
                             <ZoomImage key={rid} src={`/api/assets/${rid}`} alt="reference image" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
                           ))}
                         </div>
@@ -303,8 +304,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                             // eslint-disable-next-line @next/next/no-img-element
                             <ZoomImage src={`/api/assets/${selFrame.imageAssetId}`} alt="start frame" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--accent)" }} />
                           )}
-                          {castRefs.map((rid) => (
-                            // eslint-disable-next-line @next/next/no-img-element
+                          {effectiveRefs.map((rid) => (
                             <ZoomImage key={rid} src={`/api/assets/${rid}`} alt="reference image" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
                           ))}
                         </div>
@@ -319,6 +319,27 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                       <span className="mono muted" style={{ fontSize: 9 }}>empty = auto · custom text sent verbatim</span>
                     </div>
                   </form>
+                    {cast.length > 0 && (
+                      <details style={{ marginTop: 6 }}>
+                        <summary className="mono muted" style={{ fontSize: 10, cursor: "pointer" }}>
+                          refs for this shot: {s.refAssetIds === null ? "whole cast (default)" : `${effectiveRefs.length} selected`} · edit
+                        </summary>
+                        <form action={updateShotRefsAction} style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", padding: "8px 0" }}>
+                          <input type="hidden" name="projectId" value={id} />
+                          <input type="hidden" name="shotId" value={s.id} />
+                          {cast.map((e) => e.refAssetIds.map((rid) => (
+                            <label key={rid} style={{ display: "flex", gap: 5, alignItems: "center", fontSize: 10 }} className="mono muted">
+                              <input type="checkbox" name="refAssetIds" value={rid} defaultChecked={(s.refAssetIds ?? castRefs).includes(rid)} />
+                              <ZoomImage src={`/api/assets/${rid}`} alt={`${e.name} ref`} style={{ width: 26, height: 26, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
+                              {e.name}
+                            </label>
+                          )))}
+                          <SubmitButton small pendingLabel="Saving…">Save refs</SubmitButton>
+                          <SubmitButton small name="reset" value="1" pendingLabel="Resetting…">use whole cast</SubmitButton>
+                        </form>
+                      </details>
+                    )}
+                  </>
                 );
               })()}
             </div>

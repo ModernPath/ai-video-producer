@@ -183,6 +183,6 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 **Real-mode caution now active:** every Take click costs real money — concurrency cap agent + quota (REQ-GEN-004) rising in priority.
 
 - 2026-07-23 (user docs): gemini-omni-flash-preview Interactions API supports video tasks (image_to_video, reference_to_video, edit) — evaluate cost/quality vs veo-3.1-fast for takes/retakes; update OQ-112. Owner: GEN.
-- 2026-07-23 integrator follow-ups from workflow merge: ~~cost SQL → costMeterUsd~~ (done), ~~share-link button~~ (done, browser-verified); REMAINING: per-shot ref picker UI (updateShotRefs ready); ASM export path archive guard (BR-PRJ-003).
+- 2026-07-23 integrator follow-ups from workflow merge: ~~cost SQL → costMeterUsd~~ (done), ~~share-link button~~ (done, browser-verified); REMAINING: ASM export path archive guard (BR-PRJ-003) — ~~ref picker UI~~ done (slice 11).
 - 2026-07-23: dedicated test database (or per-run schema) for integration tests — interrupted runs leave org/project debris in the dev DB even with afterAll teardown; debris broke dev-org resolution (REQ-PLT-001). Owner: shared/infra.
 - 2026-07-23 (user): generation indicators shipped (pulsing badge per shot lane); consider also disabling generate buttons while a generation for that lane is active. Owner: web.

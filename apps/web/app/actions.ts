@@ -316,6 +316,18 @@ export async function createShareLinkAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/** REQ-STB-016: per-shot reference-image subset (null = whole-cast default). */
+export async function updateShotRefsAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { updateShotRefs } = await import("@avd/stb");
+  const reset = formData.get("reset") === "1";
+  await updateShotRefs(db(), {
+    shotId: String(formData.get("shotId")),
+    refAssetIds: reset ? null : formData.getAll("refAssetIds").map(String),
+  });
+  revalidatePath(`/p/${projectId}`);
+}
+
 /** REQ-STB-012: the project's video prompt (brief.idea) — drives script, plan, music, and styling. */
 export async function updateBriefAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));
