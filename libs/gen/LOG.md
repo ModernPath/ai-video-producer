@@ -1,5 +1,13 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-23 — dedicated integration-test database (infra)
+**Done:** vitest globalSetup (scripts/test-setup.ts) creates+migrates avd_test on the shared Postgres container; vitest env pins DATABASE_URL to it (scripts/test-db-url.ts single source). Dev DB verified untouched across a full run (org count 1 → 1); worker pg-boss suite passed 3/3 consecutive runs — the live queue worker (on avd) can no longer steal test jobs (root cause of the flake). Real-API ring inherits the test DB too.
+**Decisions:** same container, separate database — cheapest isolation that fixes both failure modes; TEST_DATABASE_URL env escape hatch kept.
+**Deferred:** per-run schema isolation (only needed if suites ever conflict with each other; they currently self-clean).
+**Discovered:** —
+**Follow-ups:** —
+**Gate:** full suite green on avd_test (92 passed); dev DB pristine.
+
 ## 2026-07-23 — daily budget meter + busy-lane button lockout (web polish)
 **Done:** extracted dailySpendUsd(db, orgId) (shared by quota guard + UI, single SQL source of truth); project header now shows "spend $X · today $Y / $CAP" with tooltip; frame/take generate buttons (both lanes + Save & generate variants) disable while that shot's lane has a queued/running generation — same activeByShot map that drives the verified pulsing badges.
 **Decisions:** lane lockout is per shot per kind (frame vs take), not global — parallel shots stay generatable.
