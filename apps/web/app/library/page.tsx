@@ -3,6 +3,7 @@ import { listEntities } from "@avd/ast";
 import { organization } from "@avd/plt/schema";
 import { createEntityAction, editEntityRefAction } from "../actions";
 import { SubmitButton } from "../../components/SubmitButton";
+import { ImagePicker } from "../../components/ImagePicker";
 import { db } from "../../lib/db";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +41,7 @@ export default async function LibraryPage() {
           </select>
           <input name="name" placeholder="Name" required style={{ ...input, flex: "1 1 140px" }} />
           <input name="description" placeholder="Description (feeds every prompt)" required style={{ ...input, flex: "2 1 260px" }} />
-          <input type="file" name="refs" accept="image/png,image/jpeg,image/webp" multiple className="mono" style={{ fontSize: 11, color: "var(--ink-2)" }} />
+          <ImagePicker name="refs" multiple />
           <SubmitButton primary pendingLabel="Creating…">Create entity</SubmitButton>
         </form>
         <p className="mono muted" style={{ fontSize: 10, marginTop: 8 }}>1–5 reference images (INV-AST-004)</p>

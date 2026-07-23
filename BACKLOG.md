@@ -169,3 +169,8 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 > 1. Give the AI a description of what you want 2. AI turns it into a script divided into shots — each with (a) starting image script (b) video script (c) duration (d) possible reference images 3. Generate the first set of images from the image scripts; allow reprompting the image before creating the video.
 **Routed:** docs/00 §1, docs/06 journeys, docs/13 §7, features/{script-studio,shot-editor,storyboard} updated to the canonical flow. Steps 1–2 + reprompting shipped (REQ-STB-012/013/014/015). Gaps promoted: REQ-STB-016 (per-shot reference images) + REQ-STB-017 (first frames on apply) — both READY, next ticks.
 **Note:** user is driving the shared browser tab — loop yields it; browser evidence for Save & generate deferred to user's own clicks + next tick.
+
+## 2026-07-23 — Build loop iteration 26 (user bug)
+**Done:** REQ-AST-009 — client-side shrink to 2048px JPEG + previews + any-format tolerance + 30MB action backstop. The 1MB "Body exceeded" crash is structurally gone (typical processed ref ≈ 200–600KB).
+**Pending:** browser click-through (extension disconnected — Chrome updating); user retry with their real image is the best evidence.
+**Next:** REQ-STB-016/017 (per-shot refs, first-frames-on-apply) remain READY.

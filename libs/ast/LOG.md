@@ -35,3 +35,8 @@
 **Deviation (logged):** MVP cast applies to every shot (matches "select at the beginning" requirement); per-shot direction.entityIds selection is the follow-up arm. Entity image refs to VIDEO (referenceImages param) also follow-up.
 **Fixed:** missing providerLimits import in executor (found via failed-generation debug — earlier wholesale rewrite dropped the config import).
 **Gate:** 48 mock green (+3 real skipped).
+
+## 2026-07-23 — AST slice 4: client-side image shrink (REQ-AST-009 → IN_REVIEW; USER BUG)
+**Done:** ImagePicker client component — createImageBitmap decodes any browser-supported format, canvas downscale to 2048px max edge, JPEG 0.85 re-encode, processed files swapped into the form via DataTransfer, previews with KB shown pre-submit, per-file inline error for undecodable formats. Library create form uses it. Backstop: experimental.serverActions.bodySizeLimit 30mb (correct Next 16 key after an invalid-config warning on first try). config.upload.clientResize added (no literals).
+**Evidence:** unit-untestable canvas path → browser E2E designated; automation hit two walls (file_upload bridge 10MB cap → smaller fixture; then extension disconnected mid-run — user's Chrome updating). fixtures/big-ref.png (6MB) ready for the click-through; user retry is the natural verification.
+**Gate:** 68 mock green.

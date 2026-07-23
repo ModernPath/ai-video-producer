@@ -32,6 +32,7 @@ export const config = {
   quota: { defaultUsdPerMonth: 50 }, // BR-PLT-002
   upload: {
     maxImageBytes: 25 * 1024 * 1024,
+    clientResize: { maxEdgePx: 2048, jpegQuality: 0.85 }, // REQ-AST-009 browser-side shrink
     maxAudioBytes: 100 * 1024 * 1024,
     imageMimes: ["image/png", "image/jpeg", "image/webp"],
     audioMimes: ["audio/mpeg", "audio/wav", "audio/x-wav"],

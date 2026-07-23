@@ -1,7 +1,7 @@
 # Requirements Ledger — AST (Asset Library)
 
 ## Dashboard — AST (Asset Library)
-Totals: 0 DONE · 5 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -9,6 +9,7 @@ Totals: 0 DONE · 5 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEF
 | REQ-AST-002 | Generated assets carry real validated bytes | P1 | IN_REVIEW | INV-AST-002 | tests/generated-bytes.int.spec.ts | ../gen/src/executor.ts, ../gen/src/fixtures.ts |
 | REQ-AST-003 | Assets served to UI via streaming route | P1 | IN_REVIEW | `docs/12` §5 | browser E2E (LOG 2026-07-23) | apps/web/app/api/assets/[id]/route.ts |
 | REQ-AST-004 | Uploads (presigned + direct) with validation | P3 | IN_REVIEW | INV-AST-005 | tests/uploads.int.spec.ts + browser E2E | src/uploads.ts |
+| REQ-AST-009 | Client-side image shrink + previews + any format | P1 | IN_REVIEW | USER BUG 2026-07-23 (1MB action limit) | browser E2E pending (extension dropped; user to retry) | components/ImagePicker.tsx, next.config, config.clientResize |
 | REQ-AST-005 | Derivatives (thumb/poster) on ready | P2 | PROPOSED | BR-AST-002 | — | — |
 | REQ-AST-006 | Entity library: org entities, refs, project cast | P4 | IN_REVIEW | INV-AST-004/006, BR-AST-001/003 | tests/entities.int.spec.ts, ../stb/tests/cast.int.spec.ts + browser | src/entities.ts, apps/web (library, cast) |
 | REQ-AST-007 | Style kits org-scoped + project attachment | P4 | PROPOSED | INV-AST-006, BR-AST-001 | — | — |
@@ -40,6 +41,15 @@ Totals: 0 DONE · 5 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEF
 - **Acceptance criteria:**
   - GIVEN a ready asset THEN the route returns 200 + bytes + mime; unknown id → 404.
 - **Tests:** see dashboard row · **Code:** see dashboard row · **Log:** LOG 2026-07-23 (slice 1)
+
+### REQ-AST-009 — Client-side image shrink + previews + any format
+- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Raised-by:** USER BUG 2026-07-23 — large ref upload hit Next server-action 1MB body limit ("cant load large images, please shrink them on the browser client… Support all image formats and show previews")
+- **Statement:** Image pickers downscale client-side before upload (canvas, max edge from config, JPEG re-encode), accept any browser-decodable format (converted to JPEG), and show previews with sizes before submit. Server action body limit raised as backstop; server allowlist unchanged (client normalizes).
+- **Acceptance criteria:**
+  - GIVEN a multi-MB image THEN upload succeeds (client sends a downscaled JPEG well under the limit) and a preview is shown before submitting.
+  - GIVEN webp/gif/bmp/avif input THEN it converts and uploads; undecodable files produce a clear inline error, not a crash.
+- **Tests:** browser E2E (large generated image) · **Code:** — · **Log:** —
 
 ### REQ-AST-004 — Uploads (presigned + direct) with validation
 - **Status:** IN_REVIEW · **Stage:** P3 · **Priority:** must
