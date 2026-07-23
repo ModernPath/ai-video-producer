@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 22 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 23 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,6 +15,7 @@ Totals: 0 DONE · 22 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
+| REQ-STB-023 | Music brief includes timed lyrics unless instrumental | P5 | IN_REVIEW | USER 2026-07-23 (Lyria epic) | libs/gen/tests/prompt.spec.ts + real-model check | assembleMusicBriefPrompt lyrics rule |
 | REQ-STB-022 | Reorder shots (animatic/export follow) | P2 | IN_REVIEW | SCN-STB-010, INV-STB-002 | tests/reorder.int.spec.ts + browser E2E | reorderShot (3-step swap), ↑↓ UI |
 | REQ-STB-021 | A/B take comparison | P2 | IN_REVIEW | docs/features/shot-editor.md | browser E2E (overlay, selectors, play both) | components/ABCompare.tsx, takes-lane wiring |
 | REQ-STB-020 | Retake with instruction | P2 | IN_REVIEW | SCN-STB-021, docs/features/shot-editor.md | tests/retake.int.spec.ts + browser (UI) | requestRetake, retake_of lineage in materialize, per-take UI |
@@ -71,6 +72,17 @@ Totals: 0 DONE · 22 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a project with a brief WHEN DraftScript completes THEN script_version v1 exists with non-empty content and generation_id.
   - GIVEN an existing v1 WHEN DraftScript again THEN v2 exists; v1 unchanged.
 - **Tests:** `tests/script.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 2)
+
+### REQ-STB-023 — Music brief includes timed lyrics unless instrumental
+- **Status:** IN_REVIEW · **Stage:** P5 · **Priority:** must · **Owner:** —
+- **Raised-by:** USER 2026-07-23: "Always generate also lyrics to the song unless it's instrumental" (Lyria epic, docs/85 §Music)
+- **Source:** docs/85 §Music; Lyria 3 lyric tags [Verse]/[Chorus]/[Bridge]
+- **Statement:** The music brief shall include full timed lyrics with section tags sized to the video duration unless the brief chooses instrumental (then it states "Instrumental — no lyrics"). One brief drives both Suno and Lyria.
+- **Acceptance criteria:**
+  - GIVEN the brief prompt THEN it demands lyrics with section tags unless instrumental.
+  - GIVEN a vocal-leaning idea WHEN generated with the real model THEN the brief contains a LYRICS section with timed tags; instrumental ideas state instrumental explicitly.
+- **Tests:** `libs/gen/tests/prompt.spec.ts` + real-model checks (vocal scratch: LYRICS [Intro](0:00–0:05)…; Aurora: "Instrumental only, no vocals") · **Code:** `libs/gen/src/prompt.ts` assembleMusicBriefPrompt · **Log:** LOG 2026-07-23 (slice 20)
+- **Deferred / notes:** REQ-GEN-019 (Lyria generation, OQ-114 pricing) and REQ-GEN-020 (MM:SS transcription sync) are PROPOSED in the GEN ledger — next slices of the epic.
 
 ### REQ-STB-022 — Reorder shots
 - **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** should · **Owner:** —

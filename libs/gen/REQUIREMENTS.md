@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -21,6 +21,8 @@ Totals: 0 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 | REQ-GEN-015 | Mock executor (MOCK_GEN) returns fixture media | P1 | IN_REVIEW | `docs/82` §5 (enabler) | tests/pipeline.int.spec.ts | src/executor.ts, src/service.ts |
 | REQ-GEN-017 | Live progress reaches the UI (SSE) | P2 | IN_REVIEW | `docs/07` §1, ADR-006 (enabler) | libs/prj/tests/activity.int.spec.ts + browser E2E | libs/prj/src/activity.ts, apps/web (events route, LiveRefresh) |
 | REQ-GEN-016 | Jobs execute via queue worker (pg-boss) | P2 | IN_REVIEW | `docs/03` §1–2 (enabler) | apps/worker/tests/handlers.int.spec.ts + browser E2E | apps/worker/src/*, libs/shared/src/queue.ts |
+| REQ-GEN-019 | Lyria music generation (brief → real track) | P5 | PROPOSED | USER 2026-07-23; docs/85 §Music | — | — |
+| REQ-GEN-020 | Audio transcription MM:SS + diarization (sync) | P5 | PROPOSED | USER 2026-07-23; docs/85 §Music | — | — |
 | REQ-GEN-018 | Race-safe claim across parallel workers | P5 | PROPOSED | `docs/03` §2 (enabler) | — | — |
 
 ### REQ-GEN-016 — Jobs execute via queue worker (pg-boss)
@@ -173,3 +175,9 @@ Totals: 0 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
   - GIVEN MOCK_GEN=1 and a queued frame generation WHEN the worker runs THEN the generation succeeds with a fixture image asset and `cost_usd = 0`.
   - GIVEN MOCK_GEN unset and no `GEMINI_API_KEY` THEN enqueue fails fast with a clear config error.
 - **Tests:** `tests/pipeline.int.spec.ts` · **Code:** `src/executor.ts, src/service.ts` · **Log:** LOG 2026-07-23 (slice 1)
+
+### REQ-GEN-019 — Lyria music generation
+- **Status:** PROPOSED · **Stage:** P5 · **Source:** USER 2026-07-23. One click runs the SAME music brief (incl. lyrics) against `lyria-3-pro-preview` (Interactions API) and attaches the returned MP3 as the project music track — alternative to the manual Suno round-trip. Blocked-ish: pricing unknown (OQ-114) — confirm before enabling billsCost path.
+
+### REQ-GEN-020 — Audio transcription with timestamps
+- **Status:** PROPOSED · **Stage:** P5 · **Source:** USER 2026-07-23. Transcribe an attached track (gemini-3.6-flash audio input) into MM:SS-timestamped lyrics/segments (diarization supported) to drive lyric-synced scene timing and singing characters.

@@ -100,6 +100,7 @@ export function assembleMusicBriefPrompt(i: TextPromptInput): string {
     `Describe the MUSIC only — no visual descriptions, no scene directions. This is a song brief.`,
     `Cover: genre, mood, tempo/BPM, instrumentation, energy arc over the ${i.targetDurationSeconds}s (intro/build/peak/outro), and whether vocals or instrumental.`,
     `Keep it as one paste-ready prompt paragraph followed by an optional short style-tags line.`,
+    `Unless you choose instrumental, ALSO write the full timed lyrics for the song using section tags like [Verse], [Chorus], [Bridge] — sized to fit the duration. If instrumental, state "Instrumental — no lyrics".`,
     `BRIEF: ${JSON.stringify(i.brief)}`,
     i.scriptText ? `THE VIDEO IT ACCOMPANIES (for mood reference only):\n${i.scriptText}` : "",
   ].filter(Boolean).join("\n");

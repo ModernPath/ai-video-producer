@@ -99,3 +99,14 @@ describe("music brief prompt is a MUSIC prompt, not a video script (docs/17 Suno
     expect(p).toMatch(/no visual|not.*visual|music only|song/i);
   });
 });
+
+describe("REQ-STB-023: music brief demands lyrics unless instrumental (Lyria/Suno shared brief)", () => {
+  it("asks for full timed lyrics with section tags when not instrumental", () => {
+    const p = assembleMusicBriefPrompt({
+      projectTitle: "Aurora", brief: { idea: "dawn ritual" }, targetDurationSeconds: 30, entities: [],
+    });
+    expect(p).toMatch(/lyrics/i);
+    expect(p).toMatch(/\[Verse\]|\[Chorus\]/);
+    expect(p).toMatch(/unless.*instrumental|instrumental.*no lyrics/i);
+  });
+});

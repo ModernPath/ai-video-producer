@@ -44,3 +44,11 @@
 
 Users reprompt images before committing to video (canonical 3-step flow) — the retake/edit
 instructions should stay small and incremental ("warmer lighting", "more serious expression").
+
+## Music generation (Lyria 3, USER requirement 2026-07-23)
+
+- Models: `lyria-3-clip-preview` (30s clip, MP3) · `lyria-3-pro-preview` (~2min full song, MP3/WAV) — Interactions API, request/response.
+- Prompts: natural language (genre, instruments, BPM, key, mood) + optional timed structure `[0:00 - 0:10] Intro…`.
+- Vocals: supported with custom lyrics via section tags `[Verse]` / `[Chorus]` / `[Bridge]`.
+- OUR RULE: the music brief always includes full timed lyrics with section tags UNLESS the brief chooses instrumental — the same brief drives both the Suno round-trip and Lyria.
+- Sync: audio understanding (gemini-3.6-flash, audio input ≤20MB inline / Files API above) yields transcripts with MM:SS timestamps + diarization — planned for lyric-timed scene cuts and singing characters (REQ-GEN-020).

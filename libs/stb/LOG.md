@@ -1,5 +1,13 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slices 19–20: reorder + Lyria epic capture + lyrics rule
+**Done:** REQ-STB-022 reorder (atomic swap, ↑↓ UI, browser-verified + restored). USER Lyria requirement captured: docs/85 §Music (Lyria 3 models/prompt facts from official docs), REQ-GEN-019 (Lyria generation, pricing → OQ-114) + REQ-GEN-020 (MM:SS transcription for lyric-synced cuts) PROPOSED, BACKLOG epic line. REQ-STB-023 shipped red-first: music brief now demands full timed lyrics with [Verse]/[Chorus] tags unless instrumental — verified with real model both ways (vocal scratch brief → LYRICS section with timed tags; Aurora → explicit "Instrumental only, no vocals").
+**Decisions:** one brief drives Suno AND Lyria (same lyric tag format both accept).
+**Deferred:** Lyria generation + transcription are next epic slices (REQ-GEN-019/020).
+**Discovered:** Lyria 3 is request/response via Interactions API — same SDK surface family as the Omni video path (OQ-112) — one Interactions integration will serve both.
+**Follow-ups:** OQ-114 Lyria pricing before enabling billsCost.
+**Gate:** full suite green (112 passed).
+
 ## 2026-07-23 — slice 18: REQ-STB-021 A/B take comparison (→ IN_REVIEW)
 **Done:** ABCompare client overlay (shot-editor spec's last unbuilt outcome): ⇆ button appears at ≥2 takes; two videos side by side, per-side take selectors (retakes labeled), synchronized "play both", Escape/close. Browser-verified via temporary scratch shot with 2 takes (removed after).
 **Decisions:** UI-only feature — no service/schema surface, so evidence is browser E2E.
