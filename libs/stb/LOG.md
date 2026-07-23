@@ -1,5 +1,13 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 36: browser QA sweep of all post-flake controls
+**Done:** systematic storyboard sweep — inventory confirmed present and correctly priced: captions select (off/lyrics/dialogue), style select (Golden Hour selected), audio select, directing-era budget meter (today $10.95/$20.00 with raised cap), reorder ↑↓, remove cut, 2-frames $0.13, per-duration take prices ($0.60/6s, $0.80/8s), template select (title/kinetic) + animate + retake/overlay inputs on every card, style-infused auto-script placeholders. ANIMATIC exercised for the first time in-browser: full-screen playback with cue progress (5.7s/17s), per-shot titles, honest "skipped (no frame)" listing, music playing; opened via the documented space shortcut (pointer clicks flaked extension-side — component verified correct).
+**Decisions:** no app defects found — sweep closes the verification debt from the click-flake sessions.
+**Deferred:** —
+**Discovered:** the space-key shortcut is the most reliable E2E path for the animatic — noted for future sweeps.
+**Follow-ups:** —
+**Gate:** no code changes; suite green at last run (133).
+
 ## 2026-07-23 — slice 34: label mitigation shipped + dossier on the review page
 **Done:** twice-observed label garbling mitigated: frame prompts with product/company entities now instruct legible-exactly-as-named OR naturally de-emphasized label text, never extreme close-ups of printed text (red-first, docs/85 §9); sign-off page refreshed with the 6-archetype TASTE dossier section (per-archetype result + highlight) and updated stats (132 tests, $12.6 total spend).
 **Decisions:** —
