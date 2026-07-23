@@ -23,6 +23,8 @@ export const config = {
       fps: 24,
       audioHz: 48000,
     },
+    // INV-ASM-005 share tokens: 24 random bytes → 32 base64url chars (≥ 32-char floor)
+    share: { tokenBytes: 24 },
   },
   project: {
     defaultAspectRatio: "16:9" as const,
