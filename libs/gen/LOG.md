@@ -1,5 +1,10 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-23 — verification tick: rings green after label-guidance prompt change
+**Done:** DoD §9.8 re-run after the frame-prompt change (label fidelity): real ring 3/3 (text, draft image full-pipeline, image edit with lineage — ≈$0.04); Remotion render ring 4/4 (title, alpha lower-third, effects, kinetic); full suite 133; web tsc clean. No drift.
+**Decisions:** — **Deferred:** — **Discovered:** — **Follow-ups:** —
+**Gate:** all rings green.
+
 ## 2026-07-23 — REQ-GEN-021 dialogue captions (→ IN_REVIEW)
 **Done:** transcribeAudio helper (provider-routed, dialogue instruction, NO_SPEECH sentinel); ASM captionSource off/lyrics/dialogue captured in the snapshot; dialogue path extracts the assembled cut's audio (ffmpeg -vn), transcribes, burns via the existing SRT machinery; captions select replaces the checkbox on both export forms. Real E2E: "The First Customer" re-exported with captions=dialogue — frame shows the whisper "We're really doing this." burned at the spoken moment. Eval #6's filed gap closed same-day.
 **Decisions:** dialogue transcription happens at export time on the final mix (what the viewer hears is what gets captioned); asm→gen dep added (provider gateway).
