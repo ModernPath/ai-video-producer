@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 13 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 14 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,12 +15,13 @@ Totals: 0 DONE · 13 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
 | REQ-GEN-008 | Frame requests produce n candidates | P2 | PROPOSED | BR-GEN-002 | — | — |
 | REQ-GEN-009 | Frame-conditioned takes (start-frame attachment) | P4 | IN_REVIEW | BR-GEN-003 (frame arm) | tests/frame-conditioned.int.spec.ts + real ring + browser | src/service.ts, src/executor.ts, ../stb/src/service.ts |
 | REQ-GEN-010 | Provider abstraction: real path → storage → ready | P1 | IN_REVIEW | BR-GEN-004 | tests/provider-path.int.spec.ts | src/provider.ts, src/executor.ts |
-| REQ-GEN-011 | Per-org video concurrency cap | P2 | PROPOSED | BR-GEN-005 | — | — |
+| REQ-GEN-011 | Per-org video concurrency cap | P2 | IN_REVIEW | BR-GEN-005 | tests/concurrency.int.spec.ts | src/executor.ts |
 | REQ-GEN-012 | image_edit: instruction + source → new asset with lineage | P4 | IN_REVIEW | BR-GEN-006, BR-AST-005, INV-AST-001 | tests/image-edit.int.spec.ts + real ring + browser | src/prompt.ts, src/service.ts, src/executor.ts, ../ast/src/entities.ts |
 | REQ-GEN-013 | Deterministic prompt assembly, snapshotted | P1 | IN_REVIEW | `docs/14` §5 | tests/prompt.spec.ts | src/prompt.ts |
 | REQ-GEN-015 | Mock executor (MOCK_GEN) returns fixture media | P1 | IN_REVIEW | `docs/82` §5 (enabler) | tests/pipeline.int.spec.ts | src/executor.ts, src/service.ts |
 | REQ-GEN-017 | Live progress reaches the UI (SSE) | P2 | IN_REVIEW | `docs/07` §1, ADR-006 (enabler) | libs/prj/tests/activity.int.spec.ts + browser E2E | libs/prj/src/activity.ts, apps/web (events route, LiveRefresh) |
 | REQ-GEN-016 | Jobs execute via queue worker (pg-boss) | P2 | IN_REVIEW | `docs/03` §1–2 (enabler) | apps/worker/tests/handlers.int.spec.ts + browser E2E | apps/worker/src/*, libs/shared/src/queue.ts |
+| REQ-GEN-018 | Race-safe claim across parallel workers | P5 | PROPOSED | `docs/03` §2 (enabler) | — | — |
 
 ### REQ-GEN-016 — Jobs execute via queue worker (pg-boss)
 - **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must (enabler)
@@ -39,6 +40,9 @@ Totals: 0 DONE · 13 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
   - GIVEN a project WHEN a generation completes THEN the activity fingerprint changes (integration-tested).
   - GIVEN the storyboard open in queue mode WHEN the worker finishes a take THEN the take appears without manual reload (browser evidence).
 - **Tests:** `libs/prj/tests/activity.int.spec.ts` + browser E2E · **Code:** `libs/prj/src/activity.ts`, `apps/web/app/api/projects/[id]/events/route.ts`, `apps/web/components/LiveRefresh.tsx` · **Log:** LOG 2026-07-23 (slice 4)
+
+### REQ-GEN-018 — Race-safe claim across parallel workers
+- **Status:** PROPOSED · **Stage:** P5 · **Source:** `docs/03` §2 (enabler) — discovered during REQ-GEN-011: queued-row claim and BR-GEN-005 slot check are read-then-update without `FOR UPDATE SKIP LOCKED`; fine single-claimer, racy if worker count > 1.
 
 *(REQ-GEN-014 reserved for event emission — folded into 001/003 acceptance for now; split if it grows.)*
 
@@ -121,7 +125,18 @@ Totals: 0 DONE · 13 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
   - GIVEN no provider override THEN MOCK_GEN=1 selects the mock provider; otherwise the Gemini adapter (requires GEMINI_API_KEY).
 
 ### REQ-GEN-011 — Per-org video concurrency cap
-- **Status:** PROPOSED · **Stage:** P2 · **Source:** BR-GEN-005 — `config.gen.maxConcurrentVideoPerOrg`, FIFO overflow.
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must · **Owner:** —
+- **Raised-by:** seeded from `docs/14-generation.md` (Prompt 1)
+- **Source:** BR-GEN-005 (`docs/14` §4: per-org video concurrency capped at `config.gen.maxConcurrentVideoPerOrg`, default 3; excess queues FIFO)
+- **Statement:** The executor shall not start a `take`/`retake` generation for an org that already has `config.gen.maxConcurrentVideoPerOrg` video generations in status `running`; capped video jobs stay `queued` (FIFO) and are claimed on a later dispatch once a slot frees. Non-video kinds are never blocked by the video cap.
+- **Acceptance criteria:**
+  - GIVEN an org with `maxConcurrentVideoPerOrg` running take/retake generations WHEN `runNextGeneration(org)` is called for a queued take THEN it returns `null` and the take stays `queued`.
+  - GIVEN the same capped org WHEN a `frame` generation is queued THEN `runNextGeneration(org)` claims and completes it (non-video kinds unaffected).
+  - GIVEN the same capped org WHEN `runGenerationById` targets the queued take THEN it returns `null` and the row stays `queued` (worker retry/backoff or a later dispatch picks it up).
+  - GIVEN one running video finishes (status `succeeded`) WHEN `runNextGeneration(org)` runs again THEN the oldest queued take is claimed (FIFO).
+- **Tests:** `tests/concurrency.int.spec.ts` · **Code:** `src/executor.ts` (`videoSlotAvailable`, // BR-GEN-005)
+- **Log:** LOG 2026-07-23 (concurrency slice)
+- **Deferred / notes:** cap value exclusively from `@avd/shared/config` (`config.gen.maxConcurrentVideoPerOrg`), never a literal.
 
 ### REQ-GEN-012 — image_edit: instruction + source → new asset with lineage
 - **Status:** IN_REVIEW · **Stage:** P4 · **Priority:** must

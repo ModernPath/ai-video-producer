@@ -1,9 +1,9 @@
-// REQ-GEN-002/003/006/010/015 — provider-agnostic executor: claim → provider call →
+// REQ-GEN-002/003/006/010/011/015 — provider-agnostic executor: claim → provider call →
 // storage/output → cost → terminal status. Providers: mock (fixtures), gemini, test stubs.
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, count, eq, inArray } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
-import { providerLimits } from "@avd/shared/config";
+import { config, providerLimits } from "@avd/shared/config";
 import { asset } from "@avd/ast/schema";
 import { assetKey, getObject, putObject } from "@avd/ast/storage";
 import { computeCostUsd } from "./cost";
@@ -11,6 +11,29 @@ import { defaultProvider, ProviderError, type GenProvider } from "./provider";
 import { generation } from "./schema";
 
 const TEXT_KINDS = new Set(["script", "shot_plan", "direction", "music_brief"]);
+const VIDEO_KINDS = ["take", "retake"] as const;
+
+function isVideoKind(kind: string): boolean {
+  return (VIDEO_KINDS as readonly string[]).includes(kind);
+}
+
+/**
+ * BR-GEN-005 (REQ-GEN-011): true when the org has a free video slot —
+ * running take/retake generations below `config.gen.maxConcurrentVideoPerOrg`.
+ */
+async function videoSlotAvailable(db: Db, organizationId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ n: count() })
+    .from(generation)
+    .where(
+      and(
+        eq(generation.organizationId, organizationId),
+        eq(generation.status, "running"),
+        inArray(generation.kind, [...VIDEO_KINDS])
+      )
+    );
+  return Number(row?.n ?? 0) < config.gen.maxConcurrentVideoPerOrg; // BR-GEN-005: cap from config, never a literal
+}
 
 /** REQ-AST-006: resolve entity ref asset ids to bytes for image conditioning (capped by provider limit). */
 async function fetchRefImages(db: Db, ids?: string[]): Promise<{ refImages?: { bytes: Uint8Array; mime: string }[] }> {
@@ -38,9 +61,20 @@ export async function runNextGeneration(
   const scope = opts.organizationId
     ? and(eq(generation.status, "queued"), eq(generation.organizationId, opts.organizationId))
     : eq(generation.status, "queued");
-  const [next] = await db.select().from(generation).where(scope).orderBy(asc(generation.createdAt)).limit(1);
-  if (!next) return null;
-  return processGenerationRow(db, next, opts.provider);
+  const queued = await db.select().from(generation).where(scope).orderBy(asc(generation.createdAt));
+  const slotByOrg = new Map<string, boolean>();
+  for (const next of queued) {
+    if (isVideoKind(next.kind)) {
+      let hasSlot = slotByOrg.get(next.organizationId);
+      if (hasSlot === undefined) {
+        hasSlot = await videoSlotAvailable(db, next.organizationId);
+        slotByOrg.set(next.organizationId, hasSlot);
+      }
+      if (!hasSlot) continue; // BR-GEN-005: capped video jobs stay queued (FIFO); non-video kinds proceed
+    }
+    return processGenerationRow(db, next, opts.provider);
+  }
+  return null;
 }
 
 /** Executes a specific generation by id (worker path, REQ-GEN-016). */
@@ -51,6 +85,8 @@ export async function runGenerationById(
 ): Promise<RunResult | null> {
   const [row] = await db.select().from(generation).where(eq(generation.id, generationId));
   if (!row || row.status !== "queued") return null;
+  // BR-GEN-005 (REQ-GEN-011): capped video job stays queued — worker retry/backoff or a later dispatch claims it.
+  if (isVideoKind(row.kind) && !(await videoSlotAvailable(db, row.organizationId))) return null;
   return processGenerationRow(db, row, provider);
 }
 
