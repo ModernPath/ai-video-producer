@@ -1,5 +1,13 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 23: GOLDEN PATH capstone — full product journey, one project, $0.61
+**Done:** end-to-end integrated test on fresh project "Kaiju Dawn — Golden Path": cast (KAIJU Can) + style (Golden Hour) attached → real script → real 4-shot plan (model authored the Brand End-Card as an animation shot unprompted) → 3 real frames ($0.20) + free end-card render → real Veo hero take ($0.40, frame-conditioned, styled, can refs) → music brief with lyrics → Lyria song (first attempt POLICY-BLOCKED — error taxonomy surfaced the provider message cleanly; regenerated brief succeeded, $0.08) → MM:SS transcript (vocals: [00:31] Pre-Chorus etc.) → captioned export (2 ready, 2 skipped explicitly) → share link → frame proofs: captioned Veo cityscape + KAIJU CAN end-card. Total $0.61.
+**Decisions:** golden-path exports skip frame-only shots rather than buying takes (cost discipline).
+**Deferred:** —
+**Discovered:** Lyria content-policy rejections happen on innocuous-looking briefs — the retry-with-regenerated-brief pattern worked; consider surfacing a "regenerate brief & retry" hint on music failures (BACKLOG-worthy if it recurs). USER filed REQ-ANM-004 (effects library) mid-tick — captured PROPOSED.
+**Follow-ups:** REQ-ANM-004 slices next.
+**Gate:** export succeeded; all stages real; suite untouched (126 green at last run).
+
 ## 2026-07-23 — slice 22: REQ-STB-025 ♪ MUSIC SYNC (→ IN_REVIEW) + subtext passthrough
 **Done:** red-first music-sync module (parseSectionTimes from [MM:SS], greedy exact-hit duration suggestions over the allowed set with cascade-aware cursor); updateShotDuration (INV-STB-001); ♪ MUSIC SYNC storyboard panel with one-click apply + honest caveat (existing takes keep length; provenance badges mark stale). Browser E2E on Aurora: panel listed sections 0:19–2:32, proposed Momentum 6s→8s so cut 3 lands exactly on the 0:19 section change; applied, DB verified 8.0. Also closed REQ-STB-024's deferral: subtext (plan-authored or caller-provided) now flows into TitleCard renders.
 **Decisions:** exact-hit only (no tolerance window) — simple, predictable; extend on demand.

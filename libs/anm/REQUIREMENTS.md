@@ -1,12 +1,13 @@
 # ANM — Requirements Ledger
 
 ## Dashboard — ANM (Animations)
-Totals: 0 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-ANM-001 | Title-card animation takes (pure Remotion scenes) | P6 | IN_REVIEW | USER Remotion epic 2026-07-23 | tests/render.int.spec.ts (RUN_RENDER) + real chain + browser | src/*, gen executor branch, migration 0018, ✦ Animate UI |
 | REQ-ANM-002 | Animation overlays on generated shots | P6 | IN_REVIEW | USER Remotion epic | anm render test (alpha webm) + stb overlay.int + real composite frame | LowerThird.tsx, composite.ts, executor overlay path, ✦ per-take UI |
+| REQ-ANM-004 | Effects library (transforms, noise, light leaks, text highlights, canvas) | P6 | PROPOSED | USER 2026-07-23 (remotion.dev/docs/{transforms,effects,animation-math,noise-visualization,light-leaks,text-highlights,html-in-canvas}) | — | — |
 | REQ-ANM-003 | Caption/lyric overlays from MM:SS transcripts | P6 | PROPOSED | USER Remotion epic + REQ-GEN-020 | — | — |
 
 ### REQ-ANM-001 — Title-card animation takes
@@ -34,3 +35,6 @@ Totals: 0 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
 - **Deferred / notes:** greenscreen keying and multi-layer stacks later; overlay duration = source take duration (no offset control yet).
 
 *(003 elaborates when promoted — caption overlays driven by REQ-GEN-020 transcripts; SRT-burned captions shipped as ASM-009 MVP.)*
+
+### REQ-ANM-004 — Effects library
+- **Status:** PROPOSED · **Stage:** P6 · **Source:** USER 2026-07-23. Extend the template system with Remotion effect primitives per the linked docs: transforms + animation-math for motion, noise visualization for organic movement, light-leak overlays (pairs with the Golden Hour style), text highlights for emphasis, html-in-canvas for complex compositions. Effects compose into existing templates (TitleCard/LowerThird) and future ones as parameterized props — never model-authored code. Elaborate + slice when promoted.
