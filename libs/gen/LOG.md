@@ -15,3 +15,11 @@
 **Discovered:** image price placeholders already in BACKLOG inbox.
 **Follow-ups:** Prompt 2 on the 6 READY requirements next.
 **Gate:** n/a (no new code).
+
+## 2026-07-23 — GEN slice 1: pipeline core (6 × READY → IN_REVIEW)
+**Done:** REQ-GEN-001/002/003/007/013/015 — enqueue with full provenance snapshot, config-only routing, deterministic prompt assembly (template v1), cost from price table, mock executor completing queued generations into ready fixture assets. Migration 0002 (gen.generation, ast.asset). 16/16 tests green (unit + golden + integration vs compose pg).
+**Decisions:** executor claims oldest queued (no pg-boss yet — fine single-worker; queue lib when apps/worker lands). Literal-scanner test enforces REQ-GEN-007 repo-wide.
+**Deferred:** real provider path → REQ-GEN-010; object-storage writes (fixture:// keys) → AST slice; events/outbox → next slices.
+**Discovered:** ast.asset created here as enabler — AST ledger seeding must note it (routed: AST LOG below).
+**Follow-ups:** human review to move 6 reqs IN_REVIEW → DONE.
+**Gate:** full suite 16/16 green.

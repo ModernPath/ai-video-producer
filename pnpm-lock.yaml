@@ -60,15 +60,33 @@ importers:
       '@avd/shared':
         specifier: workspace:*
         version: link:../shared
+      drizzle-orm:
+        specifier: ^0.44.0
+        version: 0.44.7(postgres@3.4.9)
       zod:
         specifier: ^3.24.0
         version: 3.25.76
 
   libs/gen:
     dependencies:
+      '@avd/ast':
+        specifier: workspace:*
+        version: link:../ast
+      '@avd/plt':
+        specifier: workspace:*
+        version: link:../plt
+      '@avd/prj':
+        specifier: workspace:*
+        version: link:../prj
       '@avd/shared':
         specifier: workspace:*
         version: link:../shared
+      drizzle-orm:
+        specifier: ^0.44.0
+        version: 0.44.7(postgres@3.4.9)
+      uuid:
+        specifier: ^11.0.0
+        version: 11.1.1
       zod:
         specifier: ^3.24.0
         version: 3.25.76
