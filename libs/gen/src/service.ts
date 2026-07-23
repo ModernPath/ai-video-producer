@@ -23,6 +23,7 @@ export interface EnqueueInput {
   quality?: FrameQuality;
   promptInput?: TakePromptInput;   // media kinds
   textInput?: TextPromptInput;     // script / shot_plan / music_brief kinds
+  refs?: { startFrameAssetId?: string }; // REQ-GEN-009 (entity/style ref arms follow)
 }
 
 export class GenConfigError extends Error {}
@@ -48,7 +49,8 @@ export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<st
     promptSnapshot: {
       prompt,
       templateVersion: PROMPT_TEMPLATE_VERSION,
-      refAssetIds: [], // populated by REQ-GEN-009 slice
+      refAssetIds: input.refs?.startFrameAssetId ? [input.refs.startFrameAssetId] : [], // INV-GEN-001
+      refs: input.refs ?? {},
       input: input.promptInput ?? input.textInput,
     },
     params: { durationSeconds: input.promptInput?.durationSeconds, quality: input.quality ?? "standard" },

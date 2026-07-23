@@ -104,10 +104,25 @@ describe.skipIf(!videoEnabled)("REAL API e2e: omni take (≈$0.40/run, 4s)", () 
     await client.end();
   });
 
-  it("real 4s take flows through the pipeline: ready MP4 asset, billed cost", async () => {
+  it("real chain: draft frame -> frame-conditioned 4s take (REQ-GEN-009)", async () => {
+    // 1) real draft frame
+    const frameGenId = await enqueueGeneration(db, {
+      organizationId: orgId, projectId, principal: "user:e2e", kind: "frame",
+      commandId: uuidv7(), target: { shotId: uuidv7() }, quality: "draft",
+      promptInput: {
+        aspectRatio: "16:9", durationSeconds: 4, entities: [],
+        direction: { synopsis: "steam rising from a coffee cup at dawn", subject: "coffee cup", action: "still" },
+      },
+    });
+    await runNextGeneration(db, { organizationId: orgId, provider: createGeminiProvider() });
+    const [fg] = await db.select().from(generation).where(eq(generation.id, frameGenId));
+    const frameAssetId = fg!.outputAssetIds![0]!;
+
+    // 2) take conditioned on it
     const genId = await enqueueGeneration(db, {
       organizationId: orgId, projectId, principal: "user:e2e", kind: "take",
       commandId: uuidv7(), target: { shotId: uuidv7() },
+      refs: { startFrameAssetId: frameAssetId },
       promptInput: {
         aspectRatio: "16:9", durationSeconds: 4, entities: [],
         direction: {
@@ -127,6 +142,8 @@ describe.skipIf(!videoEnabled)("REAL API e2e: omni take (≈$0.40/run, 4s)", () 
     expect(a?.mime).toContain("video");
     const obj = await getObject(a!.storageKey);
     expect(Buffer.from(obj.bytes.slice(4, 8)).toString("ascii")).toBe("ftyp");
-    console.log(`[spike] real take: ${obj.bytes.byteLength} bytes, cost $${g!.costUsd}`);
+    const snap = g!.promptSnapshot as { refAssetIds?: string[] };
+    expect(snap.refAssetIds?.length).toBe(1); // frame ref recorded (REQ-GEN-009)
+    console.log(`[spike] real frame-conditioned take: ${obj.bytes.byteLength} bytes, cost $${g!.costUsd}`);
   }, 360_000);
 });

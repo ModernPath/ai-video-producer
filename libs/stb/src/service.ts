@@ -110,6 +110,12 @@ export async function requestTake(
 ) {
   const s = await getShotOrThrow(db, input.shotId);
   const d = s.direction as DirectionJson;
+  // REQ-GEN-009: attach the selected start frame for image conditioning (BR-STB-002).
+  let refs: { startFrameAssetId?: string } | undefined;
+  if (s.selectedStartFrameId) {
+    const [fc] = await db.select().from(frameCandidate).where(eq(frameCandidate.id, s.selectedStartFrameId));
+    if (fc) refs = { startFrameAssetId: fc.imageAssetId };
+  }
   return enqueueGeneration(db, {
     organizationId: s.organizationId,
     projectId: s.projectId,
@@ -117,6 +123,7 @@ export async function requestTake(
     kind: "take",
     commandId: uuidv7(),
     target: { shotId: s.id },
+    refs,
     promptInput: {
       aspectRatio: input.aspectRatio,
       durationSeconds: Number(s.durationS),

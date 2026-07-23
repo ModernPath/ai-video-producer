@@ -109,3 +109,7 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 **Inbox:** verify Veo fast $/s (price table uses 0.10 placeholder) · attach start frame to take requests (REQ-GEN-009 — image param verified working).
 **Spend today:** ≈ $1.20 total (within mandate).
 **Next:** REQ-GEN-009 frame-conditioned takes (start frame → image param), then retake-with-instruction UX.
+
+## 2026-07-23 — Build loop iteration 15
+**Done:** REQ-GEN-009 frame-conditioned takes — stub, real-ring chain (frame→take), and UI/DB provenance all verified. The original product vision's generation chain (direction → frame → conditioned clip) is complete.
+**Next:** entity library slice (org entities + refs into generation, GAP-102 scope) or export polish (mix modes); review queue 26 IN_REVIEW.

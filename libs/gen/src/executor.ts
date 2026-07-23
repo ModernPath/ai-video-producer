@@ -4,7 +4,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import { asset } from "@avd/ast/schema";
-import { assetKey, putObject } from "@avd/ast/storage";
+import { assetKey, getObject, putObject } from "@avd/ast/storage";
 import { computeCostUsd } from "./cost";
 import { defaultProvider, ProviderError, type GenProvider } from "./provider";
 import { generation } from "./schema";
@@ -50,6 +50,7 @@ async function processGenerationRow(
   const provider = injectedProvider ?? defaultProvider();
   const snapshot = next.promptSnapshot as {
     prompt: string;
+    refs?: { startFrameAssetId?: string };
     input?: { aspectRatio?: "16:9" | "9:16" } & Record<string, unknown>;
   };
   const params = next.params as { durationSeconds?: number; quality?: "draft" | "standard" | "hero" };
@@ -78,12 +79,24 @@ async function processGenerationRow(
 
     const isVideo = next.kind === "take" || next.kind === "retake";
     const assetId = uuidv7();
+
+    // REQ-GEN-009: fetch the selected start frame's bytes for image conditioning.
+    let startFrame: { bytes: Uint8Array; mime: string } | undefined;
+    if (isVideo && snapshot.refs?.startFrameAssetId) {
+      const [frameAsset] = await db.select().from(asset).where(eq(asset.id, snapshot.refs.startFrameAssetId));
+      if (frameAsset?.status === "ready") {
+        const obj = await getObject(frameAsset.storageKey);
+        startFrame = { bytes: obj.bytes, mime: frameAsset.mime };
+      }
+    }
+
     const media = isVideo
       ? await provider.generateVideo({
           model: next.modelId,
           prompt: snapshot.prompt,
           durationSeconds: params.durationSeconds ?? 0,
           aspectRatio,
+          ...(startFrame ? { startFrame } : {}),
         })
       : await provider.generateImage({
           model: next.modelId,

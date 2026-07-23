@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 6 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 5 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -13,7 +13,7 @@ Totals: 0 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 6 PROPOSED · 0 DE
 | REQ-GEN-006 | Content-policy terminal failure mapping | P2 | IN_REVIEW | INV-GEN-006 | tests/provider-path.int.spec.ts | src/provider.ts, src/executor.ts |
 | REQ-GEN-007 | Model routing from versioned config | P1 | IN_REVIEW | BR-GEN-001 | tests/cost-routing.spec.ts | src/routing.ts |
 | REQ-GEN-008 | Frame requests produce n candidates | P2 | PROPOSED | BR-GEN-002 | — | — |
-| REQ-GEN-009 | Take reference attachment & priority | P4 | PROPOSED | BR-GEN-003 | — | — |
+| REQ-GEN-009 | Frame-conditioned takes (start-frame attachment) | P4 | IN_REVIEW | BR-GEN-003 (frame arm) | tests/frame-conditioned.int.spec.ts + real ring + browser | src/service.ts, src/executor.ts, ../stb/src/service.ts |
 | REQ-GEN-010 | Provider abstraction: real path → storage → ready | P1 | IN_REVIEW | BR-GEN-004 | tests/provider-path.int.spec.ts | src/provider.ts, src/executor.ts |
 | REQ-GEN-011 | Per-org video concurrency cap | P2 | PROPOSED | BR-GEN-005 | — | — |
 | REQ-GEN-012 | image_edit creates new asset with lineage | P4 | PROPOSED | BR-GEN-006 | — | — |
@@ -96,8 +96,14 @@ Totals: 0 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 6 PROPOSED · 0 DE
 ### REQ-GEN-008 — Frame requests produce n candidates
 - **Status:** PROPOSED · **Stage:** P2 · **Source:** BR-GEN-002 — default `config.frame.candidatesDefault`, max `candidatesMax`.
 
-### REQ-GEN-009 — Take reference attachment & priority
-- **Status:** PROPOSED · **Stage:** P4 · **Source:** BR-GEN-003 — frames > entities > style, capped at provider limit.
+### REQ-GEN-009 — Frame-conditioned takes (start-frame attachment)
+- **Status:** IN_REVIEW · **Stage:** P4 · **Priority:** must
+- **Source:** BR-GEN-003 (frame arm; entity/style ref arms follow with the entity library), BR-STB-002
+- **Statement:** When a shot has a selected start frame, RequestTake records the frame's asset id in the generation's provenance refs and the executor fetches its bytes and passes them to the provider (`image` param — verified by OQ-101 spike). Without a selection, takes remain text-to-video.
+- **Acceptance criteria:**
+  - GIVEN a shot with a selected start frame WHEN a take executes THEN the provider receives startFrame bytes/mime matching the stored asset (stub-verified) and the generation's refs record the asset id.
+  - GIVEN no selected frame THEN the provider receives no startFrame.
+  - Real ring: image → frame-conditioned take chain passes (RUN_REAL_VIDEO).
 
 ### REQ-GEN-010 — Provider abstraction: real path → storage → ready
 - **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
