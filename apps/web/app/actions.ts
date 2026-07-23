@@ -372,6 +372,15 @@ export async function setProjectStyleAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/** REQ-STB-026: directing archetype for the project (docs/87). */
+export async function setArchetypeAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { setProjectArchetype } = await import("@avd/prj/service");
+  const raw = String(formData.get("archetype") ?? "");
+  await setProjectArchetype(db(), { projectId, archetype: raw || null });
+  revalidatePath(`/p/${projectId}/script`);
+}
+
 /** REQ-STB-025: apply lyric-sync duration suggestions (JSON [{shotId,toS}] in one field). */
 export async function applySyncAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));

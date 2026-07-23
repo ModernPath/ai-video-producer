@@ -1,5 +1,13 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 24: REQ-STB-026 archetype selection (→ IN_REVIEW)
+**Done:** six directing recipes as config (archetypes.ts — taste is now tunable data); migration 0021 (project.archetype); recipeFor injects DIRECTING into script+plan, planBias into plan, musicBias into music brief; PRJ setProjectArchetype; script-page "directing:" select. Red-first prompt tests; E2E: Brand pulse set on Aurora → draft snapshot opens with the full DIRECTING block (verified, gen canceled — no spend).
+**Decisions:** recipes are config-not-code so taste iteration never needs a code review; freeform (null) stays the default.
+**Deferred:** REQ-STB-027 (archetype defaults + eval renders), REQ-STB-028 (lyrics-first).
+**Discovered:** —
+**Follow-ups:** archetype eval renders per docs/87 (one real golden path per archetype, taste-reviewed).
+**Gate:** full suite green (128 passed).
+
 ## 2026-07-23 — slice 23: GOLDEN PATH capstone — full product journey, one project, $0.61
 **Done:** end-to-end integrated test on fresh project "Kaiju Dawn — Golden Path": cast (KAIJU Can) + style (Golden Hour) attached → real script → real 4-shot plan (model authored the Brand End-Card as an animation shot unprompted) → 3 real frames ($0.20) + free end-card render → real Veo hero take ($0.40, frame-conditioned, styled, can refs) → music brief with lyrics → Lyria song (first attempt POLICY-BLOCKED — error taxonomy surfaced the provider message cleanly; regenerated brief succeeded, $0.08) → MM:SS transcript (vocals: [00:31] Pre-Chorus etc.) → captioned export (2 ready, 2 skipped explicitly) → share link → frame proofs: captioned Veo cityscape + KAIJU CAN end-card. Total $0.61.
 **Decisions:** golden-path exports skip frame-only shots rather than buying takes (cost discipline).

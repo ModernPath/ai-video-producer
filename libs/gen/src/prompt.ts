@@ -67,6 +67,9 @@ export interface TextPromptInput {
   scriptText?: string | undefined;   // for shot_plan / revise
   instruction?: string | undefined;  // for revise
   entities?: EntityBlock[] | undefined; // REQ-STB-012: cast context for script/plan/music
+  directing?: string | undefined;  // REQ-STB-026: archetype directing block (docs/87)
+  planBias?: string | undefined;   // REQ-STB-026: plan-only guidance
+  musicBias?: string | undefined;  // REQ-STB-026: music-only guidance
 }
 
 function castBlock(entities?: EntityBlock[]): string[] {
@@ -77,6 +80,7 @@ function castBlock(entities?: EntityBlock[]): string[] {
 export function assembleScriptPrompt(i: TextPromptInput): string {
   return [
     `TASK: Write a video script for a ${i.targetDurationSeconds}-second video titled "${i.projectTitle}".`,
+    i.directing ?? "",
     `BRIEF: ${JSON.stringify(i.brief)}`,
     ...castBlock(i.entities),
     i.entities?.length ? `Feature the cast naturally where it strengthens the story.` : "",
@@ -88,6 +92,8 @@ export function assembleScriptPrompt(i: TextPromptInput): string {
 export function assembleShotPlanPrompt(i: TextPromptInput): string {
   return [
     `TASK: Break the script into 4–10 second shots (structured output) totaling ≈${i.targetDurationSeconds}s.`,
+    i.directing ?? "",
+    i.planBias ?? "",
     `Return ONLY a JSON object exactly shaped: {"shots":[{"title":string,"durationS":4|6|8,"direction":{"synopsis":string,"subject":string,"action":string,"camera":string,"mood":string},"imagePrompt":string,"videoPrompt":string,"animation":{"template":"title","text":string,"subtext":string}|null}]} — no markdown fences, no commentary.`,
     `Set "animation" ONLY for pure graphic shots (title cards, brand end-cards, logo stings): template "title" with the on-screen text (and optional subtext). Filmed/generated shots get animation:null.`,
     `imagePrompt = a complete production-ready still-image prompt; videoPrompt = a complete video prompt (motion, camera, mood). Reference cast members by name.`,
@@ -105,6 +111,7 @@ export function assembleMusicBriefPrompt(i: TextPromptInput): string {
     `Describe the MUSIC only — no visual descriptions, no scene directions. This is a song brief.`,
     `Cover: genre, mood, tempo/BPM, instrumentation, energy arc over the ${i.targetDurationSeconds}s (intro/build/peak/outro), and whether vocals or instrumental.`,
     `Keep it as one paste-ready prompt paragraph followed by an optional short style-tags line.`,
+    i.musicBias ?? "",
     `Unless you choose instrumental, ALSO write the full timed lyrics for the song using section tags like [Verse], [Chorus], [Bridge] — sized to fit the duration. If instrumental, state "Instrumental — no lyrics".`,
     `BRIEF: ${JSON.stringify(i.brief)}`,
     i.scriptText ? `THE VIDEO IT ACCOMPANIES (for mood reference only):\n${i.scriptText}` : "",

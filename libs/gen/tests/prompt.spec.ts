@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PROMPT_TEMPLATE_VERSION, assembleEditPrompt, assembleFramePrompt, assembleMusicBriefPrompt, assembleTakePrompt } from "../src/prompt";
+import { PROMPT_TEMPLATE_VERSION, assembleEditPrompt, assembleFramePrompt, assembleMusicBriefPrompt, assembleScriptPrompt, assembleShotPlanPrompt, assembleTakePrompt } from "../src/prompt";
 
 const input = {
   aspectRatio: "16:9" as const,
@@ -108,5 +108,20 @@ describe("REQ-STB-023: music brief demands lyrics unless instrumental (Lyria/Sun
     expect(p).toMatch(/lyrics/i);
     expect(p).toMatch(/\[Verse\]|\[Chorus\]/);
     expect(p).toMatch(/unless.*instrumental|instrumental.*no lyrics/i);
+  });
+});
+
+describe("REQ-STB-026: archetype directing blocks reach the prompts", () => {
+  const base = { projectTitle: "T", brief: {}, targetDurationSeconds: 20, entities: [] };
+  it("script + plan prompts include the DIRECTING block; plan adds planBias; music adds musicBias", () => {
+    const t = { ...base, directing: "DIRECTING (Test): punchy.", planBias: "4s shots only.", musicBias: "Fast drums." };
+    expect(assembleScriptPrompt(t)).toContain("DIRECTING (Test): punchy.");
+    const plan = assembleShotPlanPrompt({ ...t, scriptText: "s" });
+    expect(plan).toContain("DIRECTING (Test): punchy.");
+    expect(plan).toContain("4s shots only.");
+    expect(assembleMusicBriefPrompt(t)).toContain("Fast drums.");
+  });
+  it("omitted directing changes nothing", () => {
+    expect(assembleScriptPrompt(base)).not.toContain("DIRECTING");
   });
 });

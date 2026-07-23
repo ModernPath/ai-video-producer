@@ -4,8 +4,8 @@ import { desc, eq } from "drizzle-orm";
 import { project } from "@avd/prj/schema";
 import { scriptVersion, shotPlanProposal } from "@avd/stb/schema";
 import { getMusicBrief } from "@avd/stb";
-import { priceTable } from "@avd/shared/config";
-import { applyPlanAction, draftScriptAction, generateMusicTrackAction, musicBriefAction, proposePlanAction, transcribeTrackAction, updateBriefAction, uploadTrackAction } from "../../../actions";
+import { archetypes, priceTable } from "@avd/shared/config";
+import { applyPlanAction, draftScriptAction, generateMusicTrackAction, musicBriefAction, proposePlanAction, setArchetypeAction, transcribeTrackAction, updateBriefAction, uploadTrackAction } from "../../../actions";
 import { LiveRefresh } from "../../../../components/LiveRefresh";
 import { db } from "../../../../lib/db";
 import { Markdown } from "../../../../components/Markdown";
@@ -87,6 +87,14 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
             />
           </div>
           <button type="submit" style={{ ...btn, marginTop: 20 }}>Save prompt</button>
+        </form>
+        <form action={setArchetypeAction} style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 8 }}>
+          <input type="hidden" name="projectId" value={id} />
+          <select name="archetype" defaultValue={p.archetype ?? ""} className="mono" title="Directing archetype (docs/87) — injects the recipe into script, shot plan and music prompts" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 7, padding: "5px 8px", color: "var(--ink)", fontSize: 11 }}>
+            <option value="">directing: freeform</option>
+            {Object.entries(archetypes).map(([k, a]) => <option key={k} value={k}>directing: {a.name}</option>)}
+          </select>
+          <button type="submit" style={btn}>Set</button>
         </form>
       </section>
 

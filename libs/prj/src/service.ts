@@ -75,3 +75,8 @@ export async function costMeterUsd(db: Db, projectId: string): Promise<number> {
 export async function setProjectStyleKit(db: Db, input: { projectId: string; styleKitId: string | null }): Promise<void> {
   await db.update(project).set({ styleKitId: input.styleKitId }).where(eq(project.id, input.projectId));
 }
+
+/** REQ-STB-026: select the directing archetype (docs/87); null = freeform. */
+export async function setProjectArchetype(db: Db, input: { projectId: string; archetype: string | null }): Promise<void> {
+  await db.update(project).set({ archetype: input.archetype }).where(eq(project.id, input.projectId));
+}

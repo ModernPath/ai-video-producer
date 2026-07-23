@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 25 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 26 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,8 +15,8 @@ Totals: 0 DONE · 25 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
-| REQ-STB-026 | Archetype selection injects directing recipe | P7 | PROPOSED | docs/87-directing-playbook.md | — | — |
-| REQ-STB-027 | Archetype-aware planning (durations/animation/audio bias) | P7 | PROPOSED | docs/87 | — | — |
+| REQ-STB-026 | Archetype selection injects directing recipe | P7 | IN_REVIEW | docs/87 | libs/gen/tests/prompt.spec.ts (REQ-STB-026 block) + snapshot E2E | config/archetypes.ts, migration 0021, recipeFor injection ×3, script-page select |
+| REQ-STB-027 | Archetype-aware planning (durations/animation/audio bias) | P7 | PROPOSED | docs/87 — planBias/musicBias delivered via 026; remaining: defaults (audio mode, shot seconds) + eval renders | — | — |
 | REQ-STB-028 | Lyrics-first flow (plan shots from transcript sections) | P7 | PROPOSED | docs/87 | — | — |
 | REQ-STB-025 | Lyric-synced cut suggestions (♪ MUSIC SYNC) | P6 | IN_REVIEW | USER Lyria epic ("time the change of scene according to song timing") | tests/music-sync.spec.ts + update-duration.int + browser E2E | src/music-sync.ts, updateShotDuration, applySyncAction, SYNC panel |
 | REQ-STB-024 | Plan-authored animation shots (free, no frame spend) | P6 | IN_REVIEW | USER Remotion epic ("purely remotion animations (prompt)") | plan-normalize spec + real E2E frame | migration 0020, normalize/apply, plan prompt, applyPlanAction branch, badge+prefill UI |
@@ -299,3 +299,15 @@ Totals: 0 DONE · 25 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
   - GIVEN the STB service surface THEN no move/reassign/transfer operation exists.
 - **Tests:** `tests/take-binding.int.spec.ts` · **Code:** `src/service.ts` selectTake (`// INV-STB-005`) · **Log:** LOG 2026-07-23
 - **Deferred / notes:** —
+
+### REQ-STB-026 — Archetype selection injects directing recipe
+- **Status:** IN_REVIEW · **Stage:** P7 · **Priority:** should · **Owner:** —
+- **Raised-by:** USER directing/taste epic (docs/87)
+- **Source:** docs/87-directing-playbook.md
+- **Statement:** A project selects a directing archetype (6 recipes in `config/archetypes.ts`, tunable without code changes; null = freeform); the recipe's DIRECTING block reaches script AND plan prompts, planBias the plan prompt, musicBias the music-brief prompt — all via the shared textInput path with provenance in snapshots.
+- **Acceptance criteria:**
+  - GIVEN directing/planBias/musicBias in textInput THEN each lands in exactly its prompts; omitted = unchanged (unit-tested).
+  - GIVEN a project with an archetype WHEN drafting THEN the snapshot prompt contains the recipe (E2E-verified: Brand pulse block in Aurora's draft snapshot).
+  - GIVEN the script page THEN a directing select persists the choice.
+- **Tests:** `libs/gen/tests/prompt.spec.ts` (REQ-STB-026) · snapshot E2E · browser (select present; submit verified server-side — extension click-drop) · **Code:** `libs/shared/src/config/archetypes.ts`, migration 0021, STB recipeFor ×3 injection, PRJ setProjectArchetype, script-page select · **Log:** LOG 2026-07-23 (slice 24)
+- **Deferred / notes:** archetype defaults (audio mode, shot-length caps) and per-archetype eval renders belong to REQ-STB-027.
