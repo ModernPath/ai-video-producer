@@ -32,3 +32,16 @@ describe("shot plan normalization", () => {
     expect(normalizePlannedShots("garbage").length).toBe(0);
   });
 });
+
+describe("REQ-STB-024: plan-authored animation shots", () => {
+  it("passes a well-formed animation block through; junk animation dropped", () => {
+    const out = normalizePlannedShots({ shots: [
+      { title: "Logo out", durationS: 4, direction: { synopsis: "brand end card", subject: "logo", action: "hold" },
+        animation: { template: "title", text: "AURORA COFFEE", subtext: "Dawn Ritual" } },
+      { title: "Weird", durationS: 4, direction: { synopsis: "x", subject: "y", action: "z" },
+        animation: { template: "bogus-template", text: 5 } },
+    ]});
+    expect(out[0]!.animation).toEqual({ template: "title", text: "AURORA COFFEE", subtext: "Dawn Ritual" });
+    expect(out[1]!.animation).toBeUndefined();
+  });
+});

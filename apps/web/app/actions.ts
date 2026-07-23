@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import { config } from "@avd/shared/config";
 import { organization } from "@avd/plt/schema";
@@ -172,9 +172,19 @@ export async function applyPlanAction(formData: FormData) {
   if (formData.get("generateFrames") === "1") {
     const [p] = await db().select().from(project).where(eq(project.id, projectId));
     if (p) {
+      const { requestAnimationTake } = await import("@avd/stb");
+      const { shot: shotTable } = await import("@avd/stb/schema");
+      const rows = await db().select().from(shotTable).where(inArray(shotTable.id, shotIds));
+      const animByShot = new Map(rows.map((r) => [r.id, r.animation as { text?: string } | null]));
       const genIds: string[] = [];
       for (const shotId of shotIds) {
-        genIds.push(await requestFrame(db(), { shotId, slot: "start", principal: PRINCIPAL, aspectRatio: p.aspectRatio }));
+        const anim = animByShot.get(shotId);
+        if (anim?.text) {
+          // REQ-STB-024: pure-graphic shot — render the free animation take instead of buying a frame
+          genIds.push(await requestAnimationTake(db(), { shotId, text: anim.text, principal: PRINCIPAL, aspectRatio: p.aspectRatio }));
+        } else {
+          genIds.push(await requestFrame(db(), { shotId, slot: "start", principal: PRINCIPAL, aspectRatio: p.aspectRatio }));
+        }
       }
       await drainQueueAndMaterialize(genIds);
     }

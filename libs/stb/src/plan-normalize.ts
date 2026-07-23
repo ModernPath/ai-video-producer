@@ -3,12 +3,19 @@
 import { config, providerLimits } from "@avd/shared/config";
 import type { DirectionJson } from "./service";
 
+export interface PlannedAnimation {
+  template: "title";
+  text: string;
+  subtext?: string | undefined;
+}
+
 export interface NormalizedPlannedShot {
   title: string;
   durationS: number;
   direction: DirectionJson;
   imagePrompt?: string | undefined;
   videoPrompt?: string | undefined;
+  animation?: PlannedAnimation | undefined; // REQ-STB-024: pure-graphic shots render via Remotion, free
 }
 
 function snapDuration(v: unknown): number {
@@ -62,6 +69,13 @@ export function normalizePlannedShots(raw: unknown): NormalizedPlannedShot[] {
       },
       ...(imagePrompt ? { imagePrompt } : {}),
       ...(videoPrompt ? { videoPrompt } : {}),
+      ...((): { animation?: PlannedAnimation } => {
+        const a = s.animation as Record<string, unknown> | undefined;
+        if (a && a.template === "title" && typeof a.text === "string" && a.text.trim()) {
+          return { animation: { template: "title", text: a.text.trim(), ...(typeof a.subtext === "string" && a.subtext.trim() ? { subtext: a.subtext.trim() } : {}) } };
+        }
+        return {};
+      })(),
     });
   }
   return out;

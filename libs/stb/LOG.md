@@ -1,5 +1,13 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 21: REQ-STB-024 plan-authored animation shots (→ IN_REVIEW)
+**Done:** shot-plan schema now lets the model flag pure-graphic shots with animation props (template/text/subtext); normalize validates (junk dropped, red-first); apply persists to shot.animation (migration 0020); "Apply + first frames" renders animation shots as FREE animation takes instead of buying frames; storyboard badge + prefilled ✦ Animate. Real E2E on Replan Test: the model authored a "YOUR NEXT ADVENTURE AWAITS / Ready to replan your mornings?" end-card entirely from the brief, applied, rendered $0, frame-verified; badge/prefill/recent-gens ($0.0000 remotion-local) confirmed in browser. Scratch re-archived.
+**Decisions:** animation validation is strict (known template + non-empty text) — anything else drops to a normal filmed shot.
+**Deferred:** subtext into the rendered take; multi-template plan schema.
+**Discovered:** the model uses the animation slot correctly without few-shot examples — the schema line + "ONLY for pure graphic shots" guidance sufficed.
+**Follow-ups:** —
+**Gate:** full suite green (122 passed).
+
 ## 2026-07-23 — slices 19–20: reorder + Lyria epic capture + lyrics rule
 **Done:** REQ-STB-022 reorder (atomic swap, ↑↓ UI, browser-verified + restored). USER Lyria requirement captured: docs/85 §Music (Lyria 3 models/prompt facts from official docs), REQ-GEN-019 (Lyria generation, pricing → OQ-114) + REQ-GEN-020 (MM:SS transcription for lyric-synced cuts) PROPOSED, BACKLOG epic line. REQ-STB-023 shipped red-first: music brief now demands full timed lyrics with [Verse]/[Chorus] tags unless instrumental — verified with real model both ways (vocal scratch brief → LYRICS section with timed tags; Aurora → explicit "Instrumental only, no vocals").
 **Decisions:** one brief drives Suno AND Lyria (same lyric tag format both accept).

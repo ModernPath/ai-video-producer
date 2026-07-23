@@ -217,6 +217,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 <span className="mono" style={{ fontSize: 11, color: s.selectedTakeId ? "var(--ok)" : cands.frames.length ? "var(--accent)" : "var(--ink-2)" }}>
                   {s.selectedTakeId ? "generated" : cands.frames.length ? "framed" : "planned"}
                 </span>
+                {(s.animation as { text?: string } | null)?.text && (
+                  <span className="mono" style={{ fontSize: 10, color: "var(--accent)", border: "1px dashed var(--accent)", borderRadius: 4, padding: "1px 6px" }} title="Plan-authored animation shot — renders free via Remotion">✦ animation shot</span>
+                )}
                 <form action={reorderShotAction} style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
                   <input type="hidden" name="projectId" value={id} />
                   <input type="hidden" name="shotId" value={s.id} />
@@ -314,7 +317,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     <form action={animationTakeAction} style={{ display: "flex", gap: 4, alignItems: "center" }}>
                       <input type="hidden" name="projectId" value={id} />
                       <input type="hidden" name="shotId" value={s.id} />
-                      <input name="text" required placeholder="✦ title text…" className="mono" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 5, padding: "3px 7px", color: "var(--ink)", fontSize: 10, width: 110 }} />
+                      <input name="text" required defaultValue={(s.animation as { text?: string } | null)?.text ?? ""} placeholder="✦ title text…" className="mono" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 5, padding: "3px 7px", color: "var(--ink)", fontSize: 10, width: 110 }} />
                       <SubmitButton small disabled={(activeByShot.get(s.id)?.take ?? 0) > 0} title="Free Remotion title-card animation rendered locally — lands as a take" pendingLabel="Rendering…">✦ Animate · free</SubmitButton>
                     </form>
                     <form action={generateTakeAction}>

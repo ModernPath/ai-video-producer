@@ -86,7 +86,8 @@ export function assembleScriptPrompt(i: TextPromptInput): string {
 export function assembleShotPlanPrompt(i: TextPromptInput): string {
   return [
     `TASK: Break the script into 4–10 second shots (structured output) totaling ≈${i.targetDurationSeconds}s.`,
-    `Return ONLY a JSON object exactly shaped: {"shots":[{"title":string,"durationS":4|6|8,"direction":{"synopsis":string,"subject":string,"action":string,"camera":string,"mood":string},"imagePrompt":string,"videoPrompt":string}]} — no markdown fences, no commentary.`,
+    `Return ONLY a JSON object exactly shaped: {"shots":[{"title":string,"durationS":4|6|8,"direction":{"synopsis":string,"subject":string,"action":string,"camera":string,"mood":string},"imagePrompt":string,"videoPrompt":string,"animation":{"template":"title","text":string,"subtext":string}|null}]} — no markdown fences, no commentary.`,
+    `Set "animation" ONLY for pure graphic shots (title cards, brand end-cards, logo stings): template "title" with the on-screen text (and optional subtext). Filmed/generated shots get animation:null.`,
     `imagePrompt = a complete production-ready still-image prompt; videoPrompt = a complete video prompt (motion, camera, mood). Reference cast members by name.`,
     `BRIEF: ${JSON.stringify(i.brief)}`,
     ...castBlock(i.entities),

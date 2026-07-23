@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 23 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 24 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,6 +15,7 @@ Totals: 0 DONE · 23 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
+| REQ-STB-024 | Plan-authored animation shots (free, no frame spend) | P6 | IN_REVIEW | USER Remotion epic ("purely remotion animations (prompt)") | plan-normalize spec + real E2E frame | migration 0020, normalize/apply, plan prompt, applyPlanAction branch, badge+prefill UI |
 | REQ-STB-023 | Music brief includes timed lyrics unless instrumental | P5 | IN_REVIEW | USER 2026-07-23 (Lyria epic) | libs/gen/tests/prompt.spec.ts + real-model check | assembleMusicBriefPrompt lyrics rule |
 | REQ-STB-022 | Reorder shots (animatic/export follow) | P2 | IN_REVIEW | SCN-STB-010, INV-STB-002 | tests/reorder.int.spec.ts + browser E2E | reorderShot (3-step swap), ↑↓ UI |
 | REQ-STB-021 | A/B take comparison | P2 | IN_REVIEW | docs/features/shot-editor.md | browser E2E (overlay, selectors, play both) | components/ABCompare.tsx, takes-lane wiring |
@@ -72,6 +73,18 @@ Totals: 0 DONE · 23 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a project with a brief WHEN DraftScript completes THEN script_version v1 exists with non-empty content and generation_id.
   - GIVEN an existing v1 WHEN DraftScript again THEN v2 exists; v1 unchanged.
 - **Tests:** `tests/script.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 2)
+
+### REQ-STB-024 — Plan-authored animation shots
+- **Status:** IN_REVIEW · **Stage:** P6 · **Priority:** should · **Owner:** —
+- **Raised-by:** USER Remotion epic — "generate separate scenes with purely remotion animations (prompt)"
+- **Source:** docs/features/animations.md; BR-STB-005 (plan authoring)
+- **Statement:** The shot-plan model may flag pure-graphic shots (title cards, end-cards, logo stings) with `animation: {template:"title", text, subtext}`; normalize validates the block (junk dropped), apply persists it on the shot, "Apply + first frames" renders those shots as FREE animation takes instead of buying frames, and the storyboard shows a badge with the animate input prefilled.
+- **Acceptance criteria:**
+  - GIVEN a plan shot with a valid animation block THEN it normalizes through; invalid blocks drop silently.
+  - GIVEN apply THEN shot.animation persists; GIVEN apply+first-frames THEN animation shots enqueue kind `animation` ($0) while filmed shots get frames.
+  - GIVEN the storyboard THEN "✦ animation shot" badge + prefilled ✦ Animate text.
+- **Tests:** `tests/plan-normalize.spec.ts` (REQ-STB-024 block) · real E2E: gemini-3.6-flash authored "YOUR NEXT ADVENTURE AWAITS" end-card unprompted, stored on apply, rendered free (frame-verified), badge+prefill visible in browser · **Code:** migration 0020, plan-normalize/applyShotPlan, shot-plan prompt schema, applyPlanAction branch, storyboard badge · **Log:** LOG 2026-07-23 (slice 21)
+- **Deferred / notes:** subtext not yet passed to requestAnimationTake (title-only); more templates will extend the plan schema.
 
 ### REQ-STB-023 — Music brief includes timed lyrics unless instrumental
 - **Status:** IN_REVIEW · **Stage:** P5 · **Priority:** must · **Owner:** —

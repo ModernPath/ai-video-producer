@@ -458,6 +458,9 @@ export async function applyShotPlan(db: Db, input: { proposalId: string; princip
     if (s.imagePrompt || s.videoPrompt) {
       await updateShotScripts(db, { shotId, imagePrompt: s.imagePrompt ?? null, videoPrompt: s.videoPrompt ?? null }); // REQ-STB-014
     }
+    if (s.animation) {
+      await db.update(shot).set({ animation: s.animation }).where(eq(shot.id, shotId)); // REQ-STB-024
+    }
     createdShotIds.push(shotId);
   }
   await db.update(shotPlanProposal).set({ status: "applied" }).where(eq(shotPlanProposal.id, input.proposalId));
