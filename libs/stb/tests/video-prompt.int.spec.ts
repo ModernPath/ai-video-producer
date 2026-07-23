@@ -63,7 +63,12 @@ describe("STB video prompt -> script/plan prompts with cast", () => {
       const [g] = await db.select().from(generation).where(eq(generation.id, genId));
       const prompt = (g!.promptSnapshot as { prompt: string }).prompt;
       expect(prompt).toContain("sunrise product launch");
-      expect(prompt).toContain("CAST: [product] KAIJU Can — green 330ml can, claw logo");
+      if (request === requestMusicBrief) {
+        // QA 2026-07-23: music briefs are SONG prompts — mood comes from the brief/script, not cast blocks
+        expect(prompt).not.toContain("CAST:");
+      } else {
+        expect(prompt).toContain("CAST: [product] KAIJU Can — green 330ml can, claw logo");
+      }
     }
   });
 });

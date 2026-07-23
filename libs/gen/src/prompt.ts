@@ -93,6 +93,18 @@ export function assembleShotPlanPrompt(i: TextPromptInput): string {
   ].filter(Boolean).join("\n");
 }
 
+/** docs/17: the Suno round-trip — a paste-ready MUSIC prompt, never a video treatment. */
+export function assembleMusicBriefPrompt(i: TextPromptInput): string {
+  return [
+    `TASK: Write a music generation prompt (for Suno) for the soundtrack of a ${i.targetDurationSeconds}-second video titled "${i.projectTitle}".`,
+    `Describe the MUSIC only — no visual descriptions, no scene directions. This is a song brief.`,
+    `Cover: genre, mood, tempo/BPM, instrumentation, energy arc over the ${i.targetDurationSeconds}s (intro/build/peak/outro), and whether vocals or instrumental.`,
+    `Keep it as one paste-ready prompt paragraph followed by an optional short style-tags line.`,
+    `BRIEF: ${JSON.stringify(i.brief)}`,
+    i.scriptText ? `THE VIDEO IT ACCOMPANIES (for mood reference only):\n${i.scriptText}` : "",
+  ].filter(Boolean).join("\n");
+}
+
 export interface EditPromptInput {
   instruction: string;
   aspectRatio: "16:9" | "9:16";
