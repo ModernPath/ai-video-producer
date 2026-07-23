@@ -16,6 +16,8 @@ export function computeCostUsd(kind: GenerationKind, opts: CostOpts = {}): numbe
     case "frame":
     case "image_edit":
       return priceTable.imagePerImageUsd[opts.quality ?? "standard"];
+    case "music":
+      return priceTable.musicPerTrackUsd; // REQ-GEN-019: per-song
     default:
       return 0; // text kinds: negligible; metered later (BACKLOG price-table item)
   }

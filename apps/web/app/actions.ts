@@ -361,6 +361,16 @@ export async function setProjectStyleAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/** REQ-GEN-019: run the music brief through Lyria; the track attaches on completion. */
+export async function generateMusicTrackAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { requestMusicTrack } = await import("@avd/stb");
+  const genId = await requestMusicTrack(db(), { projectId, principal: PRINCIPAL });
+  await drainQueueAndMaterialize([genId]);
+  revalidatePath(`/p/${projectId}/script`);
+  revalidatePath(`/p/${projectId}`);
+}
+
 /** REQ-STB-022: reorder shots — animatic and export order follow (SCN-STB-010). */
 export async function reorderShotAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));

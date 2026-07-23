@@ -1,5 +1,13 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-23 — REQ-GEN-019 Lyria music generation (→ IN_REVIEW) + Veo price correction
+**Done:** full Lyria slice red-first: kind `music` (migration 0017 constraint), route lyria-3-pro-preview + $0.08/track price, provider.generateMusic via Interactions REST (SDK doesn't wrap it; steps→model_output→audio block base64), executor music branch (audio asset, outputAssetIds), STB requestMusicTrack (brief verbatim) + materialize attaches as active track (project-scoped branch BEFORE the shotId guard), ♫ Generate track ≈ $0.08 button. REAL E2E in browser: Aurora brief → 3.9MB MP3 (~2min) generated, attached, serving; billed exactly $0.08. OQ-114 resolved from pricing page. Price drift caught same page: Veo 3.1 fast is $0.10/s at 720p (we billed estimates at $0.15/s) — corrected in priceTable with test cascade (0.975→0.65 for 6.5s).
+**Decisions:** brief text goes verbatim to Lyria (it IS the model-ready prompt incl. lyrics); pro model only (clip unused).
+**Deferred:** —
+**Discovered:** Interactions REST is straightforward — strengthens the Omni video spike case (same surface).
+**Follow-ups:** REQ-GEN-020 transcription; USER's new Remotion epic (captured in BACKLOG).
+**Gate:** full suite green (114 passed); typecheck clean; real E2E verified.
+
 ## 2026-07-23 — REQ-GEN-008 n frame candidates per gesture (PROPOSED → IN_REVIEW)
 **Done:** requestFrameBatch in STB (count from config.frame.candidatesDefault, clamped to candidatesMax); per-shot frame click now yields 2 candidates; button label shows the true price ("＋ 2 frames ≈ $0.13"). Browser-verified with real generations: one click on "The wake" → two distinct Nano Banana candidates (~$0.13).
 **Decisions:** batch flows (plan-apply first frames, Missing frames) stay at 1/shot — explicit clicks get choice, bulk operations stay cheap.

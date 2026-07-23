@@ -8,7 +8,7 @@ export const generation = gen.table("generation", {
   organizationId: uuid("organization_id").notNull(),
   projectId: uuid("project_id").notNull(),
   kind: text("kind", {
-    enum: ["script", "shot_plan", "direction", "frame", "image_edit", "take", "retake", "music_brief"],
+    enum: ["script", "shot_plan", "direction", "frame", "image_edit", "take", "retake", "music_brief", "music"],
   }).notNull(),
   target: jsonb("target").notNull().default({}),
   modelId: text("model_id").notNull(),

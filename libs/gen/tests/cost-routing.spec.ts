@@ -5,8 +5,8 @@ import { computeCostUsd } from "../src/cost";
 import { resolveModel } from "../src/routing";
 
 describe("REQ-GEN-003: cost computation", () => {
-  it("prices a 6.5s take at 0.975 USD (veo 3.1 fast rate)", () => {
-    expect(computeCostUsd("take", { durationSeconds: 6.5 })).toBeCloseTo(0.975, 5);
+  it("prices a 6.5s take at 0.65 USD (veo 3.1 fast 720p rate)", () => {
+    expect(computeCostUsd("take", { durationSeconds: 6.5 })).toBeCloseTo(0.65, 5);
   });
   it("prices draft frames from the image price table", () => {
     expect(computeCostUsd("frame", { quality: "draft" })).toBeCloseTo(0.034, 5);

@@ -128,6 +128,27 @@ async function processGenerationRow(
       return { generationId: next.id, status: "succeeded" };
     }
 
+    if (next.kind === "music") {
+      // REQ-GEN-019: brief prompt verbatim -> full track; attaches downstream in STB materialize
+      const media = await provider.generateMusic({ model: next.modelId, prompt: snapshot.prompt });
+      const assetId = uuidv7();
+      const key = assetKey(next.organizationId, next.projectId, assetId, "mp3");
+      await putObject(key, media.bytes, media.mime);
+      await db.insert(asset).values({
+        id: assetId, organizationId: next.organizationId, projectId: next.projectId,
+        kind: "audio", source: "generated", status: "ready",
+        storageKey: key, mime: media.mime, bytes: media.bytes.byteLength,
+        generationId: next.id,
+      });
+      await db.update(generation).set({
+        status: "succeeded",
+        outputAssetIds: [assetId],
+        costUsd: computeCostUsd(next.kind, { mock: !provider.billsCost }).toFixed(4),
+        finishedAt: new Date(),
+      }).where(eq(generation.id, next.id));
+      return { generationId: next.id, status: "succeeded" };
+    }
+
     const isVideo = next.kind === "take" || next.kind === "retake";
     const assetId = uuidv7();
 

@@ -12,7 +12,8 @@ export type GenerationKind =
   | "image_edit"
   | "take"
   | "retake"
-  | "music_brief";
+  | "music_brief"
+  | "music"; // REQ-GEN-019: Lyria track from the brief
 
 export type FrameQuality = "draft" | "standard" | "hero";
 
@@ -24,6 +25,7 @@ export const modelRoutes: Record<Exclude<GenerationKind, "frame" | "image_edit">
   shot_plan: "gemini-3.6-flash",
   direction: "gemini-3.6-flash",
   music_brief: "gemini-3.6-flash",
+  music: "lyria-3-pro-preview", // full song ~2min, $0.08 (OQ-114 resolved 2026-07-23)
   frame: {
     draft: "gemini-3.1-flash-lite-image",
     standard: "gemini-3.1-flash-image",
@@ -43,9 +45,10 @@ export const modelRoutes: Record<Exclude<GenerationKind, "frame" | "image_edit">
 
 /** Provider price table (USD) — INV-GEN-003 cost recording derives from these. */
 export const priceTable = {
+  musicPerTrackUsd: 0.08, // lyria-3-pro-preview per song
   // Veo 3.1 Fast (current take route): $0.15/s verified 2026-07-23 (was $0.10 Omni placeholder
   // — a 50% under-record on real takes, caught by triage). Per-model price map when routes multiply.
-  videoPerSecondUsd: 0.15,
+  videoPerSecondUsd: 0.1, // 720p rate per pricing page 2026-07-23 (was 0.15 — overestimated)
   // Per-image USD, verified 2026-07-23 (Google API pricing: ~$0.067 @1K standard,
   // $0.034 draft/batch tier, ~$0.15 high-res pro). Triage note: earlier draft mis-encoded
   // these as per-1000-images — a 1000x cost under-report. BACKLOG item closed.

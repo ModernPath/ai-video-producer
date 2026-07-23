@@ -306,6 +306,37 @@ export async function getMusicBrief(db: Db, projectId: string) {
   return b ?? null;
 }
 
+/** REQ-GEN-019: run the brief (incl. lyrics) through the music model; track attaches on materialize. */
+export async function requestMusicTrack(db: Db, input: { projectId: string; principal: string }) {
+  const p = await getProjectOrThrow(db, input.projectId);
+  const brief = await getMusicBrief(db, input.projectId);
+  if (!brief?.prompt) throw new StbValidationError("not_found", "No music brief yet — generate one first");
+  return enqueueGeneration(db, {
+    organizationId: p.organizationId,
+    projectId: p.id,
+    principal: input.principal,
+    kind: "music",
+    commandId: uuidv7(),
+    target: { projectId: p.id },
+    textInput: {
+      projectTitle: p.title,
+      brief: {},
+      targetDurationSeconds: Number(p.targetDurationS),
+      scriptText: brief.prompt, // the brief IS the model-ready prompt (verbatim)
+    },
+  });
+}
+
+/** Test seam: set a brief without a generation round-trip. */
+export async function upsertMusicBriefForTest(db: Db, input: { projectId: string; prompt: string }) {
+  const existing = await getMusicBrief(db, input.projectId);
+  if (existing) {
+    await db.update(musicBrief).set({ prompt: input.prompt }).where(eq(musicBrief.projectId, input.projectId));
+  } else {
+    await db.insert(musicBrief).values({ id: uuidv7(), projectId: input.projectId, prompt: input.prompt });
+  }
+}
+
 export async function attachMusicTrack(db: Db, input: { projectId: string; assetId: string }) {
   const [a] = await db.select().from(asset).where(eq(asset.id, input.assetId));
   if (a?.status !== "ready" || a.kind !== "audio") {
@@ -410,6 +441,14 @@ export async function materializeGenerationOutput(db: Db, generationId: string) 
   }
 
   if (!g.outputAssetIds?.length) return null;
+
+  if (g.kind === "music") {
+    // project-scoped media (no shot target)
+    const assetId = g.outputAssetIds[0]!;
+    await attachMusicTrack(db, { projectId: g.projectId, assetId }); // REQ-GEN-019
+    return { kind: "music" as const, id: assetId };
+  }
+
   const target = g.target as { shotId?: string; slot?: "start" | "end" };
   if (!target.shotId) return null;
 

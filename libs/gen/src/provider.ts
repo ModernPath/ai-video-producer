@@ -39,6 +39,7 @@ export interface GenProvider {
   generateText(r: TextRequest): Promise<{ text?: string; json?: unknown }>;
   generateImage(r: ImageRequest): Promise<{ bytes: Uint8Array; mime: string }>;
   generateVideo(r: VideoRequest): Promise<{ bytes: Uint8Array; mime: string; durationS: number }>;
+  generateMusic(r: { model: string; prompt: string }): Promise<{ bytes: Uint8Array; mime: string }>;
 }
 
 export const mockProvider: GenProvider = {
@@ -63,6 +64,11 @@ export const mockProvider: GenProvider = {
   },
   async generateVideo(r) {
     return { bytes: fixtureMp4(), mime: "video/mp4", durationS: r.durationSeconds };
+  },
+  async generateMusic() {
+    // tiny valid MP3 header + silence — enough for storage/attach flows
+    const silent = Buffer.from("SUQzAwAAAAAAF1RJVDIAAAANAAAAbW9jayB0cmFjawD/+1DEAAAAAAAAAAAAAAAAAAAAAABJbmZvAAAADwAAAAIAAAGgAJycnJycnJycnJycnJycnJycnJycnJycnJzJycnJycnJycnJycnJycnJycnJycnJycnJz/", "base64");
+    return { bytes: new Uint8Array(silent), mime: "audio/mpeg" };
   },
 };
 
@@ -174,6 +180,24 @@ export function createGeminiProvider(): GenProvider {
         return { bytes, mime: vid.mimeType ?? "video/mp4", durationS: snapped };
       } catch (err) {
         throw mapGeminiError(err);
+      }
+    },
+    async generateMusic(r) {
+      // Lyria 3 via the Interactions API (REST — SDK does not wrap it yet). docs/85 §Music.
+      try {
+        const res = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
+          method: "POST",
+          headers: { "x-goog-api-key": process.env.GEMINI_API_KEY ?? "", "Content-Type": "application/json" },
+          body: JSON.stringify({ model: r.model, input: r.prompt, response_format: { type: "audio" } }),
+        });
+        if (!res.ok) throw new ProviderError(res.status >= 500 ? "provider_unavailable" : "output_unusable", `interactions ${res.status}: ${(await res.text()).slice(0, 200)}`);
+        const body = (await res.json()) as { steps?: Array<{ type: string; content?: Array<{ type: string; data?: string }> }> };
+        const audio = body.steps?.flatMap((st) => (st.type === "model_output" ? st.content ?? [] : [])).find((c) => c.type === "audio")?.data;
+        if (!audio) throw new ProviderError("output_unusable", "no audio block in interactions response");
+        return { bytes: new Uint8Array(Buffer.from(audio, "base64")), mime: "audio/mpeg" };
+      } catch (e) {
+        if (e instanceof ProviderError) throw e;
+        throw mapGeminiError(e);
       }
     },
   };

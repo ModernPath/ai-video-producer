@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 17 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -21,7 +21,7 @@ Totals: 0 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
 | REQ-GEN-015 | Mock executor (MOCK_GEN) returns fixture media | P1 | IN_REVIEW | `docs/82` §5 (enabler) | tests/pipeline.int.spec.ts | src/executor.ts, src/service.ts |
 | REQ-GEN-017 | Live progress reaches the UI (SSE) | P2 | IN_REVIEW | `docs/07` §1, ADR-006 (enabler) | libs/prj/tests/activity.int.spec.ts + browser E2E | libs/prj/src/activity.ts, apps/web (events route, LiveRefresh) |
 | REQ-GEN-016 | Jobs execute via queue worker (pg-boss) | P2 | IN_REVIEW | `docs/03` §1–2 (enabler) | apps/worker/tests/handlers.int.spec.ts + browser E2E | apps/worker/src/*, libs/shared/src/queue.ts |
-| REQ-GEN-019 | Lyria music generation (brief → real track) | P5 | PROPOSED | USER 2026-07-23; docs/85 §Music | — | — |
+| REQ-GEN-019 | Lyria music generation (brief → real track) | P5 | IN_REVIEW | USER 2026-07-23; docs/85 §Music | libs/stb/tests/music-track.int.spec.ts + real E2E ($0.08) | migration 0017, provider generateMusic (Interactions REST), executor music branch, requestMusicTrack, ♫ UI |
 | REQ-GEN-020 | Audio transcription MM:SS + diarization (sync) | P5 | PROPOSED | USER 2026-07-23; docs/85 §Music | — | — |
 | REQ-GEN-018 | Race-safe claim across parallel workers | P5 | PROPOSED | `docs/03` §2 (enabler) | — | — |
 
@@ -177,7 +177,16 @@ Totals: 0 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
 - **Tests:** `tests/pipeline.int.spec.ts` · **Code:** `src/executor.ts, src/service.ts` · **Log:** LOG 2026-07-23 (slice 1)
 
 ### REQ-GEN-019 — Lyria music generation
-- **Status:** PROPOSED · **Stage:** P5 · **Source:** USER 2026-07-23. One click runs the SAME music brief (incl. lyrics) against `lyria-3-pro-preview` (Interactions API) and attaches the returned MP3 as the project music track — alternative to the manual Suno round-trip. Blocked-ish: pricing unknown (OQ-114) — confirm before enabling billsCost path.
+- **Status:** IN_REVIEW · **Stage:** P5 · **Priority:** must · **Owner:** —
+- **Raised-by:** USER 2026-07-23 (Lyria epic)
+- **Source:** docs/85 §Music; OQ-114 RESOLVED: clip $0.04/song, pro $0.08/song (pricing page)
+- **Statement:** One click runs the music brief (incl. lyrics) verbatim against `lyria-3-pro-preview` via the Interactions REST API; the returned MP3 becomes a ready audio asset attached as the project's active track (alternative to the manual Suno round-trip); cost $0.08/track from the price table.
+- **Acceptance criteria:**
+  - GIVEN a brief WHEN requestMusicTrack THEN kind `music` enqueued with the brief text verbatim and the configured Lyria route.
+  - GIVEN execution THEN a ready `audio` asset exists and the brief's activeTrackAssetId points at it; mock bills $0; real bills $0.08.
+  - GIVEN no brief THEN rejected `not_found`.
+- **Tests:** `libs/stb/tests/music-track.int.spec.ts` (mock ring) + real browser E2E (Aurora: 3.9MB MP3 generated, attached, serving; billed $0.08) · **Code:** migration 0017 (kind), config route+price, provider.generateMusic (Interactions REST), executor music branch, STB requestMusicTrack/materialize attach, ♫ button · **Log:** LOG 2026-07-23
+- **Deferred / notes:** ALSO this slice — Veo price corrected to $0.10/s (720p, pricing page 2026-07-23; was $0.15 overestimate; tests cascaded). Lyria clip model unused for now (pro covers the need).
 
 ### REQ-GEN-020 — Audio transcription with timestamps
 - **Status:** PROPOSED · **Stage:** P5 · **Source:** USER 2026-07-23. Transcribe an attached track (gemini-3.6-flash audio input) into MM:SS-timestamped lyrics/segments (diarization supported) to drive lyric-synced scene timing and singing characters.

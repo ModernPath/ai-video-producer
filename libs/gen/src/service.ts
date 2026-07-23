@@ -69,6 +69,7 @@ export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<st
   else if (input.kind === "take" || input.kind === "retake") prompt = assembleTakePrompt(input.promptInput!);
   else if (input.kind === "shot_plan") prompt = assembleShotPlanPrompt(input.textInput!);
   else if (input.kind === "music_brief") prompt = assembleMusicBriefPrompt(input.textInput!); // was falling through to the SCRIPT prompt (QA 2026-07-23)
+  else if (input.kind === "music") prompt = input.textInput!.scriptText ?? ""; // REQ-GEN-019: brief verbatim
   else prompt = assembleScriptPrompt(input.textInput!);
 
   await db.insert(generation).values({

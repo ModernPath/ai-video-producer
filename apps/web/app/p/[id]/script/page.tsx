@@ -4,7 +4,8 @@ import { desc, eq } from "drizzle-orm";
 import { project } from "@avd/prj/schema";
 import { scriptVersion, shotPlanProposal } from "@avd/stb/schema";
 import { getMusicBrief } from "@avd/stb";
-import { applyPlanAction, draftScriptAction, musicBriefAction, proposePlanAction, updateBriefAction, uploadTrackAction } from "../../../actions";
+import { priceTable } from "@avd/shared/config";
+import { applyPlanAction, draftScriptAction, generateMusicTrackAction, musicBriefAction, proposePlanAction, updateBriefAction, uploadTrackAction } from "../../../actions";
 import { LiveRefresh } from "../../../../components/LiveRefresh";
 import { db } from "../../../../lib/db";
 import { Markdown } from "../../../../components/Markdown";
@@ -139,6 +140,14 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
           <form action={musicBriefAction} style={{ marginLeft: "auto" }}>
             <input type="hidden" name="projectId" value={id} />
             <button type="submit" style={music ? btn : btnPrimary}>{music ? "Regenerate" : "Generate music brief"}</button>
+          </form>
+          <form action={generateMusicTrackAction} style={{ display: "inline" }}>
+            <input type="hidden" name="projectId" value={id} />
+            {music?.prompt && (
+              <button type="submit" style={btnPrimary} title="Runs the brief (incl. lyrics) through lyria-3-pro — full song, attaches as the project track">
+                ♫ Generate track ≈ ${priceTable.musicPerTrackUsd.toFixed(2)}
+              </button>
+            )}
           </form>
         </div>
         {music ? (
