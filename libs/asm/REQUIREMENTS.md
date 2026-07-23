@@ -1,7 +1,7 @@
 # Requirements Ledger — ASM (Assembly & Export)
 
 ## Dashboard — ASM (Assembly & Export)
-Totals: 0 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -12,6 +12,7 @@ Totals: 0 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-ASM-005 | Take normalization at assembly (res/fps/trim) | P3 | IN_REVIEW | BR-ASM-003, OQ-104 trim policy | tests/normalize.int.spec.ts + browser/ffprobe | src/service.ts (normalize pass), config asm.normalize |
 | REQ-ASM-006 | Failed exports retain error, retryable | P2 | IN_REVIEW | INV-ASM-004 | tests/retry.int.spec.ts | src/service.ts (retryExport), UI ↻ |
 | REQ-ASM-007 | Share links (token, revocable) | P5 | IN_REVIEW | INV-ASM-005 | tests/share.int.spec.ts | src/share.ts, migration 0014, apps/web /s/[token] |
+| REQ-ASM-009 | Burned lyric/section captions on export | P6 | IN_REVIEW | USER Lyria/Remotion epics; REQ-GEN-020 | tests/captions.spec.ts + real E2E frame check | src/captions.ts, snapshot flag, subtitles pass, captions checkbox |
 | REQ-ASM-008 | Archived projects cannot export | P5 | IN_REVIEW | BR-PRJ-003 (workflow-merge follow-up) | tests/archive-guard.int.spec.ts + browser E2E | src/service.ts createSnapshot guard, archive UI apps/web/app/page.tsx |
 | REQ-ASM-008 | Explicit exclusion of takeless shots | P2 | IN_REVIEW | INV-ASM-002 (exclusion arm) | tests/exclusions.int.spec.ts + browser | src/service.ts, migration 0010, partial-export UI |
 | REQ-ASM-009 | Animatic preview (client-side, zero render cost) | P2 | IN_REVIEW | BR-ASM-005 | tests/animatic.spec.ts + browser E2E | src/animatic.ts, apps/web/components/AnimaticPlayer.tsx |
@@ -91,6 +92,18 @@ Totals: 0 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a failed export WHEN retried after the cause is fixed THEN a new job succeeds against the same snapshot; the failed job keeps its error.
   - GIVEN a succeeded job WHEN retried THEN rejected `conflict`.
   - Browser: failed exports show ↻ retry.
+
+### REQ-ASM-009 — Burned lyric/section captions on export
+- **Status:** IN_REVIEW · **Stage:** P6 · **Priority:** should · **Owner:** —
+- **Raised-by:** USER epics (lyric-synced timing); first consumer of REQ-GEN-020 transcripts
+- **Source:** docs/85 §Music; REQ-GEN-020
+- **Statement:** An export can burn the track transcript's [MM:SS] lines as styled captions: transcript → SRT (per-line timing to the next stamp, capped at cut length; leading section tags stripped from lyric lines), applied via ffmpeg subtitles/libass with a host-mounted font; the choice and transcript are captured immutably in the snapshot.
+- **Acceptance criteria:**
+  - GIVEN a transcript WHEN converted THEN SRT cues run stamp→next-stamp, drop past-duration lines, strip inline section tags (unit-tested).
+  - GIVEN burnCaptions with a transcribed track WHEN exported THEN the final video shows the caption text (verified by frame extraction).
+  - GIVEN no transcript THEN the flag is a no-op.
+- **Tests:** `tests/captions.spec.ts` · real E2E: Aurora captioned export → extracted frame shows "[Intro]" burned with outline styling · **Code:** `src/captions.ts`, createSnapshot burnCaptions+transcript, subtitles pass (progressStage "captions"), config.asm.captions, export-form checkbox · **Log:** LOG 2026-07-23
+- **Deferred / notes:** karaoke-style word timing + Remotion-rendered caption overlays (ANM-003 full) later; font path env-overridable (CAPTION_FONT_FILE) for the prod container.
 
 ### REQ-ASM-008 — Archived projects cannot export
 - **Status:** IN_REVIEW · **Stage:** MVP · **Priority:** must · **Owner:** —

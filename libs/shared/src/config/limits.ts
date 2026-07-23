@@ -24,6 +24,11 @@ export const config = {
   },
   audio: { duckDb: -12, fadeOutSeconds: 2, lufsTarget: -14 }, // BR-ASM-001..003
   asm: {
+    captions: {
+      // host font mounted into the alpine ffmpeg container (no fonts baked in)
+      fontFile: process.env.CAPTION_FONT_FILE ?? "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+      style: "FontName=Arial Bold,FontSize=18,PrimaryColour=&H00FFFFFF,OutlineColour=&H80000000,Outline=2,MarginV=28",
+    },
     maxConcurrentExportsPerOrg: 2,
     // BR-ASM-003 output profile (per aspect ratio); bump to 1080p when real takes warrant
     normalize: {

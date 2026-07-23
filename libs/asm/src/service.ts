@@ -1,7 +1,7 @@
 // REQ-ASM-001 (snapshot) + REQ-ASM-002/003 (export). ASM reads STB/AST tables read-only
 // per docs/02 §4 (allowed readers); it writes only asm.* and export output assets.
 import { execFile } from "node:child_process";
-import { existsSync, mkdirSync, rmSync, writeFileSync, readFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
@@ -14,6 +14,7 @@ import { project } from "@avd/prj/schema";
 import { getProjectStatus } from "@avd/prj/service";
 import { config } from "@avd/shared/config";
 import { exportJob, storyboardSnapshot } from "./schema";
+import { transcriptToSrt } from "./captions";
 
 const exec = promisify(execFile);
 
@@ -33,7 +34,7 @@ export interface SnapshotItem {
 
 export async function createSnapshot(
   db: Db,
-  input: { projectId: string; principal: string; excludeShotIds?: string[] }
+  input: { projectId: string; principal: string; excludeShotIds?: string[]; burnCaptions?: boolean }
 ): Promise<string> {
   const status = await getProjectStatus(db, input.projectId); // BR-PRJ-003: archived projects are read-only
   if (status === "archived") throw new AsmValidationError("project_archived", "Project is archived — unarchive to export");
@@ -94,6 +95,9 @@ export async function createSnapshot(
     musicAssetId: mb?.activeTrackAssetId ?? null,
     duckDb: config.audio.duckDb,
     fadeOutS: config.audio.fadeOutSeconds,
+    // REQ-ASM-009: captions burned from the MM:SS transcript, captured immutably in the snapshot
+    burnCaptions: Boolean(input.burnCaptions && mb?.transcript),
+    transcript: input.burnCaptions ? (mb?.transcript ?? null) : null,
   };
 
   const id = uuidv7();
@@ -224,9 +228,11 @@ async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Pro
     }
 
     await db.update(exportJob).set({ progressStage: "concat" }).where(eq(exportJob.id, job.id));
-    const audio = (snap!.audio ?? {}) as { mixMode?: string; musicAssetId?: string | null; duckDb?: number; fadeOutS?: number };
+    const audio = (snap!.audio ?? {}) as { mixMode?: string; musicAssetId?: string | null; duckDb?: number; fadeOutS?: number; burnCaptions?: boolean; transcript?: string | null };
     const needsMusic = (audio.mixMode === "music" || audio.mixMode === "mix") && audio.musicAssetId;
-    await ffmpegConcat(dir, files, needsMusic ? "base.mp4" : "final.mp4");
+    const needsCaptions = Boolean(audio.burnCaptions && audio.transcript);
+    const afterMusicName = needsCaptions ? "precap.mp4" : "final.mp4";
+    await ffmpegConcat(dir, files, needsMusic ? "base.mp4" : afterMusicName);
 
     if (needsMusic) {
       await db.update(exportJob).set({ progressStage: "mix" }).where(eq(exportJob.id, job.id));
@@ -243,16 +249,36 @@ async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Pro
               "-map", "0:v", "-map", "1:a",
               "-c:v", "copy", "-c:a", "libmp3lame",
               "-af", `afade=t=out:st=${Math.max(0, cutS - fade)}:d=${fade}`,
-              "-shortest", "-movflags", "+faststart", "-y", "/work/final.mp4",
+              "-shortest", "-movflags", "+faststart", "-y", `/work/${afterMusicName}`,
             ]
           : [ // mix: music bed ducked under native audio
               "-i", "/work/base.mp4", "-i", "/work/music.mp3",
               "-filter_complex", `[1:a]volume=${duckLinear.toFixed(3)}[m];[0:a][m]amix=inputs=2:duration=first:dropout_transition=0[a]`,
               "-map", "0:v", "-map", "[a]",
               "-c:v", "copy", "-c:a", "aac",
-              "-shortest", "-movflags", "+faststart", "-y", "/work/final.mp4",
+              "-shortest", "-movflags", "+faststart", "-y", `/work/${afterMusicName}`,
             ];
       await exec("docker", ["run", "--rm", "-v", `${dir}:/work`, "jrottenberg/ffmpeg:6.1-alpine", ...args]);
+    }
+
+    if (needsCaptions) {
+      // REQ-ASM-009: burn MM:SS captions (SRT via libass); host font mounted for alpine ffmpeg
+      await db.update(exportJob).set({ progressStage: "captions" }).where(eq(exportJob.id, job.id));
+      const cutS = items.reduce((acc, i) => acc + i.durationS, 0);
+      const srt = transcriptToSrt(audio.transcript!, cutS);
+      if (srt) {
+        writeFileSync(join(dir, "caps.srt"), srt);
+        mkdirSync(join(dir, "fonts"), { recursive: true });
+        copyFileSync(config.asm.captions.fontFile, join(dir, "fonts", "caption-font.ttf"));
+        await exec("docker", [
+          "run", "--rm", "-v", `${dir}:/work`, "jrottenberg/ffmpeg:6.1-alpine",
+          "-i", "/work/precap.mp4",
+          "-vf", `subtitles=/work/caps.srt:fontsdir=/work/fonts:force_style='${config.asm.captions.style}'`,
+          "-c:a", "copy", "-movflags", "+faststart", "-y", "/work/final.mp4",
+        ]);
+      } else {
+        copyFileSync(join(dir, "precap.mp4"), join(dir, "final.mp4"));
+      }
     }
 
     const outBytes = new Uint8Array(readFileSync(join(dir, "final.mp4")));

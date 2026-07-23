@@ -1,5 +1,13 @@
 # Build Log — ASM (Assembly & Export)
 
+## 2026-07-23 — REQ-ASM-009 burned captions from MM:SS transcripts (→ IN_REVIEW)
+**Done:** red-first transcriptToSrt (stamp→next-stamp cues, duration cap, section-tag stripping; 4 unit cases); snapshot captures burnCaptions+transcript immutably; export pipeline gained a "captions" pass (ffmpeg subtitles/libass, host font mounted into the alpine container, styling from config.asm.captions); captions checkbox on both export forms. Real E2E: Aurora export with the Lyria track's transcript — extracted frame at 2s shows "[Intro]" burned with white/outline styling.
+**Decisions:** section tags are structure, not screen text — stripped from lyric lines, kept for label-only cues (instrumental structure display); caption choice is per-export, not a project setting.
+**Deferred:** karaoke word-level timing; Remotion caption overlays (ANM-003 full).
+**Discovered:** alpine ffmpeg has libass but no fonts — host font mount via fontsdir works.
+**Follow-ups:** —
+**Gate:** full suite green (120 passed); visual frame verification.
+
 ## 2026-07-23 — REQ-ASM-008 archive export guard + archive UI (→ IN_REVIEW)
 **Done:** red-first guard in createSnapshot (project_archived via PRJ getProjectStatus — cross-context service call, no table read); archive/unarchive buttons on projects list with collapsed ARCHIVED section; browser-verified full cycle on scratch project.
 **Decisions:** guard at snapshot creation only — queueExport requires a snapshot, so it inherits.

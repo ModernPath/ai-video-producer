@@ -164,16 +164,22 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <SubmitButton small pendingLabel="…">Set</SubmitButton>
         </form>
         {generated === shots.length ? (
-          <form action={exportAction}>
+          <form action={exportAction} style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <input type="hidden" name="projectId" value={id} />
+            <label className="mono muted" style={{ fontSize: 10, display: "flex", gap: 3, alignItems: "center" }} title="Burn MM:SS transcript captions into the export (needs a transcribed track)">
+              <input type="checkbox" name="burnCaptions" value="1" /> captions
+            </label>
             <SubmitButton primary disabled={shots.length === 0} pendingLabel="Exporting…">
               Export cut
             </SubmitButton>
           </form>
         ) : (
-          <form action={exportAction} title="Takeless shots are skipped explicitly (INV-ASM-002)">
+          <form action={exportAction} title="Takeless shots are skipped explicitly (INV-ASM-002)" style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <input type="hidden" name="projectId" value={id} />
             <input type="hidden" name="excludeShotIds" value={shots.filter((s) => !s.selectedTakeId).map((s) => s.id).join(",")} />
+            <label className="mono muted" style={{ fontSize: 10, display: "flex", gap: 3, alignItems: "center" }} title="Burn MM:SS transcript captions into the export (needs a transcribed track)">
+              <input type="checkbox" name="burnCaptions" value="1" /> captions
+            </label>
             <SubmitButton primary disabled={generated === 0} pendingLabel="Exporting…">
               Export {generated} ready · skip {shots.length - generated}
             </SubmitButton>
