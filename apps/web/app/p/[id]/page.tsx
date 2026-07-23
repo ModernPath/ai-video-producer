@@ -13,7 +13,7 @@ import { costMeterUsd } from "@avd/prj/service";
 import { shareLink } from "@avd/asm/schema";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  createShareLinkAction, removeCandidateAction, setProjectStyleAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
+  createShareLinkAction, removeCandidateAction, retakeAction, setProjectStyleAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
 } from "../../actions";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
@@ -268,6 +268,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                             <span className="mono muted" title="This take was generated from a previously selected start frame (INV-STB-006 — it is preserved, not regenerated)" style={{ fontSize: 9, border: "1px dashed var(--line)", borderRadius: 4, padding: "1px 5px" }}>from older frame</span>
                           ) : null;
                         })()}
+                        <form action={retakeAction} style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                          <input type="hidden" name="projectId" value={id} />
+                          <input type="hidden" name="takeId" value={t.id} />
+                          <input name="instruction" required placeholder="retake: slower camera…" className="mono" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 5, padding: "2px 6px", color: "var(--ink)", fontSize: 10, width: 140 }} />
+                          <SubmitButton small disabled={(activeByShot.get(s.id)?.take ?? 0) > 0} title="Generate an adjusted take conditioned like this one (same price as a take)" pendingLabel="…">↻</SubmitButton>
+                        </form>
                         {s.selectedTakeId !== t.id && (
                           <div style={{ display: "flex", gap: 6 }}>
                             <form action={selectTakeAction}>

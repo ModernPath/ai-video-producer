@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 19 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 20 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,6 +15,7 @@ Totals: 0 DONE · 19 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
+| REQ-STB-020 | Retake with instruction | P2 | IN_REVIEW | SCN-STB-021, docs/features/shot-editor.md | tests/retake.int.spec.ts + browser (UI) | requestRetake, retake_of lineage in materialize, per-take UI |
 | REQ-STB-018 | Normalize real-model shot plans (break-into-shots robust) | P0 | IN_REVIEW | USER BUG 2026-07-23 (raw markdown + plan silently dropped) | tests/plan-normalize.spec.ts | src/plan-normalize.ts, service.ts, gen/prompt.ts+provider.ts, script page (Markdown) |
 | REQ-STB-019 | Remove a shot (cut) from the storyboard | P1 | IN_REVIEW | USER 2026-07-23 "how can I remove cuts?" | tests/remove-shot.int.spec.ts | src/service.ts (removeShot), removeShotAction, ✕ Remove cut button |
 | REQ-STB-016 | Per-shot reference images on the image script | P1 | IN_REVIEW | USER spec revisit 2026-07-23 (2d) | tests/shot-refs-and-first-frames.int.spec.ts + browser E2E | migration 0013, service (updateShotRefs), ref-picker UI (page.tsx + updateShotRefsAction) |
@@ -68,6 +69,18 @@ Totals: 0 DONE · 19 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a project with a brief WHEN DraftScript completes THEN script_version v1 exists with non-empty content and generation_id.
   - GIVEN an existing v1 WHEN DraftScript again THEN v2 exists; v1 unchanged.
 - **Tests:** `tests/script.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 2)
+
+### REQ-STB-020 — Retake with instruction
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** should · **Owner:** —
+- **Raised-by:** QA sweep 2026-07-23 — schema/routing/materialization existed but no service or UI (SCN-STB-021 unbuilt)
+- **Source:** SCN-STB-021, `docs/features/shot-editor.md`
+- **Statement:** Any take can be retaken with a short instruction: the new generation uses the SOURCE take's conditioning frame (not the current selection), appends the instruction ("… Keep everything else the same."), lands in the same shot with `retake_of` lineage, and is priced like a take.
+- **Acceptance criteria:**
+  - GIVEN a take WHEN retaken THEN the generation is kind `retake`, its prompt contains the instruction, and its start-frame ref equals the source take's conditioning frame.
+  - GIVEN the retake materializes THEN the new take has `retake_of` = source take and the same shot (INV-STB-005).
+  - GIVEN a blank instruction THEN rejected `validation_failed`.
+- **Tests:** `tests/retake.int.spec.ts` (mock ring) · UI verified in browser (input + ↻ per take, lane lockout applies) · **Code:** `src/service.ts` requestRetake + materialize lineage, `apps/web` retakeAction + per-take form · **Log:** LOG 2026-07-23 (slice 17)
+- **Deferred / notes:** real-video E2E stays behind RUN_REAL_VIDEO per §9.8 spike budget (pending user go-ahead); custom video scripts get the instruction appended after the verbatim script.
 
 ### REQ-STB-018 — Normalize real-model shot plans
 - **Status:** IN_REVIEW · **Stage:** MVP · **Priority:** must · **Owner:** —

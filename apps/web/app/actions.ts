@@ -361,6 +361,24 @@ export async function setProjectStyleAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/** REQ-STB-020: retake with instruction — new take conditioned like its source, lineage kept. */
+export async function retakeAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const instruction = String(formData.get("instruction") ?? "").trim();
+  if (!instruction) return;
+  const [p] = await db().select().from(project).where(eq(project.id, projectId));
+  if (!p) return;
+  const { requestRetake } = await import("@avd/stb");
+  const genId = await requestRetake(db(), {
+    takeId: String(formData.get("takeId")),
+    instruction,
+    principal: PRINCIPAL,
+    aspectRatio: p.aspectRatio,
+  });
+  await drainQueueAndMaterialize([genId]);
+  revalidatePath(`/p/${projectId}`);
+}
+
 /** REQ-STB-012: the project's video prompt (brief.idea) — drives script, plan, music, and styling. */
 export async function updateBriefAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));

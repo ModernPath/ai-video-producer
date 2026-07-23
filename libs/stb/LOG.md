@@ -1,5 +1,13 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 17: REQ-STB-020 retake with instruction (→ IN_REVIEW)
+**Done:** QA found SCN-STB-021 unbuilt (schema/routing existed, no service/UI). Red-first requestRetake: conditions on the SOURCE take's frame via takeProvenance (iterating on what you saw, not current selection), instruction appended with "Keep everything else the same" (prompt-guidelines v3 idiom), retake_of lineage set in materialize, style + per-shot refs respected. Per-take UI: instruction input + ↻ (take price, lane lockout). Suite stability: thumbs disabled via env in tests (docker-per-asset contention caused cross-suite flakes) — derivatives spec re-enables locally.
+**Decisions:** retake conditions on source take's frame, not current selection; blank instruction rejected.
+**Deferred:** real-video retake E2E behind RUN_REAL_VIDEO (§9.8 spike budget, user go-ahead pending).
+**Discovered:** dockerized thumb generation was the root of the intermittent full-suite flakes (frame-reselect, ASM) — resolved by the test-env gate.
+**Follow-ups:** —
+**Gate:** full suite green (110 passed), stable.
+
 ## 2026-07-23 — slice 16: QA sweep — music brief was a video script, now a Suno prompt
 **Done:** proactive browser QA found kind `music_brief` falling through to assembleScriptPrompt — briefs came out as video treatments (VISUAL/AUDIO timecodes). Red-first assembleMusicBriefPrompt (docs/17): MUSIC only — genre, mood, BPM, instrumentation, energy arc, vocals/instrumental, paste-ready for Suno; script passed as mood reference only; CAST blocks deliberately excluded from song prompts (video-prompt test updated to assert the exclusion). Regenerated Aurora's brief with the real model: proper instrumental chillhop prompt @110 BPM. Negative paths checked: invalid asset 404, missing project 404, invalid share token renders friendly page (reviewed OK).
 **Decisions:** cast belongs in visual prompts, not song briefs — mood flows via brief + script reference.

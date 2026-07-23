@@ -17,6 +17,7 @@ const PNG_1PX = Buffer.from(
 );
 
 beforeAll(async () => {
+  delete process.env.DISABLE_THUMBS; // this spec tests the real thing
   await db.insert(organization).values({ id: orgId, name: "Deriv Org" });
 });
 

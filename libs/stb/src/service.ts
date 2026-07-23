@@ -176,6 +176,53 @@ export async function requestTake(
   });
 }
 
+/** REQ-STB-020 / SCN-STB-021: retake with instruction — same shot, same conditioning frame as the
+ * source take (not the current selection), instruction appended to the video prompt; retake_of lineage. */
+export async function requestRetake(
+  db: Db,
+  input: { takeId: string; instruction: string; principal: string; aspectRatio: "16:9" | "9:16" }
+) {
+  const [t] = await db.select().from(take).where(and(eq(take.id, input.takeId), isNull(take.deletedAt)));
+  if (!t) throw new StbValidationError("not_found", "Take not found");
+  if (!input.instruction.trim()) throw new StbValidationError("validation_failed", "Retake needs an instruction");
+  const s = await getShotOrThrow(db, t.shotId);
+  const d = s.direction as DirectionJson;
+  const cast = await resolveCast(db, s.projectId);
+  const refAssetIds = resolveShotRefs(s.refAssetIds, cast.entityRefAssetIds);
+  const prov = await takeProvenance(db, t.id); // condition on what the source take used
+  const stylePrompt = await projectStylePrompt(db, s.projectId);
+  let refs: { startFrameAssetId?: string; entityRefAssetIds?: string[] } | undefined;
+  if (prov.startFrameAssetId) refs = { startFrameAssetId: prov.startFrameAssetId };
+  if (refAssetIds.length) refs = { ...(refs ?? {}), entityRefAssetIds: refAssetIds };
+  const baseScript = s.videoPrompt?.trim();
+  const customPrompt = baseScript
+    ? `${baseScript}\nRetake adjustment: ${input.instruction.trim()}. Keep everything else the same.`
+    : undefined;
+  return enqueueGeneration(db, {
+    organizationId: s.organizationId,
+    projectId: s.projectId,
+    principal: input.principal,
+    kind: "retake",
+    commandId: uuidv7(),
+    target: { shotId: s.id, retakeOfTakeId: t.id },
+    refs,
+    promptInput: {
+      aspectRatio: input.aspectRatio,
+      durationSeconds: Number(s.durationS),
+      entities: cast.entities,
+      stylePrompt: stylePrompt ?? undefined,
+      customPrompt: customPrompt ?? undefined, // custom script + adjustment, verbatim rule intact
+      direction: {
+        synopsis: d.synopsis, subject: d.subject, action: d.action,
+        camera: d.camera,
+        // auto path: the adjustment rides in the mood clause; ignored when customPrompt is set
+        mood: `${d.mood ? d.mood + ". " : ""}Retake adjustment: ${input.instruction.trim()}. Keep everything else the same`,
+        dialogue: d.dialogue, audioNotes: d.audioNotes,
+      },
+    },
+  });
+}
+
 // ---- Script studio (REQ-STB-008 / REQ-STB-011) ----
 
 async function getProjectOrThrow(db: Db, projectId: string) {
@@ -385,6 +432,7 @@ export async function materializeGenerationOutput(db: Db, generationId: string) 
       shotId: target.shotId,
       videoAssetId: g.outputAssetIds[0]!,
       generationId: g.id,
+      retakeOf: (target as { retakeOfTakeId?: string }).retakeOfTakeId ?? null, // REQ-STB-020 lineage
       durationActualS: params.durationSeconds != null ? String(params.durationSeconds) : null,
     });
     return { kind: "take" as const, id };

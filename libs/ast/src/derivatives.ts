@@ -23,6 +23,7 @@ const EXT_BY_MIME: Record<string, string> = {
  * (a missing thumb only means the UI falls back to the original).
  */
 export async function makeAssetThumb(db: Db, assetId: string): Promise<void> {
+  if (process.env.DISABLE_THUMBS === "1") return; // test suites: docker-per-asset contention (derivatives spec re-enables)
   const [a] = await db.select().from(asset).where(eq(asset.id, assetId));
   if (!a || a.status !== "ready" || a.thumbStorageKey) return;
   if (a.kind !== "image" && a.kind !== "video") return;
