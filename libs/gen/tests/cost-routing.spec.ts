@@ -25,14 +25,15 @@ describe("REQ-GEN-007: model routing from config only", () => {
 
   it("no hardcoded model-id literals outside libs/shared/src/config", () => {
     const root = join(import.meta.dirname, "..", "..", "..");
-    const needle = "gemini" + "-"; // split so this scanner doesn't flag itself
+    // model ids: the vendor prefix followed by a digit or "omni"; plain doc links (…-api) are fine
+    const needle = new RegExp("gemini" + "-(\\d|omni)");
     const offenders: string[] = [];
     const walk = (dir: string) => {
       for (const name of readdirSync(dir)) {
         if (["node_modules", ".git", ".next", "dist", "docs", "_archive", "data"].includes(name)) continue;
         const p = join(dir, name);
         if (statSync(p).isDirectory()) walk(p);
-        else if (/\.(ts|tsx)$/.test(name) && !p.includes("libs/shared/src/config") && readFileSync(p, "utf8").includes(needle))
+        else if (/\.(ts|tsx)$/.test(name) && !p.includes("libs/shared/src/config") && needle.test(readFileSync(p, "utf8")))
           offenders.push(p);
       }
     };

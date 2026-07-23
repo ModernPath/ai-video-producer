@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 8 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 6 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -10,11 +10,11 @@ Totals: 0 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 8 PROPOSED · 0 DEF
 | REQ-GEN-003 | Cost recorded on completion | P1 | IN_REVIEW | INV-GEN-003 | tests/cost-routing.spec.ts, tests/pipeline.int.spec.ts | src/cost.ts |
 | REQ-GEN-004 | Quota check at enqueue | P5 | PROPOSED | INV-GEN-004 | — | — |
 | REQ-GEN-005 | Retry semantics (attempt / retry_of) | P2 | PROPOSED | INV-GEN-005 | — | — |
-| REQ-GEN-006 | Content-policy terminal failure mapping | P2 | PROPOSED | INV-GEN-006 | — | — |
+| REQ-GEN-006 | Content-policy terminal failure mapping | P2 | IN_REVIEW | INV-GEN-006 | tests/provider-path.int.spec.ts | src/provider.ts, src/executor.ts |
 | REQ-GEN-007 | Model routing from versioned config | P1 | IN_REVIEW | BR-GEN-001 | tests/cost-routing.spec.ts | src/routing.ts |
 | REQ-GEN-008 | Frame requests produce n candidates | P2 | PROPOSED | BR-GEN-002 | — | — |
 | REQ-GEN-009 | Take reference attachment & priority | P4 | PROPOSED | BR-GEN-003 | — | — |
-| REQ-GEN-010 | Async video delivery → storage → ready | P1 | PROPOSED | BR-GEN-004 | — | — |
+| REQ-GEN-010 | Provider abstraction: real path → storage → ready | P1 | IN_REVIEW | BR-GEN-004 | tests/provider-path.int.spec.ts | src/provider.ts, src/executor.ts |
 | REQ-GEN-011 | Per-org video concurrency cap | P2 | PROPOSED | BR-GEN-005 | — | — |
 | REQ-GEN-012 | image_edit creates new asset with lineage | P4 | PROPOSED | BR-GEN-006 | — | — |
 | REQ-GEN-013 | Deterministic prompt assembly, snapshotted | P1 | IN_REVIEW | `docs/14` §5 | tests/prompt.spec.ts | src/prompt.ts |
@@ -59,7 +59,10 @@ Totals: 0 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 8 PROPOSED · 0 DEF
 - **Status:** PROPOSED · **Stage:** P2 · **Source:** INV-GEN-005 — same id + `attempt` increments; terminal failure retry = new generation with `retry_of`.
 
 ### REQ-GEN-006 — Content-policy terminal failure mapping
-- **Status:** PROPOSED · **Stage:** P2 · **Source:** INV-GEN-006 — error taxonomy `docs/14` §6; OQ-105 for UX copy.
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must
+- **Source:** INV-GEN-006, `docs/14` §6
+- **Acceptance criteria:**
+  - GIVEN the provider raises a content-policy rejection WHEN executing THEN the generation is terminal `failed` with `error_code = content_policy`, no asset is created, and it is never auto-retried.
 
 ### REQ-GEN-007 — Model routing from versioned config
 - **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
@@ -76,8 +79,14 @@ Totals: 0 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 8 PROPOSED · 0 DEF
 ### REQ-GEN-009 — Take reference attachment & priority
 - **Status:** PROPOSED · **Stage:** P4 · **Source:** BR-GEN-003 — frames > entities > style, capped at provider limit.
 
-### REQ-GEN-010 — Async video delivery → storage → ready
-- **Status:** PROPOSED · **Stage:** P1 · **Source:** BR-GEN-004 — provider URI polling, download to object storage, then asset `ready`. Real-API path; mock path covered by REQ-GEN-015.
+### REQ-GEN-010 — Provider abstraction: real path → storage → ready
+- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Source:** BR-GEN-004
+- **Statement:** The executor calls a `GenProvider` port (mock, stub, or Gemini); provider media bytes land in object storage as ready assets with billed cost from the price table. The concrete Omni video adapter ships after the OQ-101/102 paid spike; Gemini text+image adapters ship now.
+- **Acceptance criteria:**
+  - GIVEN a stub provider WHEN a frame executes THEN its bytes are stored, asset `ready`, cost = image price (billed).
+  - GIVEN a stub provider returning a 6.5s video THEN cost_usd = 0.65 and the asset carries the returned duration.
+  - GIVEN no provider override THEN MOCK_GEN=1 selects the mock provider; otherwise the Gemini adapter (requires GEMINI_API_KEY).
 
 ### REQ-GEN-011 — Per-org video concurrency cap
 - **Status:** PROPOSED · **Stage:** P2 · **Source:** BR-GEN-005 — `config.gen.maxConcurrentVideoPerOrg`, FIFO overflow.

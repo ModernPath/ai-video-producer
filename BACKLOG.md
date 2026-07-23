@@ -74,3 +74,9 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 ## 2026-07-23 — Build loop iteration 8
 **Done:** Animatic (REQ-ASM-009) unit+browser verified; batch missing-frames action; SubmitButton pending states (papercut #1 fixed); duplicate project archived (papercut #2 mitigated — idempotent create still open).
 **Next:** REQ-GEN-010 real Gemini provider path (stub-injected tests; browser demo needs GEMINI_API_KEY from user) · remaining: idempotent createProject, worker extraction, review queue 19 IN_REVIEW.
+
+## 2026-07-23 — Build loop iteration 9
+**Done:** GenProvider port + real Gemini text/image adapter (REQ-GEN-006/010 IN_REVIEW, stub-tested; UI regression green). Omni video adapter = OQ-101/102 spike, cleanly gated.
+**Blocked on user input:** (1) GEMINI_API_KEY to light up real generation; (2) approval to spend ~$1–2 on the Omni/end-frame/duration spikes (OQ-101/102/104).
+**Inbox additions:** per-shot Frame/Take buttons still raw — convert to SubmitButton (pre-hydration papercut recurred).
+**Next:** worker extraction (apps/worker + pg-boss) or take-selection UX polish; review queue 21 IN_REVIEW.
