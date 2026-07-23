@@ -1,5 +1,14 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 32: ARCHETYPE EVAL #5 — Product launch ($1.55)
+**Done:** "The Can, Considered" — recipe delivered: 5 shots (4 macro/context product beats + Brand Resolve end card), match-cut-flavored titles ("Texture & Form", "The Mark", "The Break & Pour"); archetype default flipped audio to MIX; two real macro takes (can texture, tab crack) with native Veo SFX preserved under the ducked Lyria bed (aac amix confirmed by probe); highlightWord passthrough shipped this slice and used in-recipe — end card renders "KAIJU" with the completed golden highlight sweep. Export 3-ready, shared. $1.55; today ≈ $9.5/$20.
+**Taste review:** structure ✓ · one-idea ✓ (each macro one texture/action) · continuity ✓ (product in every filmed shot) · contrast ✓ (macro/context alternation planned) · cuts-on-music ◐ (precise/percussive brief; sync not applied — minimal sections) · end-held-frame ✓ (highlighted brand card). FINDING: label micro-text garbling recurred on the tightest macro (known from eval #2, mitigation still queued) — no NEW defects.
+**Decisions:** archived after review.
+**Deferred:** eval #6 (character-story — the last); label-fidelity mitigation now twice-observed, promote next.
+**Discovered:** mix mode + Veo native SFX is convincing — the tab-crack survives under the bed exactly as the recipe intended.
+**Follow-ups:** eval #6, then close the eval clause on the directing epic.
+**Gate:** export succeeded; suite green at last run.
+
 ## 2026-07-23 — slice 31: ARCHETYPE EVAL #4 — Cinematic mood film ($1.95)
 **Done:** "First Light at the Harbor" — recipe followed unaided: 4×8s filmed shots, zero graphic shots, patient single-idea compositions (mist, rope dew, departure, horizon hold). Two real 8s Veo takes (first 8s takes ever — old cap couldn't afford them): the departure and the closer; ANM-002 lower-third overlay applied to the closer IN-RECIPE ("lower-third only in the final shot") — first eval exercising overlays. Sparse ambient Lyria first-try. Export (2-shot 16s mood cut), shared. Frame proof: the closer — lone boat silhouetted on golden misty water, sun rays, title lower-third bottom-left — the strongest single image the system has produced.
 **Taste review:** structure ✓ (calm build to departure) · one-idea ✓ (textbook: each shot one texture) · continuity ✓ (harbor world) · contrast ✓ (macro rope vs wide water) · cuts-on-music ◐ (ambient brief has no hard sections; sync not meaningful here — archetype-appropriate) · end-held-frame ✓✓ (8s golden hold + quiet lower-third; the principle at its best). NO new defects — first clean eval.

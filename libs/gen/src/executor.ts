@@ -168,6 +168,7 @@ async function processGenerationRow(
           template: (anmInput.template === "kinetic" ? "kinetic" : "title"),
           text: anmInput.text ?? anmInput.customPrompt ?? "",
           subtext: (anmInput as { subtext?: string }).subtext,
+          highlightWord: (anmInput as { highlightWord?: string }).highlightWord,
           durationS: anmInput.durationSeconds ?? 4,
           aspectRatio,
         });
