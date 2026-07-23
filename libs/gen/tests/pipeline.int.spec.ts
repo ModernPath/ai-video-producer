@@ -59,7 +59,7 @@ describe("GEN pipeline: enqueue -> execute (mock) -> asset", () => {
   });
 
   it("REQ-GEN-015 + 002 + 003: mock executor completes with new ready asset and zero cost", async () => {
-    const result = await runNextGeneration(db);
+    const result = await runNextGeneration(db, { organizationId: orgId });
     expect(result?.status).toBe("succeeded");
     const [row] = await db.select().from(generation).where(eq(generation.id, result!.generationId));
     expect(row?.costUsd).toBe("0.0000");
@@ -73,7 +73,7 @@ describe("GEN pipeline: enqueue -> execute (mock) -> asset", () => {
   it("REQ-GEN-002: regeneration creates a second asset, first untouched", async () => {
     const firstAssets = await db.select().from(asset).where(eq(asset.organizationId, orgId));
     await enqueueGeneration(db, takeInput());
-    await runNextGeneration(db);
+    await runNextGeneration(db, { organizationId: orgId });
     const after = await db.select().from(asset).where(eq(asset.organizationId, orgId));
     expect(after.length).toBe(firstAssets.length + 1);
     expect(after.map((a) => a.id)).toEqual(expect.arrayContaining(firstAssets.map((a) => a.id)));

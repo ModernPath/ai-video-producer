@@ -1,10 +1,12 @@
 // REQ-GEN-015 (mock path) + REQ-GEN-002 (new immutable asset) + REQ-GEN-003 (cost on completion).
 // Real provider path lands with REQ-GEN-010.
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import { asset } from "@avd/ast/schema";
+import { assetKey, putObject } from "@avd/ast/storage";
 import { computeCostUsd } from "./cost";
+import { fixtureMp4, fixtureSvg } from "./fixtures";
 import { generation } from "./schema";
 import { mockEnabled } from "./service";
 
@@ -15,12 +17,15 @@ export interface RunResult {
   status: "succeeded" | "failed";
 }
 
-/** Claims the oldest queued generation and executes it. Returns null when the queue is empty. */
-export async function runNextGeneration(db: Db): Promise<RunResult | null> {
+/** Claims the oldest queued generation (optionally scoped to an org) and executes it. Returns null when the queue is empty. */
+export async function runNextGeneration(db: Db, opts: { organizationId?: string } = {}): Promise<RunResult | null> {
+  const scope = opts.organizationId
+    ? and(eq(generation.status, "queued"), eq(generation.organizationId, opts.organizationId))
+    : eq(generation.status, "queued");
   const [next] = await db
     .select()
     .from(generation)
-    .where(eq(generation.status, "queued"))
+    .where(scope)
     .orderBy(asc(generation.createdAt))
     .limit(1);
   if (!next) return null;
@@ -41,7 +46,17 @@ export async function runNextGeneration(db: Db): Promise<RunResult | null> {
   const kind = next.kind as keyof typeof assetKindFor;
   const mediaKind = assetKindFor[kind] ?? "image";
   const params = next.params as { durationSeconds?: number };
+  const snapshot = next.promptSnapshot as { input?: { aspectRatio?: "16:9" | "9:16" } };
   const assetId = uuidv7();
+
+  // REQ-AST-002: mock outputs are real media bytes in object storage.
+  const isVideo = mediaKind === "video";
+  const bytes = isVideo
+    ? fixtureMp4()
+    : fixtureSvg(assetId, `${next.kind} · ${assetId.slice(-6)} · mock`, snapshot.input?.aspectRatio ?? "16:9");
+  const mime = isVideo ? "video/mp4" : "image/svg+xml";
+  const key = assetKey(next.organizationId, next.projectId, assetId, isVideo ? "mp4" : "svg");
+  await putObject(key, bytes, mime);
 
   await db.insert(asset).values({
     id: assetId,
@@ -50,9 +65,10 @@ export async function runNextGeneration(db: Db): Promise<RunResult | null> {
     kind: mediaKind,
     source: "generated",
     status: "ready",
-    storageKey: `fixture://${mediaKind}/${assetId}`, // real object storage lands with AST slice
-    mime: mediaKind === "video" ? "video/mp4" : "image/png",
-    durationS: mediaKind === "video" ? String(params.durationSeconds ?? 0) : null,
+    storageKey: key,
+    mime,
+    bytes: bytes.byteLength,
+    durationS: isVideo ? String(params.durationSeconds ?? 0) : null,
     generationId: next.id,
   });
 

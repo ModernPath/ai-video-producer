@@ -55,3 +55,7 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 **Done:** STB ledger seeded + slice 1 (REQ-STB-001..004 IN_REVIEW); web UI golden thread browser-verified (create project → shot → frame → take → selections; mock $0 cost).
 **Inbox additions:** (1) extract dev-inline queue drain into apps/worker with pg-boss (owner: GEN/ASM enabler). (2) red-first discipline slipped in STB slice — process learning noted in STB LOG.
 **Next:** ASM slice (snapshot + concat stub) or AST storage so tiles render real fixture bytes; then reorder + PROGRESS.md refresh.
+
+## 2026-07-23 — Build loop iteration 5
+**Done:** AST ledger seeded + slice 1 (storage adapter, real fixture bytes, asset serving) — red-first honored; browser-verified image + playable video. Executor org-scoping fixes parallel-test race.
+**Next:** ASM slice — storyboard snapshot + ffmpeg concat in dockerized step → downloadable export; then PROGRESS.md refresh + review queue (13 REQs IN_REVIEW).

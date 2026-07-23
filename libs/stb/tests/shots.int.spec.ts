@@ -61,8 +61,8 @@ describe("STB golden-thread slice (REQ-STB-001..004)", () => {
     const shotId = rows[0]!.id;
     const genFrame = await requestFrame(db, { shotId, slot: "start", principal: "user:test", aspectRatio: "16:9" });
     const genTake = await requestTake(db, { shotId, principal: "user:test", aspectRatio: "16:9" });
-    await runNextGeneration(db);
-    await runNextGeneration(db);
+    await runNextGeneration(db, { organizationId: orgId });
+    await runNextGeneration(db, { organizationId: orgId });
     const f = await materializeGenerationOutput(db, genFrame);
     const t = await materializeGenerationOutput(db, genTake);
     expect(f?.kind).toBe("frame");

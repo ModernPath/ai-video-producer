@@ -17,18 +17,22 @@ const btn: React.CSSProperties = { background: "var(--panel-2, #1e232d)", border
 const btnPrimary: React.CSSProperties = { ...btn, background: "var(--accent)", border: "1px solid var(--accent)", color: "#12151b" };
 const input: React.CSSProperties = { background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 7, padding: "7px 9px", color: "var(--ink)", fontSize: 12 };
 
-function Tile({ label, selected, video }: { label: string; selected: boolean; video?: boolean }) {
+function Tile({ label, selected, assetId, video }: { label: string; selected: boolean; assetId: string; video?: boolean }) {
   return (
     <div
       style={{
-        width: 128, aspectRatio: "16/9", borderRadius: 7, position: "relative",
+        width: video ? 192 : 128, aspectRatio: "16/9", borderRadius: 7, position: "relative",
+        overflow: "hidden", background: "#0a0c10",
         border: selected ? "2px solid var(--accent)" : "1px solid var(--line)",
-        background: video
-          ? "linear-gradient(115deg,#0b2740 0%,#0e7f8f 45%,#e94fa1 100%)"
-          : "linear-gradient(160deg,#2b3a67 0%,#7a4b8f 45%,#e0763a 100%)",
       }}
     >
-      <span className="mono" style={{ position: "absolute", left: 5, bottom: 5, fontSize: 9, background: "rgba(10,12,16,.8)", borderRadius: 4, padding: "1px 5px" }}>
+      {video ? (
+        <video src={`/api/assets/${assetId}`} muted playsInline preload="metadata" controls style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={`/api/assets/${assetId}`} alt={label} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      )}
+      <span className="mono" style={{ position: "absolute", left: 5, top: 5, fontSize: 9, background: "rgba(10,12,16,.8)", borderRadius: 4, padding: "1px 5px" }}>
         {label}
       </span>
       {selected && (
@@ -103,7 +107,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                         <input type="hidden" name="shotId" value={s.id} />
                         <input type="hidden" name="frameCandidateId" value={f.id} />
                         <button type="submit" style={{ all: "unset", cursor: "pointer" }} title="Select frame">
-                          <Tile label={`frame ${f.id.slice(-4)}`} selected={s.selectedStartFrameId === f.id} />
+                          <Tile label={`frame ${f.id.slice(-4)}`} selected={s.selectedStartFrameId === f.id} assetId={f.imageAssetId} />
                         </button>
                       </form>
                     ))}
@@ -119,14 +123,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                   <p className="mono muted" style={{ fontSize: 10, marginBottom: 6 }}>TAKES</p>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {cands.takes.map((t) => (
-                      <form key={t.id} action={selectTakeAction}>
-                        <input type="hidden" name="projectId" value={id} />
-                        <input type="hidden" name="shotId" value={s.id} />
-                        <input type="hidden" name="takeId" value={t.id} />
-                        <button type="submit" style={{ all: "unset", cursor: "pointer" }} title="Select take">
-                          <Tile video label={`take ${t.id.slice(-4)} · ${t.durationActualS ?? s.durationS}s`} selected={s.selectedTakeId === t.id} />
-                        </button>
-                      </form>
+                      <div key={t.id} style={{ display: "grid", gap: 5, justifyItems: "start" }}>
+                        <Tile video label={`take ${t.id.slice(-4)} · ${t.durationActualS ?? s.durationS}s`} selected={s.selectedTakeId === t.id} assetId={t.videoAssetId} />
+                        {s.selectedTakeId !== t.id && (
+                          <form action={selectTakeAction}>
+                            <input type="hidden" name="projectId" value={id} />
+                            <input type="hidden" name="shotId" value={s.id} />
+                            <input type="hidden" name="takeId" value={t.id} />
+                            <button type="submit" style={{ ...btn, padding: "3px 9px", fontSize: 11 }}>Select take</button>
+                          </form>
+                        )}
+                      </div>
                     ))}
                     <form action={generateTakeAction}>
                       <input type="hidden" name="projectId" value={id} />
