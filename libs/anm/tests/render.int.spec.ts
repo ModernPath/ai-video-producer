@@ -20,3 +20,15 @@ describe.skipIf(!enabled)("REQ-ANM-002: transparent lower-third render", () => {
     expect(out.bytes.length).toBeGreaterThan(5_000);
   }, 300_000);
 });
+
+describe.skipIf(!enabled)("REQ-ANM-004: effects compose into TitleCard", () => {
+  it("renders with light leaks, grain, and a highlighted word", async () => {
+    const out = await renderAnimation({
+      template: "title", text: "KAIJU wakes the city", durationS: 4, aspectRatio: "16:9",
+      // @ts-expect-error extra props flow through inputProps
+      highlightWord: "KAIJU",
+    });
+    expect(out.mime).toBe("video/mp4");
+    expect(out.bytes.length).toBeGreaterThan(10_000);
+  }, 300_000);
+});

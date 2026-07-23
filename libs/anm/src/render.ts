@@ -10,6 +10,8 @@ export interface AnimationInput {
   subtext?: string | undefined;
   durationS: number;
   aspectRatio: "16:9" | "9:16";
+  /** REQ-ANM-004: effect/extra props forwarded to the composition (e.g. highlightWord, lightLeak, grain). */
+  [extra: string]: unknown;
 }
 
 let bundlePromise: Promise<string> | null = null;
@@ -27,12 +29,8 @@ async function getBundle(): Promise<string> {
 export async function renderAnimation(input: AnimationInput): Promise<{ bytes: Uint8Array; mime: string; durationS: number }> {
   const { renderMedia, selectComposition } = await import("@remotion/renderer");
   const serveUrl = await getBundle();
-  const inputProps = {
-    text: input.text,
-    subtext: input.subtext,
-    durationS: input.durationS,
-    aspectRatio: input.aspectRatio,
-  };
+  const { template: _t, ...rest } = input;
+  const inputProps = { ...rest };
   const transparent = input.template === "lower-third"; // REQ-ANM-002: alpha webm for compositing
   const composition = await selectComposition({
     serveUrl,

@@ -1,5 +1,13 @@
 # ANM — Build Log
 
+## 2026-07-23 — REQ-ANM-004 effects library, first slice (→ IN_REVIEW)
+**Done:** src/effects.tsx — LightLeaks (two noise2D-driven radial glows, screen blend, accent-tinted), FilmGrain (feTurbulence, 7-seed shimmer, 0.07 opacity), Highlight (animated sweep behind a word, text-highlights pattern). TitleCard composes them (defaults on, overridable) + highlightWord; render.ts forwards arbitrary effect props. Gated render 3/3; visual frame proof: leaks + grain + completed KAIJU highlight sweep.
+**Decisions:** effect defaults ON for title (tasteful film look, pairs with Golden Hour) — overridable per render; effects are components, props only.
+**Deferred:** transforms suite, html-in-canvas, LowerThird effects (stay under ANM-004 before DONE).
+**Discovered:** —
+**Follow-ups:** —
+**Gate:** full suite green; RUN_RENDER 3/3.
+
 ## 2026-07-23 — REQ-ANM-002 overlays on generated takes (→ IN_REVIEW)
 **Done:** LowerThird transparent template (spring slide-in, accent bar, fade-out) rendered as alpha VP8 webm (imageFormat png + yuva420p); compositeOverlay via dockerized ffmpeg (libvpx decode preserves alpha; scale2ref sizes overlay to base; audio passthrough); executor overlay path (source bytes via editSourceAssetId ref); STB requestAnimationOverlay → new take with retake_of lineage; per-take "overlay text… ✦" UI. Real E2E: composited onto Aurora's real Veo pour shot — extracted frame shows the animated lower-third over the footage.
 **Decisions:** overlay output is a NEW take (original preserved, A/B-comparable with its source via the existing lineage machinery).
