@@ -140,7 +140,7 @@ async function processGenerationRow(
       storageKey: key,
       mime: media.mime,
       bytes: media.bytes.byteLength,
-      durationS: isVideo ? String((media as { durationS: number }).durationS) : null,
+      durationS: isVideo ? String((media as unknown as { durationS: number }).durationS) : null,
       generationId: next.id, // INV-GEN-002: new immutable asset per generation
       editOf: next.kind === "image_edit" ? snapshot.refs?.editSourceAssetId ?? null : null, // lineage
     });
@@ -150,8 +150,8 @@ async function processGenerationRow(
       .set({
         status: "succeeded",
         costUsd: computeCostUsd(next.kind, {
-          durationSeconds: isVideo ? (media as { durationS: number }).durationS : undefined,
-          quality: params.quality,
+          ...(isVideo ? { durationSeconds: (media as unknown as { durationS: number }).durationS } : {}),
+          ...(params.quality ? { quality: params.quality } : {}),
           mock: !provider.billsCost,
         }).toFixed(4), // INV-GEN-003
         outputAssetIds: [assetId],

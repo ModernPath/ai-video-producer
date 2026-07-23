@@ -20,11 +20,11 @@ export interface EnqueueInput {
   kind: GenerationKind;
   commandId: string;
   target: Record<string, unknown>;
-  quality?: FrameQuality;
-  promptInput?: TakePromptInput;   // media kinds
-  textInput?: TextPromptInput;     // script / shot_plan / music_brief kinds
-  refs?: { startFrameAssetId?: string; entityRefAssetIds?: string[]; editSourceAssetId?: string }; // REQ-GEN-009/012 + REQ-AST-006
-  editInput?: EditPromptInput; // image_edit kinds
+  quality?: FrameQuality | undefined;
+  promptInput?: TakePromptInput | undefined;   // media kinds
+  textInput?: TextPromptInput | undefined;     // script / shot_plan / music_brief kinds
+  refs?: { startFrameAssetId?: string; entityRefAssetIds?: string[]; editSourceAssetId?: string } | undefined; // REQ-GEN-009/012 + REQ-AST-006
+  editInput?: EditPromptInput | undefined; // image_edit kinds
 }
 
 export class GenConfigError extends Error {}

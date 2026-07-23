@@ -46,12 +46,20 @@ export interface TextPromptInput {
   targetDurationSeconds: number;
   scriptText?: string | undefined;   // for shot_plan / revise
   instruction?: string | undefined;  // for revise
+  entities?: EntityBlock[] | undefined; // REQ-STB-012: cast context for script/plan/music
+}
+
+function castBlock(entities?: EntityBlock[]): string[] {
+  if (!entities?.length) return [];
+  return entities.map((e) => `CAST: [${e.kind}] ${e.name} — ${e.description}`);
 }
 
 export function assembleScriptPrompt(i: TextPromptInput): string {
   return [
     `TASK: Write a video script for a ${i.targetDurationSeconds}-second video titled "${i.projectTitle}".`,
     `BRIEF: ${JSON.stringify(i.brief)}`,
+    ...castBlock(i.entities),
+    i.entities?.length ? `Feature the cast naturally where it strengthens the story.` : "",
     i.instruction ? `INSTRUCTION: ${i.instruction}` : "",
     i.scriptText ? `CURRENT SCRIPT:\n${i.scriptText}` : "",
   ].filter(Boolean).join("\n");
@@ -60,9 +68,12 @@ export function assembleScriptPrompt(i: TextPromptInput): string {
 export function assembleShotPlanPrompt(i: TextPromptInput): string {
   return [
     `TASK: Break the script into 4–10 second shots (structured output) totaling ≈${i.targetDurationSeconds}s.`,
+    `Each shot's direction is a ready image prompt: concrete subject, action, camera, mood.`,
     `BRIEF: ${JSON.stringify(i.brief)}`,
+    ...castBlock(i.entities),
+    i.entities?.length ? `Reference cast members by name in directions where they appear.` : "",
     `SCRIPT:\n${i.scriptText ?? ""}`,
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 }
 
 export interface EditPromptInput {

@@ -4,7 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { project } from "@avd/prj/schema";
 import { scriptVersion, shotPlanProposal } from "@avd/stb/schema";
 import { getMusicBrief } from "@avd/stb";
-import { applyPlanAction, draftScriptAction, musicBriefAction, proposePlanAction, uploadTrackAction } from "../../../actions";
+import { applyPlanAction, draftScriptAction, musicBriefAction, proposePlanAction, updateBriefAction, uploadTrackAction } from "../../../actions";
 import { LiveRefresh } from "../../../../components/LiveRefresh";
 import { db } from "../../../../lib/db";
 
@@ -53,6 +53,23 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
       </div>
 
       <section style={{ ...card, marginTop: 20 }}>
+        <form action={updateBriefAction} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <input type="hidden" name="projectId" value={id} />
+          <div style={{ flex: 1 }}>
+            <p className="mono muted" style={{ fontSize: 10, marginBottom: 6 }}>VIDEO PROMPT — feeds script, shots &amp; music (with your cast)</p>
+            <textarea
+              name="idea"
+              rows={2}
+              defaultValue={String((p.brief as Record<string, unknown>)?.idea ?? "")}
+              placeholder="e.g. a sunrise launch film for our energy drink — bold, kinetic, city waking up"
+              style={{ width: "100%", background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 7, padding: "8px 10px", color: "var(--ink)", fontSize: 12.5, resize: "vertical" }}
+            />
+          </div>
+          <button type="submit" style={{ ...btn, marginTop: 20 }}>Save prompt</button>
+        </form>
+      </section>
+
+      <section style={{ ...card, marginTop: 16 }}>
         {latest ? (
           <>
             <p className="mono muted" style={{ fontSize: 11, marginBottom: 10 }}>

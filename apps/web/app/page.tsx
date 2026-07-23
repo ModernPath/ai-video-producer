@@ -29,6 +29,11 @@ export default async function Home() {
           required
           style={{ flex: "1 1 240px", background: "var(--panel)", border: "1px solid var(--line)", borderRadius: 8, padding: "10px 12px", color: "var(--ink)", fontSize: 14 }}
         />
+        <input
+          name="idea"
+          placeholder="What's the video about? (optional prompt)"
+          style={{ flex: "2 1 280px", background: "var(--panel)", border: "1px solid var(--line)", borderRadius: 8, padding: "10px 12px", color: "var(--ink)", fontSize: 14 }}
+        />
         <select name="aspectRatio" style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: 8, padding: "10px 12px", color: "var(--ink)" }}>
           <option value="16:9">16:9</option>
           <option value="9:16">9:16</option>

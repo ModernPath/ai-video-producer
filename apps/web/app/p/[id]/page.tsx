@@ -60,10 +60,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const candidatesByShot = new Map(
     await Promise.all(shots.map(async (s) => [s.id, await listCandidates(d, s.id)] as const))
   );
-  const [{ cost }] = await d
+  const costRows = await d
     .select({ cost: sql<string>`coalesce(sum(${generation.costUsd}), 0)` })
     .from(generation)
     .where(eq(generation.projectId, id));
+  const cost = costRows[0]?.cost ?? "0";
   const recentGens = await d
     .select()
     .from(generation)

@@ -20,11 +20,11 @@ export interface DirectionJson {
   synopsis: string;
   subject: string;
   action: string;
-  camera?: string;
-  mood?: string;
-  dialogue?: string;
-  audioNotes?: string;
-  entityIds?: string[];
+  camera?: string | undefined;
+  mood?: string | undefined;
+  dialogue?: string | undefined;
+  audioNotes?: string | undefined;
+  entityIds?: string[] | undefined;
 }
 
 function assertDuration(durationS: number) {
@@ -160,6 +160,7 @@ async function getProjectOrThrow(db: Db, projectId: string) {
 
 export async function draftScript(db: Db, input: { projectId: string; principal: string; instruction?: string }) {
   const p = await getProjectOrThrow(db, input.projectId);
+  const cast = await resolveCast(db, input.projectId); // REQ-STB-012
   return enqueueGeneration(db, {
     organizationId: p.organizationId,
     projectId: p.id,
@@ -172,6 +173,7 @@ export async function draftScript(db: Db, input: { projectId: string; principal:
       brief: (p.brief ?? {}) as Record<string, unknown>,
       targetDurationSeconds: Number(p.targetDurationS),
       instruction: input.instruction,
+      entities: cast.entities,
     },
   });
 }
@@ -185,6 +187,7 @@ export async function proposeShotPlan(db: Db, input: { projectId: string; princi
   const p = await getProjectOrThrow(db, input.projectId);
   const script = await latestScript(db, input.projectId);
   if (!script) throw new StbValidationError("no_script", "Draft a script before proposing a shot plan");
+  const cast = await resolveCast(db, input.projectId); // REQ-STB-012
   return enqueueGeneration(db, {
     organizationId: p.organizationId,
     projectId: p.id,
@@ -197,6 +200,7 @@ export async function proposeShotPlan(db: Db, input: { projectId: string; princi
       brief: (p.brief ?? {}) as Record<string, unknown>,
       targetDurationSeconds: Number(p.targetDurationS),
       scriptText: script.content,
+      entities: cast.entities,
     },
   });
 }
@@ -206,6 +210,7 @@ export async function proposeShotPlan(db: Db, input: { projectId: string; princi
 export async function requestMusicBrief(db: Db, input: { projectId: string; principal: string }) {
   const p = await getProjectOrThrow(db, input.projectId);
   const script = await latestScript(db, input.projectId);
+  const cast = await resolveCast(db, input.projectId); // REQ-STB-012
   return enqueueGeneration(db, {
     organizationId: p.organizationId,
     projectId: p.id,
@@ -218,6 +223,7 @@ export async function requestMusicBrief(db: Db, input: { projectId: string; prin
       brief: (p.brief ?? {}) as Record<string, unknown>,
       targetDurationSeconds: Number(p.targetDurationS),
       scriptText: script?.content,
+      entities: cast.entities,
     },
   });
 }

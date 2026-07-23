@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,6 +15,7 @@ Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEF
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
+| REQ-STB-012 | Video prompt drives script & image prompts with cast | P2 | IN_REVIEW | USER 2026-07-23, BR-STB-001 | tests/video-prompt.int.spec.ts + browser | src/service.ts, ../gen/src/prompt.ts, web UI |
 | REQ-STB-011 | Shot plan proposal materializes and applies | P2 | IN_REVIEW | `docs/13` §6 ProposeShotPlan/ApplyShotPlan | tests/script.int.spec.ts | src/service.ts |
 
 ---
@@ -60,6 +61,16 @@ Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEF
   - GIVEN a project with a brief WHEN DraftScript completes THEN script_version v1 exists with non-empty content and generation_id.
   - GIVEN an existing v1 WHEN DraftScript again THEN v2 exists; v1 unchanged.
 - **Tests:** `tests/script.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 2)
+
+### REQ-STB-012 — Video prompt drives script & image prompts with cast
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must
+- **Raised-by:** USER 2026-07-23 ("add the prompt for video, that then gemini-3.6-flash can generate a script and ready image prompts using potentially the assets")
+- **Source:** BR-STB-001, `docs/13` §7, `docs/14` §5
+- **Statement:** The project carries an editable **video prompt** (brief). Script and shot-plan generation consume it AND the attached cast (entities as CAST blocks), so `gemini-3.6-flash` writes the script and per-shot directions — the ready image prompts — around the user's assets. The UI exposes the prompt at project creation and on the script page.
+- **Acceptance criteria:**
+  - GIVEN a video prompt and attached cast WHEN DraftScript/ProposeShotPlan enqueue THEN the stored prompt snapshot contains the prompt text and a CAST block per entity.
+  - GIVEN the script page WHEN the prompt is edited and saved THEN subsequent drafts use the new text (browser).
+- **Tests:** `tests/video-prompt.int.spec.ts` + browser E2E · **Code:** `../gen/src/prompt.ts` (CAST blocks), `src/service.ts` (cast into script/plan/music), prompt UI (create + script page) · **Log:** LOG 2026-07-23 (slice 5)
 
 ### REQ-STB-011 — Shot plan proposal materializes and applies
 - **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must

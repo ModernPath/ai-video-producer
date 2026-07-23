@@ -30,12 +30,14 @@ export async function createProjectAction(formData: FormData) {
   if (!title) return;
   const aspectRatio = formData.get("aspectRatio") === "9:16" ? "9:16" : "16:9";
   const id = uuidv7();
+  const idea = String(formData.get("idea") ?? "").trim();
   await db().insert(project).values({
     id,
     organizationId: await devOrgId(),
     title,
     aspectRatio,
     targetDurationS: String(config.project.defaultTargetDurationSeconds),
+    ...(idea ? { brief: { idea } } : {}),
   });
   redirect(`/p/${id}`);
 }
@@ -53,8 +55,8 @@ export async function createShotAction(formData: FormData) {
       synopsis: String(formData.get("synopsis") ?? ""),
       subject: String(formData.get("subject") ?? ""),
       action: String(formData.get("action") ?? ""),
-      camera: String(formData.get("camera") ?? "") || undefined,
-      mood: String(formData.get("mood") ?? "") || undefined,
+      ...(String(formData.get("camera") ?? "").trim() ? { camera: String(formData.get("camera")) } : {}),
+      ...(String(formData.get("mood") ?? "").trim() ? { mood: String(formData.get("mood")) } : {}),
     },
   });
   revalidatePath(`/p/${projectId}`);
@@ -125,8 +127,10 @@ export async function exportAction(formData: FormData) {
   const [p] = await db().select().from(project).where(eq(project.id, projectId));
   if (!p) return;
   const excludeRaw = String(formData.get("excludeShotIds") ?? "").trim();
-  const excludeShotIds = excludeRaw ? excludeRaw.split(",") : undefined;
-  const snapshotId = await createSnapshot(db(), { projectId, principal: PRINCIPAL, excludeShotIds });
+  const snapshotId = await createSnapshot(db(), {
+    projectId, principal: PRINCIPAL,
+    ...(excludeRaw ? { excludeShotIds: excludeRaw.split(",") } : {}),
+  });
   const jobId = await queueExport(db(), { projectId, snapshotId, principal: PRINCIPAL });
   const { queueMode, createBoss, EXPORT_QUEUE } = await import("@avd/shared/queue");
   if (queueMode() === "queue") {
@@ -278,4 +282,16 @@ export async function removeCandidateAction(formData: FormData) {
   if (kind === "frame") await removeFrameCandidate(db(), { frameCandidateId: String(formData.get("id")) });
   else await removeTake(db(), { takeId: String(formData.get("id")) });
   revalidatePath(`/p/${projectId}`);
+}
+
+/** REQ-STB-012: the project's video prompt (brief.idea) — drives script, plan, music, and styling. */
+export async function updateBriefAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const idea = String(formData.get("idea") ?? "").trim();
+  const [p] = await db().select().from(project).where(eq(project.id, projectId));
+  if (!p) return;
+  await db().update(project)
+    .set({ brief: { ...(p.brief as Record<string, unknown>), idea } })
+    .where(eq(project.id, projectId));
+  revalidatePath(`/p/${projectId}/script`);
 }

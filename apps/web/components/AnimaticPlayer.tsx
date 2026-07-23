@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { buildCues, cueAtTime, type AnimaticShot } from "@avd/asm/animatic";
 
-export function AnimaticPlayer({ shots, musicAssetId }: { shots: AnimaticShot[]; musicAssetId?: string | null }) {
+export function AnimaticPlayer({ shots, musicAssetId }: { shots: AnimaticShot[]; musicAssetId?: string | null | undefined }) {
   const [open, setOpen] = useState(false);
   const [t, setT] = useState(0);
   const raf = useRef<number | null>(null);
