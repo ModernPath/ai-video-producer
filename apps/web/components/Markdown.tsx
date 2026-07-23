@@ -3,6 +3,8 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 export function Markdown({ children }: { children: string }) {
+  // models emit literal <br> inside markdown table cells; react-markdown escapes raw HTML
+  const text = children.replace(/<br\s*\/?>/gi, " — ");
   return (
     <div className="md" style={{ fontSize: 13, lineHeight: 1.65, maxWidth: "70ch" }}>
       <style>{`
@@ -16,7 +18,7 @@ export function Markdown({ children }: { children: string }) {
         .md ul,.md ol{padding-left:20px;margin:6px 0}
         .md code{font-family:var(--mono);font-size:11.5px;background:var(--stage);border:1px solid var(--line);border-radius:4px;padding:0 4px}
       `}</style>
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{children}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
     </div>
   );
 }
