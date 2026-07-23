@@ -410,7 +410,7 @@ export async function selectFrame(db: Db, input: { shotId: string; frameCandidat
 
 export async function selectTake(db: Db, input: { shotId: string; takeId: string }) {
   const [t] = await db.select().from(take).where(eq(take.id, input.takeId));
-  if (!t || t.shotId !== input.shotId) throw new StbValidationError("not_found", "Take not found");
+  if (!t || t.shotId !== input.shotId) throw new StbValidationError("not_found", "Take not found"); // INV-STB-005
   const [a] = await db.select().from(asset).where(eq(asset.id, t.videoAssetId));
   if (a?.status !== "ready") throw new StbValidationError("asset_not_ready", "Take video is not ready yet"); // INV-STB-004
   await db.update(shot).set({ selectedTakeId: t.id }).where(eq(shot.id, input.shotId)); // INV-STB-003

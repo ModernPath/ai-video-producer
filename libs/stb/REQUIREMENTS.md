@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 18 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 19 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -9,7 +9,7 @@ Totals: 0 DONE · 18 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 | REQ-STB-002 | Shots hold a strict total order | P1 | IN_REVIEW | INV-STB-002 | tests/shots.int.spec.ts | src/service.ts |
 | REQ-STB-003 | Single selection per slot / take | P1 | IN_REVIEW | INV-STB-003 | tests/shots.int.spec.ts | src/service.ts |
 | REQ-STB-004 | Take selectable only when asset ready | P1 | IN_REVIEW | INV-STB-004 | tests/shots.int.spec.ts | src/service.ts |
-| REQ-STB-005 | Take belongs to its shot, never moved | P2 | PROPOSED | INV-STB-005 | — | — |
+| REQ-STB-005 | Take belongs to its shot, never moved | P2 | IN_REVIEW | INV-STB-005 | tests/take-binding.int.spec.ts | selectTake guard (// INV-STB-005), no move API |
 | REQ-STB-006 | Frame re-selection keeps takes + provenance | P2 | IN_REVIEW | INV-STB-006 | tests/frame-reselect.int.spec.ts | takeProvenance, 'from older frame' badge (page.tsx) |
 | REQ-STB-007 | Shot-plan apply replaces unpaid, protects takes | P2 | IN_REVIEW | INV-STB-007, BR-STB-005 | tests/replan-protect.int.spec.ts + browser E2E | applyShotPlan (replace arm), apply-button hint |
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
@@ -211,4 +211,13 @@ Totals: 0 DONE · 18 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 - **Tests:** `tests/replan-protect.int.spec.ts` · browser E2E (Replan Test project: 5 → replaced by 4, no stacking) · **Code:** `src/service.ts` (applyShotPlan), script page hint · **Log:** LOG 2026-07-23 (slice 14)
 - **Deferred / notes:** full selective diff UI (per-shot toggle before apply) deferred — this replace-unpaid MVP covers the stacking pain; frames on unpaid shots are accepted losses (cheap), takes are the protected asset.
 
-*(PROPOSED block 005: statement lives in `docs/13-storyboard.md`; elaborate when promoted.)*
+### REQ-STB-005 — Take belongs to its shot, never moved
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** should · **Owner:** —
+- **Raised-by:** seeded from `docs/13-storyboard.md`; promoted this slice
+- **Source:** INV-STB-005
+- **Statement:** A take is permanently bound to the shot it was generated for: cross-shot addressing is rejected and the service surface exposes no operation that mutates a take's shot binding.
+- **Acceptance criteria:**
+  - GIVEN a take on shot A WHEN selected through shot B THEN rejected `not_found`; through shot A THEN selected.
+  - GIVEN the STB service surface THEN no move/reassign/transfer operation exists.
+- **Tests:** `tests/take-binding.int.spec.ts` · **Code:** `src/service.ts` selectTake (`// INV-STB-005`) · **Log:** LOG 2026-07-23
+- **Deferred / notes:** —

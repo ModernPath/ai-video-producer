@@ -1,5 +1,13 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 15: real-ring pass post-v3 + REQ-STB-005 (→ IN_REVIEW)
+**Done:** DoD §9.8 real-API ring green after prompt v3 + fence-strip changes (real text, draft image, image edit — ≈$0.04); REQ-STB-005 enforcement test (cross-shot take addressing rejected, no move API on the surface) + INV-STB-005 annotation on selectTake.
+**Decisions:** —
+**Deferred:** —
+**Discovered:** ASM ffmpeg int tests flake under full-suite contention (docker), pass in isolation — acceptable for now, note if it recurs.
+**Follow-ups:** —
+**Gate:** full suite green (106 passed); real ring 3/3.
+
 ## 2026-07-23 — slice 14: REQ-STB-007 re-plan replaces unpaid shots (→ IN_REVIEW)
 **Done:** red-first (plans provably stacked): applyShotPlan now soft-removes take-less shots before appending the plan; shots with takes preserved (INV-STB-007). Apply buttons carry the behavior hint. Browser E2E on scratch project "Replan Test": brief → real script → real 5-shot plan → apply → re-plan (4 shots) → apply → old 5 soft-deleted, 4 live, zero stacking. Scratch project archived after.
 **Decisions:** replace-unpaid MVP instead of full diff UI; frames on replaced shots are accepted losses (cheap), takes are the protected asset.
