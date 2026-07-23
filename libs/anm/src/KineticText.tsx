@@ -23,6 +23,9 @@ export const KineticText: React.FC<KineticTextProps> = ({
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
   const words = text.split(/\s+/).filter(Boolean);
+  // Eval finding (hype-countdown): short text must PUNCH — scale up as content shrinks.
+  const totalChars = words.join("").length;
+  const fontSize = totalChars <= 2 ? 420 : totalChars <= 6 ? 220 : totalChars <= 14 ? 130 : 84;
   const perWord = Math.max(6, Math.floor((durationInFrames * 0.6) / Math.max(words.length, 1)));
   const fadeOut = interpolate(frame, [durationInFrames - fps / 2, durationInFrames - 1], [1, 0], {
     extrapolateLeft: "clamp", extrapolateRight: "clamp",
@@ -43,7 +46,7 @@ export const KineticText: React.FC<KineticTextProps> = ({
             <span key={i} style={{
               display: "inline-block", transform, opacity: pop,
               color: i % 3 === 2 ? accent : "#f2ede3",
-              fontSize: 84, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em",
+              fontSize, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em",
             }}>
               {w}
             </span>

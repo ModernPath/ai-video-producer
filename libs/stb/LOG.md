@@ -1,5 +1,14 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 26: ARCHETYPE EVAL #1 — Hype countdown ($0.83) + three taste fixes
+**Done:** first docs/87 eval render, full path on "EVAL Hype Countdown": archetype plan came out EXACTLY per recipe (filmed beats alternating kinetic 3-2-1 interstitials, all 4s, reveal, end card — zero manual intervention); 4 real frames, real Veo reveal take (can slamming into rain-soaked neon street), free animations, Lyria (first brief POLICY-BLOCKED on "aggressive/industrial" vocabulary), export + share.
+**Taste review vs the six principles:** structure ✓ (countdown arc is inherent); one-idea-per-shot ✓; continuity ✓ (can in every filmed shot); contrast cuts ✓ (filmed/graphic alternation is the archetype's core); land-cuts-on-music — untested (transcript exists but sync panel not applied this run); end-held-frame ✓ (end card). DEFECTS FOUND & FIXED: (1) Veo burned a timecode overlay into the reveal → auto video prompts now forbid on-screen text/timestamps/UI (v3 guideline, red-tested); (2) countdown digits rendered small/quiet → KineticText now scales font by content length (single digit = 420px, fills frame — re-rendered & re-exported, frame-verified); (3) requestAnimationTake silently dropped the template param (earlier replace never landed) → fixed, template now in snapshots.
+**Decisions:** Lyria vocabulary guideline added to the music-brief prompt (describe energy positively) — second policy block avoided on regenerate.
+**Deferred:** regenerating the reveal take without the timecode ($0.40) — the fix applies to all future takes; remaining 5 archetype evals (fresh daily headroom).
+**Discovered:** the archetype planBias is powerful — the model followed "alternate filmed beats with kinetic-text number interstitials" literally and well.
+**Follow-ups:** evals #2–6; apply music-sync during evals.
+**Gate:** full suite green (130 passed); final export succeeded; today's spend ≈ $4.4/$5 cap.
+
 ## 2026-07-23 — slice 25: REQ-STB-027 + 028 (→ IN_REVIEW)
 **Done:** archetype defaults (audioMixMode per recipe) applied on selection — E2E: product-launch flipped Aurora to mix, restored to brand-pulse/music. Music-led planning: plan prompt gains the TRANSCRIPT block (align boundaries to [MM:SS] sections; lyric lines into animation-shot text) whenever a transcript exists — red-first prompt tests + live snapshot E2E (transcript + DIRECTING co-present). The full docs/87 loop is now wired: archetype shapes script/plan/music; transcript shapes the plan; music-sync shapes durations; animation shots carry type.
 **Decisions:** lyrics-FIRST one-click orchestration deferred until the manual sequence proves clumsy.

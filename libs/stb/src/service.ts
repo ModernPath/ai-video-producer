@@ -195,6 +195,7 @@ export async function requestAnimationTake(
       aspectRatio: input.aspectRatio,
       durationSeconds: Number(s.durationS),
       entities: [],
+      template: input.template ?? "title", // REQ-ANM-004 (eval fix: was silently dropped)
       customPrompt: input.text.trim(),
       direction: { synopsis: input.text.trim(), subject: "title card", action: "animated text" },
     },

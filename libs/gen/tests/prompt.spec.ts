@@ -55,6 +55,7 @@ describe("REQ-GEN-013 v3: model prompt guidelines (USER 2026-07-23 Omni/Nano Ban
     const p = assembleTakePrompt(base);
     expect(p).toMatch(/single continuous shot/i);
     expect(p).toMatch(/no scene cuts/i);
+    expect(p).toMatch(/No on-screen text, timestamps/);
     expect(p).toMatch(/no dialogue/i);
   });
 

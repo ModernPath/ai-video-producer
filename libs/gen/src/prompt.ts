@@ -52,7 +52,7 @@ export function assembleTakePrompt(i: TakePromptInput): string {
   for (const e of i.entities) parts.push(sentence(`Featuring ${e.name}, ${e.description}`));
   if (i.stylePrompt) parts.push(sentence(i.stylePrompt));
   // v3 guideline: our takes are single shots — pin it so the model doesn't invent cuts.
-  parts.push(`A single continuous shot, no scene cuts.`);
+  parts.push(`A single continuous shot, no scene cuts. No on-screen text, timestamps, or interface graphics.`);
   if (d.dialogue) parts.push(sentence(`Spoken line: "${d.dialogue}"`));
   if (d.audioNotes) parts.push(sentence(`Sound design: ${d.audioNotes}`));
   if (!d.dialogue && !d.audioNotes) parts.push(`No dialogue; natural ambient sound only.`);
@@ -115,6 +115,7 @@ export function assembleMusicBriefPrompt(i: TextPromptInput): string {
     `Cover: genre, mood, tempo/BPM, instrumentation, energy arc over the ${i.targetDurationSeconds}s (intro/build/peak/outro), and whether vocals or instrumental.`,
     `Keep it as one paste-ready prompt paragraph followed by an optional short style-tags line.`,
     i.musicBias ?? "",
+    `Vocabulary: describe energy positively (electric, driving, punchy, soaring) — avoid aggressive/violent/combat wording; music models block briefs containing it.`,
     `Unless you choose instrumental, ALSO write the full timed lyrics for the song using section tags like [Verse], [Chorus], [Bridge] — sized to fit the duration. If instrumental, state "Instrumental — no lyrics".`,
     `BRIEF: ${JSON.stringify(i.brief)}`,
     i.scriptText ? `THE VIDEO IT ACCOMPANIES (for mood reference only):\n${i.scriptText}` : "",
