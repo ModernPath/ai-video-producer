@@ -1,6 +1,6 @@
 // REQ-GEN-002/003/006/010/011/015 — provider-agnostic executor: claim → provider call →
 // storage/output → cost → terminal status. Providers: mock (fixtures), gemini, test stubs.
-import { and, asc, count, eq, inArray } from "drizzle-orm";
+import { and, asc, count, eq, inArray, lt } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import { config, providerLimits } from "@avd/shared/config";
@@ -60,6 +60,7 @@ export async function runNextGeneration(
   db: Db,
   opts: { organizationId?: string; provider?: GenProvider } = {}
 ): Promise<RunResult | null> {
+  await reapStaleGenerations(db); // REQ-GEN-022: recover orphans before claiming
   const scope = opts.organizationId
     ? and(eq(generation.status, "queued"), eq(generation.organizationId, opts.organizationId))
     : eq(generation.status, "queued");
@@ -77,6 +78,25 @@ export async function runNextGeneration(
     return processGenerationRow(db, next, opts.provider);
   }
   return null;
+}
+
+/** REQ-GEN-022: fail rows stuck in `running` past the stale window — a crashed executor
+ * otherwise leaves them occupying concurrency slots and spinning in the UI forever. */
+export async function reapStaleGenerations(db: Db): Promise<number> {
+  const cutoff = new Date(Date.now() - config.gen.staleRunningMinutes * 60_000);
+  const stale = await db
+    .select({ id: generation.id })
+    .from(generation)
+    .where(and(eq(generation.status, "running"), lt(generation.startedAt, cutoff)));
+  for (const s of stale) {
+    await db.update(generation).set({
+      status: "failed",
+      errorCode: "orphaned",
+      errorDetail: `Generation ran past ${config.gen.staleRunningMinutes} minutes without finishing — the process running it likely died. Retry to regenerate.`,
+      finishedAt: new Date(),
+    }).where(and(eq(generation.id, s.id), eq(generation.status, "running")));
+  }
+  return stale.length;
 }
 
 /** Executes a specific generation by id (worker path, REQ-GEN-016). */

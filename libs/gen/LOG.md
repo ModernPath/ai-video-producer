@@ -1,5 +1,11 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-23 — REQ-GEN-022 stale-running reaper (→ IN_REVIEW)
+**Done:** console/health sweep found a take stuck `running` for 5h on the user's project (orphaned by a dev-server restart mid-execution) — occupying a BR-GEN-005 video slot and spinning in the UI. Red-first reapStaleGenerations (config 30min window, claim-time invocation, fresh/queued untouched); the real orphan reaped via the shipped function — now failed/orphaned with a retry hint visible in the UI.
+**Decisions:** claim-time reaping (no scheduler needed); no provider-side cancel at this scale (noted).
+**Deferred:** — **Discovered:** — **Follow-ups:** —
+**Gate:** full suite green (134); tsc clean.
+
 ## 2026-07-23 — verification tick: rings green after label-guidance prompt change
 **Done:** DoD §9.8 re-run after the frame-prompt change (label fidelity): real ring 3/3 (text, draft image full-pipeline, image edit with lineage — ≈$0.04); Remotion render ring 4/4 (title, alpha lower-third, effects, kinetic); full suite 133; web tsc clean. No drift.
 **Decisions:** — **Deferred:** — **Discovered:** — **Follow-ups:** —

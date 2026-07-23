@@ -19,6 +19,7 @@ export const config = {
   gen: {
     maxConcurrentVideoPerOrg: 3, // BR-GEN-005
     retryAttempts: 3,
+    staleRunningMinutes: 30, // REQ-GEN-022: running longer than this = orphaned (crash mid-run)
     // INV-GEN-004: daily per-org spend cap; env-overridable for ops without a deploy
     quota: { dailyUsdPerOrg: Number(process.env.GEN_DAILY_USD_CAP ?? 20) }, // raised 5→20 (USER 2026-07-23: "up to 20 dollars to testing")
   },

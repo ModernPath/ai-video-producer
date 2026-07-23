@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 19 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 20 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -24,6 +24,7 @@ Totals: 0 DONE · 19 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 | REQ-GEN-019 | Lyria music generation (brief → real track) | P5 | IN_REVIEW | USER 2026-07-23; docs/85 §Music | libs/stb/tests/music-track.int.spec.ts + real E2E ($0.08) | migration 0017, provider generateMusic (Interactions REST), executor music branch, requestMusicTrack, ♫ UI |
 | REQ-GEN-020 | Audio transcription MM:SS (sync) | P5 | IN_REVIEW | USER 2026-07-23; docs/85 §Music | libs/stb/tests/transcript.int.spec.ts + real E2E | migration 0019, provider audio parts, executor ref fetch, requestTranscript, ⏱ UI |
 | REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | IN_REVIEW | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
+| REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | IN_REVIEW | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
 | REQ-GEN-018 | Race-safe claim across parallel workers | P5 | PROPOSED | `docs/03` §2 (enabler) | — | — |
 
 ### REQ-GEN-016 — Jobs execute via queue worker (pg-boss)
@@ -211,3 +212,14 @@ Totals: 0 DONE · 19 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
   - GIVEN captions=lyrics THEN prior REQ-ASM-009 behavior unchanged.
 - **Tests:** `libs/asm/tests/dialogue-captions.int.spec.ts` (mock ring) + real E2E on "The First Customer" · **Code:** `libs/gen/src/transcribe.ts`, ASM captionSource pipeline (audio extract → transcribe → SRT), captions select on both export forms · **Log:** LOG 2026-07-23 (slice 35)
 - **Deferred / notes:** speaker-colored captions and singing-character lip-timing later; asm→gen dependency added (GEN is the provider gateway — architecturally clean).
+
+### REQ-GEN-022 — Stale-running reaper
+- **Status:** IN_REVIEW · **Stage:** P5 · **Priority:** must · **Owner:** —
+- **Raised-by:** health-sweep finding — a take stuck `running` 5h on the user's project (executor died in a dev-server restart), occupying a video-concurrency slot and spinning in the UI forever
+- **Source:** BR-GEN-005 (slots must free), operational hardening
+- **Statement:** Rows in `running` longer than `config.gen.staleRunningMinutes` (30) are failed with `orphaned` + a retry-suggesting message; the reaper runs at claim time (runNextGeneration) so recovery needs no separate scheduler; fresh running and queued rows are untouched.
+- **Acceptance criteria:**
+  - GIVEN a 2h-old running row THEN reaped to failed/orphaned; GIVEN fresh running or queued THEN untouched (red-first test).
+  - GIVEN the real 5h orphan THEN reaped via the shipped function (verified: failed/orphaned; retry button now shows on the user's project).
+- **Tests:** `tests/reaper.int.spec.ts` · **Code:** `src/executor.ts` reapStaleGenerations + claim-time call, config.gen.staleRunningMinutes · **Log:** LOG 2026-07-23
+- **Deferred / notes:** provider-side cancel (Veo operation abort) not attempted — the operation may still complete server-side and bill; acceptable at current scale.
