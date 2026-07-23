@@ -1,5 +1,13 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 18: REQ-STB-021 A/B take comparison (→ IN_REVIEW)
+**Done:** ABCompare client overlay (shot-editor spec's last unbuilt outcome): ⇆ button appears at ≥2 takes; two videos side by side, per-side take selectors (retakes labeled), synchronized "play both", Escape/close. Browser-verified via temporary scratch shot with 2 takes (removed after).
+**Decisions:** UI-only feature — no service/schema surface, so evidence is browser E2E.
+**Deferred:** frame-accurate sync scrubbing (unneeded at 4–8s).
+**Discovered:** —
+**Follow-ups:** shot-editor feature doc now fully implemented.
+**Gate:** full suite green (110 passed).
+
 ## 2026-07-23 — slice 17: REQ-STB-020 retake with instruction (→ IN_REVIEW)
 **Done:** QA found SCN-STB-021 unbuilt (schema/routing existed, no service/UI). Red-first requestRetake: conditions on the SOURCE take's frame via takeProvenance (iterating on what you saw, not current selection), instruction appended with "Keep everything else the same" (prompt-guidelines v3 idiom), retake_of lineage set in materialize, style + per-shot refs respected. Per-take UI: instruction input + ↻ (take price, lane lockout). Suite stability: thumbs disabled via env in tests (docker-per-asset contention caused cross-suite flakes) — derivatives spec re-enables locally.
 **Decisions:** retake conditions on source take's frame, not current selection; blank instruction rejected.

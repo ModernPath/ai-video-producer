@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 20 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,6 +15,7 @@ Totals: 0 DONE · 20 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
+| REQ-STB-021 | A/B take comparison | P2 | IN_REVIEW | docs/features/shot-editor.md | browser E2E (overlay, selectors, play both) | components/ABCompare.tsx, takes-lane wiring |
 | REQ-STB-020 | Retake with instruction | P2 | IN_REVIEW | SCN-STB-021, docs/features/shot-editor.md | tests/retake.int.spec.ts + browser (UI) | requestRetake, retake_of lineage in materialize, per-take UI |
 | REQ-STB-018 | Normalize real-model shot plans (break-into-shots robust) | P0 | IN_REVIEW | USER BUG 2026-07-23 (raw markdown + plan silently dropped) | tests/plan-normalize.spec.ts | src/plan-normalize.ts, service.ts, gen/prompt.ts+provider.ts, script page (Markdown) |
 | REQ-STB-019 | Remove a shot (cut) from the storyboard | P1 | IN_REVIEW | USER 2026-07-23 "how can I remove cuts?" | tests/remove-shot.int.spec.ts | src/service.ts (removeShot), removeShotAction, ✕ Remove cut button |
@@ -69,6 +70,17 @@ Totals: 0 DONE · 20 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a project with a brief WHEN DraftScript completes THEN script_version v1 exists with non-empty content and generation_id.
   - GIVEN an existing v1 WHEN DraftScript again THEN v2 exists; v1 unchanged.
 - **Tests:** `tests/script.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 2)
+
+### REQ-STB-021 — A/B take comparison
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** could · **Owner:** —
+- **Raised-by:** last unbuilt shot-editor outcome (docs/features/shot-editor.md)
+- **Source:** `docs/features/shot-editor.md` ("A/B compare two takes side by side")
+- **Statement:** When a shot has ≥2 takes, an A/B overlay compares any two side by side with per-side selection and a synchronized "play both"; Escape/close dismisses.
+- **Acceptance criteria:**
+  - GIVEN <2 takes THEN no compare affordance; GIVEN ≥2 THEN "⇆ A/B compare" in the takes lane.
+  - GIVEN the overlay THEN both videos render with A/B selectors; "play both" restarts both from 0.
+- **Tests:** UI-only — browser E2E (scratch shot with 2 takes: overlay verified, then scratch removed) · **Code:** `apps/web/components/ABCompare.tsx`, takes-lane wiring · **Log:** LOG 2026-07-23 (slice 18)
+- **Deferred / notes:** frame-accurate sync scrubbing not needed at 4–8s clip lengths.
 
 ### REQ-STB-020 — Retake with instruction
 - **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** should · **Owner:** —

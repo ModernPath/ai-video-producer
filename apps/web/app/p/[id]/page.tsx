@@ -15,6 +15,7 @@ import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
   createShareLinkAction, removeCandidateAction, retakeAction, setProjectStyleAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
 } from "../../actions";
+import { ABCompare } from "../../../components/ABCompare";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
 import { SubmitButton } from "../../../components/SubmitButton";
@@ -256,7 +257,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 </div>
 
                 <div>
-                  <p className="mono muted" style={{ fontSize: 10, marginBottom: 6 }}>TAKES{(activeByShot.get(s.id)?.take ?? 0) > 0 && <span className="gen-pulse"> ● generating video…</span>}</p>
+                  <p className="mono muted" style={{ fontSize: 10, marginBottom: 6 }}>TAKES <ABCompare takes={cands.takes.map((t) => ({ id: t.id, videoAssetId: t.videoAssetId, label: `take ${t.id.slice(-4)}${t.retakeOf ? " (retake)" : ""}` }))} />{(activeByShot.get(s.id)?.take ?? 0) > 0 && <span className="gen-pulse"> ● generating video…</span>}</p>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {cands.takes.map((t) => (
                       <div key={t.id} style={{ display: "grid", gap: 5, justifyItems: "start" }}>
