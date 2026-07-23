@@ -1,7 +1,7 @@
 # Requirements Ledger — AST (Asset Library)
 
 ## Dashboard — AST (Asset Library)
-Totals: 0 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 5 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -10,7 +10,7 @@ Totals: 0 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DEF
 | REQ-AST-003 | Assets served to UI via streaming route | P1 | IN_REVIEW | `docs/12` §5 | browser E2E (LOG 2026-07-23) | apps/web/app/api/assets/[id]/route.ts |
 | REQ-AST-004 | Uploads (presigned + direct) with validation | P3 | IN_REVIEW | INV-AST-005 | tests/uploads.int.spec.ts + browser E2E | src/uploads.ts |
 | REQ-AST-005 | Derivatives (thumb/poster) on ready | P2 | PROPOSED | BR-AST-002 | — | — |
-| REQ-AST-006 | Entities org-scoped, 1–5 refs | P4 | PROPOSED | INV-AST-004/006 | — | — |
+| REQ-AST-006 | Entity library: org entities, refs, project cast | P4 | IN_REVIEW | INV-AST-004/006, BR-AST-001/003 | tests/entities.int.spec.ts, ../stb/tests/cast.int.spec.ts + browser | src/entities.ts, apps/web (library, cast) |
 | REQ-AST-007 | Style kits org-scoped + project attachment | P4 | PROPOSED | INV-AST-006, BR-AST-001 | — | — |
 | REQ-AST-008 | Soft-delete protection for referenced assets | P2 | PROPOSED | INV-AST-003 | — | — |
 
@@ -51,4 +51,14 @@ Totals: 0 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 4 PROPOSED · 0 DEF
   - GIVEN direct bytes THEN a ready asset exists (browser evidence: attach a music track).
 - **Tests:** `tests/uploads.int.spec.ts` + browser E2E (track attach) · **Code:** `src/uploads.ts`, migration 0007 · **Log:** LOG 2026-07-23 (slice 2)
 
-*(PROPOSED 005–008: statements in `docs/12-asset-library.md`; elaborate when promoted.)*
+### REQ-AST-006 — Entity library: org entities, refs, project cast
+- **Status:** IN_REVIEW · **Stage:** P4 · **Priority:** must
+- **Source:** INV-AST-004 (1–5 refs), INV-AST-006 (org-scoped, project attachment), BR-AST-001/003
+- **Statement:** Entities (company/product/person/character) live at org level with name, description, and 1–5 ready image refs; projects attach a cast; attached entities feed generation (text blocks for all kinds; ref images for frames). MVP: whole-project cast applies to every shot (per-shot selection follows — deviation logged).
+- **Acceptance criteria:**
+  - GIVEN 0 or >5 refs, or a non-ready/non-image ref THEN createEntity rejects (INV-AST-004/005).
+  - GIVEN an attached cast WHEN a frame generates THEN its prompt contains each entity block and provenance refs include entity ref asset ids; provider receives their bytes as refImages.
+  - GIVEN a take THEN entity text blocks appear (image refs for video follow with referenceImages arm).
+- **Tests:** `tests/entities.int.spec.ts`, `../stb/tests/cast.int.spec.ts` + browser E2E · **Code:** `src/entities.ts`, migration 0008, `apps/web/app/library`, cast UI · **Log:** LOG 2026-07-23 (slice 3)
+
+*(PROPOSED 005, 007–008: statements in `docs/12-asset-library.md`; elaborate when promoted.)*

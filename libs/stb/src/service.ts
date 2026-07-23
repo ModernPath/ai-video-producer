@@ -4,6 +4,7 @@ import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import { config } from "@avd/shared/config";
 import { asset } from "@avd/ast/schema";
+import { listProjectEntities } from "@avd/ast";
 import { enqueueGeneration } from "@avd/gen";
 import { generation } from "@avd/gen/schema";
 import { frameCandidate, musicBrief, scriptVersion, shot, shotPlanProposal, take } from "./schema";
@@ -78,6 +79,15 @@ async function getShotOrThrow(db: Db, shotId: string) {
   return s;
 }
 
+/** Resolves the project cast (REQ-AST-006 MVP: all attached entities apply to every shot). */
+async function resolveCast(db: Db, projectId: string) {
+  const cast = await listProjectEntities(db, projectId);
+  return {
+    entities: cast.map((e) => ({ kind: e.kind, name: e.name, description: e.description })),
+    entityRefAssetIds: cast.flatMap((e) => e.refAssetIds),
+  };
+}
+
 /** Requests a start/end frame generation; materializes the candidate on completion event/return. */
 export async function requestFrame(
   db: Db,
@@ -85,6 +95,7 @@ export async function requestFrame(
 ) {
   const s = await getShotOrThrow(db, input.shotId);
   const d = s.direction as DirectionJson;
+  const cast = await resolveCast(db, s.projectId);
   return enqueueGeneration(db, {
     organizationId: s.organizationId,
     projectId: s.projectId,
@@ -92,10 +103,11 @@ export async function requestFrame(
     kind: "frame",
     commandId: uuidv7(),
     target: { shotId: s.id, slot: input.slot },
+    refs: cast.entityRefAssetIds.length ? { entityRefAssetIds: cast.entityRefAssetIds } : undefined,
     promptInput: {
       aspectRatio: input.aspectRatio,
       durationSeconds: Number(s.durationS),
-      entities: [],
+      entities: cast.entities,
       direction: {
         synopsis: d.synopsis, subject: d.subject, action: d.action,
         camera: d.camera, mood: d.mood, dialogue: d.dialogue, audioNotes: d.audioNotes,
@@ -111,11 +123,13 @@ export async function requestTake(
   const s = await getShotOrThrow(db, input.shotId);
   const d = s.direction as DirectionJson;
   // REQ-GEN-009: attach the selected start frame for image conditioning (BR-STB-002).
-  let refs: { startFrameAssetId?: string } | undefined;
+  const cast = await resolveCast(db, s.projectId);
+  let refs: { startFrameAssetId?: string; entityRefAssetIds?: string[] } | undefined;
   if (s.selectedStartFrameId) {
     const [fc] = await db.select().from(frameCandidate).where(eq(frameCandidate.id, s.selectedStartFrameId));
     if (fc) refs = { startFrameAssetId: fc.imageAssetId };
   }
+  if (cast.entityRefAssetIds.length) refs = { ...(refs ?? {}), entityRefAssetIds: cast.entityRefAssetIds };
   return enqueueGeneration(db, {
     organizationId: s.organizationId,
     projectId: s.projectId,
@@ -127,7 +141,7 @@ export async function requestTake(
     promptInput: {
       aspectRatio: input.aspectRatio,
       durationSeconds: Number(s.durationS),
-      entities: [],
+      entities: cast.entities,
       direction: {
         synopsis: d.synopsis, subject: d.subject, action: d.action,
         camera: d.camera, mood: d.mood, dialogue: d.dialogue, audioNotes: d.audioNotes,

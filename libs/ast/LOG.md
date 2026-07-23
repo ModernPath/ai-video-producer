@@ -29,3 +29,9 @@
 ## 2026-07-23 — AST slice 2: uploads (REQ-AST-004 → IN_REVIEW)
 **Done:** red-first — shared validation core (mime allowlist + size caps, INV-AST-005), presigned PUT sessions (tested via real HTTP PUT to MinIO + HEAD-verified complete), direct server-side path; migration 0007. Browser-verified: mp3 attach on script page.
 **Gate:** suite green; real-API ring also green (see GEN LOG).
+
+## 2026-07-23 — AST slice 3: entity library (REQ-AST-006 → IN_REVIEW)
+**Done:** red-first — ast.entity (org-scoped, kind, 1–5 ready-image refs INV-AST-004) + ast.project_entity cast attachment (INV-AST-006), migration 0008; STB resolveCast injects entity text blocks into frame+take prompts and entity ref asset ids into provenance; executor fetches ref bytes → provider.refImages (frames); gemini adapter sends multi-image contents. /library page (create with multi-upload, list with thumbs) + CAST bar on storyboard. Browser: entity created with uploaded ref, cast saved, frame generated — DB shows ENTITY block in prompt + ref in provenance.
+**Deviation (logged):** MVP cast applies to every shot (matches "select at the beginning" requirement); per-shot direction.entityIds selection is the follow-up arm. Entity image refs to VIDEO (referenceImages param) also follow-up.
+**Fixed:** missing providerLimits import in executor (found via failed-generation debug — earlier wholesale rewrite dropped the config import).
+**Gate:** 48 mock green (+3 real skipped).

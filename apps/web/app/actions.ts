@@ -205,3 +205,33 @@ export async function uploadTrackAction(formData: FormData) {
   await attachMusicTrack(db(), { projectId, assetId });
   revalidatePath(`/p/${projectId}/script`);
 }
+
+export async function createEntityAction(formData: FormData) {
+  const { uploadBytesDirect, createEntity } = await import("@avd/ast");
+  const orgId = await devOrgId();
+  const files = formData.getAll("refs").filter((f): f is File => f instanceof File && f.size > 0);
+  if (!files.length) return;
+  const refAssetIds: string[] = [];
+  for (const f of files) {
+    refAssetIds.push(await uploadBytesDirect(db(), {
+      organizationId: orgId, projectId: null, kind: "image",
+      mime: f.type || "image/png", bytes: new Uint8Array(await f.arrayBuffer()),
+    }));
+  }
+  await createEntity(db(), {
+    organizationId: orgId,
+    kind: (String(formData.get("kind")) || "character") as "company" | "product" | "person" | "character",
+    name: String(formData.get("name") ?? "").trim() || "Unnamed",
+    description: String(formData.get("description") ?? "").trim(),
+    refAssetIds,
+  });
+  revalidatePath("/library");
+}
+
+export async function setCastAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { attachEntities } = await import("@avd/ast");
+  const entityIds = formData.getAll("entityIds").map(String);
+  await attachEntities(db(), { projectId, entityIds });
+  revalidatePath(`/p/${projectId}`);
+}

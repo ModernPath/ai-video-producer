@@ -6,9 +6,10 @@ import { project } from "@avd/prj/schema";
 import { generation } from "@avd/gen/schema";
 import { exportJob } from "@avd/asm/schema";
 import { getMusicBrief, listCandidates, listShots } from "@avd/stb";
+import { listEntities, listProjectEntities } from "@avd/ast";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  selectFrameAction, selectTakeAction,
+  selectFrameAction, selectTakeAction, setCastAction,
 } from "../../actions";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
@@ -72,6 +73,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
   const generated = shots.filter((s) => s.selectedTakeId).length;
   const music = await getMusicBrief(d, id);
+  const orgEntities = await listEntities(d, p.organizationId);
+  const cast = await listProjectEntities(d, id);
+  const castIds = new Set(cast.map((e) => e.id));
   const exports_ = await d
     .select()
     .from(exportJob)
@@ -112,6 +116,23 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           </SubmitButton>
         </form>
       </div>
+
+      {orgEntities.length > 0 && (
+        <section style={{ ...card, marginTop: 16 }}>
+          <form action={setCastAction} style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
+            <input type="hidden" name="projectId" value={id} />
+            <p className="mono muted" style={{ fontSize: 10 }}>CAST</p>
+            {orgEntities.map((e) => (
+              <label key={e.id} style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12, cursor: "pointer" }}>
+                <input type="checkbox" name="entityIds" value={e.id} defaultChecked={castIds.has(e.id)} />
+                <span className="mono muted" style={{ fontSize: 9, textTransform: "uppercase" }}>{e.kind}</span> {e.name}
+              </label>
+            ))}
+            <SubmitButton small pendingLabel="Saving…">Save cast</SubmitButton>
+            <Link href="/library" className="mono" style={{ fontSize: 11, color: "var(--accent)" }}>library →</Link>
+          </form>
+        </section>
+      )}
 
       <section style={{ display: "grid", gap: 14, marginTop: 24 }}>
         {shots.map((s) => {

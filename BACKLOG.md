@@ -113,3 +113,9 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 ## 2026-07-23 — Build loop iteration 15
 **Done:** REQ-GEN-009 frame-conditioned takes — stub, real-ring chain (frame→take), and UI/DB provenance all verified. The original product vision's generation chain (direction → frame → conditioned clip) is complete.
 **Next:** entity library slice (org entities + refs into generation, GAP-102 scope) or export polish (mix modes); review queue 26 IN_REVIEW.
+
+## 2026-07-23 — Build loop iteration 16
+**Done:** Entity library (REQ-AST-006 IN_REVIEW): org entities + project cast → prompts/ref-images/provenance, /library UI, browser-verified end-to-end. User requirement #1 (reusable companies/products/people/characters) now functional.
+**Inbox additions:** per-shot entity selection (direction.entityIds UI) · entity refs → video referenceImages param · real-ring entity-conditioned frame test (~$0.07) · native select kind picker didn't respond to arrow-key automation (ended as "character" instead of "product" — cosmetic here, note for E2E robustness).
+**Next:** AI image-edit of entity refs (user req #2, BR-AST-005 + REQ-GEN-012) or review sweep.
+**Spend today:** ≈ $1.20 (unchanged this tick — mock mode).

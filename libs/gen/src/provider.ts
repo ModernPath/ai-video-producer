@@ -22,6 +22,7 @@ export interface ImageRequest {
   aspectRatio: "16:9" | "9:16";
   seed?: string;
   label?: string;
+  refImages?: { bytes: Uint8Array; mime: string }[]; // entity/style refs (BR-GEN-003)
 }
 export interface VideoRequest {
   model: string;
@@ -96,7 +97,12 @@ export function createGeminiProvider(): GenProvider {
       try {
         const res = await client.models.generateContent({
           model: r.model,
-          contents: r.prompt,
+          contents: r.refImages?.length
+            ? [
+                { text: r.prompt },
+                ...r.refImages.map((img) => ({ inlineData: { data: Buffer.from(img.bytes).toString("base64"), mimeType: img.mime } })),
+              ]
+            : r.prompt,
           config: { imageConfig: { aspectRatio: r.aspectRatio } },
         });
         const part = res.candidates?.[0]?.content?.parts?.find((p: { inlineData?: { data?: string; mimeType?: string } }) => p.inlineData?.data);

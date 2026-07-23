@@ -36,3 +36,19 @@ export const uploadSession = ast.table("upload_session", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
 });
+
+export const entity = ast.table("entity", {
+  id: uuid("id").primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  kind: text("kind", { enum: ["company", "product", "person", "character"] }).notNull(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  refAssetIds: uuid("ref_asset_ids").array().notNull(), // INV-AST-004: 1–5, service-enforced
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const projectEntity = ast.table("project_entity", {
+  projectId: uuid("project_id").notNull(),
+  entityId: uuid("entity_id").notNull(),
+});
