@@ -1,0 +1,140 @@
+# AI Video Director — Target Design Specification
+
+**Version:** 1.0 (product-specific — replaces the v0 generic-NLE template, archived in `_archive/v0-template/`)
+**Status:** Active design baseline
+**Scope:** Domain model, bounded contexts, UX, API contracts, data model, and events for the **AI Video Director**.
+
+---
+
+## 1. What this product is
+
+The **AI Video Director** takes a creator from *idea* to *finished video* through a directed, shot-based pipeline — not a traditional multi-track editor. The user works like a director with an AI crew:
+
+1. **Brief** — describe the video (idea, audience, tone, format, target length).
+2. **Script** — `gemini-3.6-flash` drafts and iterates a script with the user.
+3. **Storyboard** — the script is broken into ordered **Shots** of 4–10 seconds. Each shot has a direction (subject, action, camera, mood), a **start frame** and optionally an **end frame**.
+4. **Frames** — start/end frames are generated as images with **Nano Banana** (`gemini-3.1-flash-image` family), using the org's shared **Style Kits** and **Entities** (companies, products, people, characters) for consistency.
+5. **Takes** — each shot's video clip is generated with **Gemini Omni Flash** (`gemini-omni-flash-preview`), conditioned on the frames, style, and entities. Multiple takes per shot; the user selects one.
+6. **Audio** — native Omni audio per clip, and/or a **Music Brief** (a prompt the user feeds to Suno) whose resulting track is attached and mixed over the assembly.
+7. **Assembly & Export** — selected takes are concatenated, audio is mixed, and the final video is exported (ffmpeg, no re-generation).
+
+Use cases: brand videos, funny clips, music videos, product teasers, social content.
+
+Design thesis:
+
+```
+Script + Shot Plan + Consistent Look + Cheap Iteration on Frames
++ Expensive Generation Only When Committed
+= AI-Native Video Direction
+```
+
+**Non-negotiables (target):**
+
+1. **The Storyboard is the system of record.** Shots, their order, selected frames and selected takes fully determine the output. Generations are candidates until selected.
+2. **Every generation is traceable and immutable.** Model id, full prompt/context snapshot, reference assets, parameters, and cost are recorded per generation; regeneration creates a new candidate, never overwrites.
+3. **Cheap before expensive.** Iterate on script (≈free) and frames (cents) before video ($0.10/s). The **Animatic** preview lets users judge pacing and look before spending on clips.
+4. **Export never generates.** Assembly is deterministic: concat + mix from immutable, already-rendered takes.
+5. **Everything is revisable, nothing is destroyed.** Every script, image, and clip can be edited, regenerated, or removed at any time — edits and regenerations create new candidates/versions with provenance; removal is soft and never touches anything selected or exported.
+
+### 1.1 Repository layout (target)
+
+| Path | Purpose |
+|------|---------|
+| `docs/` | Canonical design (this suite) |
+| `libs/<ctx>/` | Bounded-context code + `REQUIREMENTS.md` |
+| `apps/web` | Next.js app (UI + API) |
+| `apps/worker` | Generation + media workers (Gemini calls, ffmpeg) |
+| `epics/` | V-model epic records |
+| `req-driven-dev/` | V-model process templates |
+| `AGENTS.md`, `CLAUDE.md`, `WORKLIST.md` | Agent + build process |
+
+---
+
+## 2. Core capabilities (MVP-oriented)
+
+- **Projects** — one video production per project: format (aspect ratio, resolution, target length), brief, cost meter (`PRJ`).
+- **Script studio** — chat-driven script drafting and revision with `gemini-3.6-flash`; structured output → shot plan (`STB`, `GEN`).
+- **Storyboard** — ordered shot cards; per-shot direction fields; drag reorder; add/split/remove shots (`STB`).
+- **Shot editor** — generate/pick start & end frames (image candidates), generate/pick takes (video candidates), retake with edit instructions (`STB`, `GEN`).
+- **Entity & Style library (org-level)** — reusable named **Entities** (companies, products, people, characters) and **Style Kits**, each with descriptions + reference images; pick them at project setup to keep many videos consistent. Reference images are **AI-editable** before use (change clothing, styling, setting) (`AST`, `GEN`).
+- **Animatic** — plays selected frames with shot timings (+ scratch/attached music) before any video is generated (`STB`, `ASM`).
+- **Music** — generate a Music Brief for Suno; upload the resulting track; choose native-audio vs music-only vs mix per project (`STB`, `ASM`).
+- **Assembly & export** — concat selected takes, mix audio, export presets, download/share (`ASM`).
+
+Surface specs: `docs/features/`.
+
+---
+
+## 3. Model facts this design depends on
+
+Verified 2026-07-23 against Google docs (see `82-tech-stack.md` §4 for links; re-verify at build time — OQ-101/102):
+
+| Capability | Model | Facts |
+|---|---|---|
+| Script / shot planning / prompts | `gemini-3.6-flash` | 1M in / 65k out tokens, structured output, function calling |
+| Frame images | `gemini-3.1-flash-image` (Nano Banana), `-lite`, `gemini-3-pro-image` | AR: 1:1, 3:2, 2:3, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9 · res 0.5K–4K (Lite: 1K) · up to 14 reference images · character consistency with 4–5 refs · text-prompt image editing |
+| Video clips | `gemini-omni-flash-preview` | Up to **10s** per generation · 16:9 and 9:16 only · **native audio** in output MP4 · image-conditioned generation + reference subjects · conversational video editing · ~$0.10/s · no extension/interpolation · English prompts |
+
+Consequences baked into the domain: shot duration is capped at 10s; project aspect ratio is 16:9 or 9:16 (MVP); per-take cost is $0.40–$1.00 so takes are explicit, metered objects; "end frame" conditioning is an OQ-101 spike, not an assumed API feature.
+
+---
+
+## 4. Document map
+
+| # | Document | Contents |
+|---|----------|----------|
+| 00 | `00-overview.md` | This file |
+| 01 | `01-ubiquitous-language.md` | Glossary |
+| 02 | `02-bounded-contexts.md` | Context map, ownership |
+| 03 | `03-platform-architecture.md` | Topology, apps, jobs, deploy |
+| 06 | `06-ux-architecture.md` | Personas, journeys, surfaces |
+| 07 | `07-api-contracts.md` | API conventions and resources |
+| 08 | `08-open-questions.md` | OQ register |
+| — | `gap-register.md` | Deferred capabilities |
+| 10 | `10-platform-identity.md` | PLT domain |
+| 11 | `11-projects.md` | PRJ domain |
+| 12 | `12-asset-library.md` | AST domain (assets, entities, style kits) |
+| 13 | `13-storyboard.md` | STB domain (script, shots, frames, takes, music brief) — **core** |
+| 14 | `14-generation.md` | GEN domain (jobs, model routing, cost, provenance) |
+| 15 | `15-assembly-export.md` | ASM domain (animatic, assembly, export, audio mix) |
+| 17 | `17-integrations.md` | Suno handoff, future publish targets |
+| 40–41 | `data/*` | Schema and events |
+| 81–82, 86 | Build plan, tech stack, frontend | Phasing, ADRs, client strategy |
+| — | `features/*` | Per-surface UX specs |
+
+**Reading order (implementers):** 01 → 02 → 13 → 14 → 06 → `features/<surface>` → 07 → 41 → 40 → your context doc.
+
+**Process:** `CLAUDE.md` (ledger loop), `req-driven-dev/V-model-loop.md` (epics).
+
+---
+
+## 5. Conventions
+
+- **Naming:** English in code and APIs; UI may localize labels.
+- **Rule IDs:** `BR-<CTX>-NNN`, `INV-<CTX>-NNN`, policies `POL-<CTX>-NNN`.
+- **Open questions:** `OQ-1NN` in `08-open-questions.md`; blocked reqs cite OQ id. (OQ-001…008 belonged to the archived template.)
+- **IDs:** UUIDv7 (time-ordered; ADR-004 in `82-tech-stack.md`).
+- **Time:** `timestamptz` UTC. Shot durations are decimal **seconds** (`numeric(4,1)`) — no frame-accurate timecode model; this is a shot-based product, not an NLE.
+- **Money:** generation cost in USD `numeric(10,4)` on every generation row.
+- **Multi-tenancy:** `organization_id` on tenant rows; RLS per `10-platform-identity.md`.
+- **Events:** past tense (`ShotAdded`, `GenerationCompleted`); envelope in `data/41-event-catalog.md`.
+- **Configuration:** model ids, duration bounds (4–10s), cost caps, resolution defaults come from versioned config — never literals (root `CLAUDE.md` §1.4).
+
+---
+
+## 6. Bounded contexts (summary)
+
+| Code | Name | Role |
+|------|------|------|
+| **PLT** | Platform & Identity | Tenancy, auth, audit, config |
+| **PRJ** | Projects | Project lifecycle, format, membership, cost rollup |
+| **STB** | Story & Storyboard | Script, shots, frames/takes selection, music brief — **system of record** |
+| **GEN** | Generation | All model calls: jobs, routing, prompt assembly, provenance, cost |
+| **AST** | Asset Library | Immutable media assets, org-level entities & style kits, uploads |
+| **ASM** | Assembly & Export | Animatic, concat, audio mix, presets, delivery, share links |
+
+Full map: `02-bounded-contexts.md`.
+
+---
+
+*When this overview disagrees with a domain doc on domain detail, the domain doc wins. When a domain doc disagrees on context codes or glossary terms, **01** and **02** win.*

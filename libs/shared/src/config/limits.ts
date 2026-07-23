@@ -1,0 +1,30 @@
+/**
+ * Product configuration — versioned; the only home for thresholds and defaults
+ * (root CLAUDE.md non-negotiable 4: configuration values are never literals).
+ */
+import { providerLimits } from "./models.js";
+
+export const config = {
+  shot: {
+    minSeconds: 4,
+    maxSeconds: 10, // must never exceed providerLimits.video.maxClipSeconds (INV-STB-001)
+    defaultSeconds: 6,
+  },
+  frame: { candidatesDefault: 2, candidatesMax: 4 },
+  entity: { maxRefs: providerLimits.image.entityConsistencyRefs }, // INV-AST-004
+  gen: { maxConcurrentVideoPerOrg: 3, retryAttempts: 3 }, // BR-GEN-005
+  audio: { duckDb: -12, fadeOutSeconds: 2, lufsTarget: -14 }, // BR-ASM-001..003
+  asm: { maxConcurrentExportsPerOrg: 2 },
+  project: {
+    defaultAspectRatio: "16:9" as const,
+    defaultTargetDurationSeconds: 30,
+    defaultResolutionTier: "1080p" as const,
+  },
+  quota: { defaultUsdPerMonth: 50 }, // BR-PLT-002
+  upload: {
+    maxImageBytes: 25 * 1024 * 1024,
+    maxAudioBytes: 100 * 1024 * 1024,
+    imageMimes: ["image/png", "image/jpeg", "image/webp"],
+    audioMimes: ["audio/mpeg", "audio/wav", "audio/x-wav"],
+  },
+} as const;

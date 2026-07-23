@@ -1,0 +1,8 @@
+{
+  "name": "@avd/prj",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts", "./contracts": "./contracts/index.ts" },
+  "dependencies": { "@avd/shared": "workspace:*", "zod": "^3.24.0" }
+}
