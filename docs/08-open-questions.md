@@ -19,8 +19,8 @@ Design ambiguities that block or shape requirements. Mark affected `REQ-*` as `B
 ## Resolved
 
 | ID | Resolution | Date |
+|----|------------|------|
 | OQ-101 | **Resolved by spike:** `GenerateVideosConfig` supports `lastFrame` + `referenceImages` (and `image` = start frame) on the generateVideos path — end-frame conditioning is a first-class parameter. | 2026-07-23 |
 | OQ-102 | **Resolved by spike:** `resolution` is a config field on generateVideos; real 4s take returned 553KB MP4 (720p-class default). Presets stay source-resolution until upscale need is proven. | 2026-07-23 |
 | OQ-104 | **Resolved by spike:** durations are discrete — Veo 3.1 accepts {4,6,8}s only (5 rejected by API). Provider snaps requested duration; shot cap lowered to 8s (INV-STB-001) until Omni's 10s returns via OQ-112. | 2026-07-23 |
-|----|------------|------|
 | OQ-t-001…008 (template) | Superseded by product pivot to shot-based director; decisions recorded as ADR-001…007 in `82-tech-stack.md` and domain docs (no timecode model, no OT/CRDT, SSE, session auth). | 2026-07-23 |
