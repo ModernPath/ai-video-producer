@@ -80,3 +80,9 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 **Blocked on user input:** (1) GEMINI_API_KEY to light up real generation; (2) approval to spend ~$1–2 on the Omni/end-frame/duration spikes (OQ-101/102/104).
 **Inbox additions:** per-shot Frame/Take buttons still raw — convert to SubmitButton (pre-hydration papercut recurred).
 **Next:** worker extraction (apps/worker + pg-boss) or take-selection UX polish; review queue 21 IN_REVIEW.
+
+## 2026-07-23 — Build loop iteration 10
+**Done:** Worker extraction (REQ-GEN-016 IN_REVIEW): apps/worker + pg-boss, by-id runners, queue-mode dispatch, browser-verified through the real queue. All action buttons now pending-state SubmitButtons.
+**Inbox additions:** SSE project events endpoint + client refetch (ADR-006) — required now that queue mode makes results async (manual reload meanwhile).
+**Still blocked on user:** GEMINI_API_KEY · Omni spike budget (~$1–2).
+**Next:** SSE live updates; review queue 22 IN_REVIEW.
