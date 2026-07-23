@@ -1,6 +1,8 @@
-// REQ-GEN-001 (provenance before execution) + REQ-GEN-007 + REQ-GEN-013 + REQ-GEN-015 (config guard).
+// REQ-GEN-001 (provenance before execution) + REQ-GEN-007 + REQ-GEN-013 + REQ-GEN-015 (config guard)
+// + REQ-PRJ-003 (BR-PRJ-003 archived-project enqueue guard).
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
+import { getProjectStatus } from "@avd/prj/service";
 import type { FrameQuality, GenerationKind } from "@avd/shared/config";
 import {
   PROMPT_TEMPLATE_VERSION, assembleEditPrompt, assembleFramePrompt, assembleScriptPrompt, assembleShotPlanPrompt,
@@ -29,9 +31,19 @@ export interface EnqueueInput {
 
 export class GenConfigError extends Error {}
 
+export class GenEnqueueError extends Error {
+  constructor(public code: string, message: string) {
+    super(message);
+  }
+}
+
 export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<string> {
   if (!mockEnabled() && !process.env.GEMINI_API_KEY) {
     throw new GenConfigError("Generation is not configured: set GEMINI_API_KEY or MOCK_GEN=1"); // REQ-GEN-015
+  }
+  // BR-PRJ-003 — archived projects block new generation enqueues (status read via PRJ's own service).
+  if ((await getProjectStatus(db, input.projectId)) === "archived") {
+    throw new GenEnqueueError("project_archived", "Project is archived; new generations are blocked");
   }
   const id = uuidv7();
   let prompt: string;
