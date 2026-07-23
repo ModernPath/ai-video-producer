@@ -115,6 +115,7 @@ export async function requestFrame(
       aspectRatio: input.aspectRatio,
       durationSeconds: Number(s.durationS),
       entities: cast.entities,
+      referenceImageCount: refAssetIds.length || undefined, // v3 preservation phrasing
       customPrompt: s.imagePrompt ?? undefined, // REQ-STB-013
       direction: {
         synopsis: d.synopsis, subject: d.subject, action: d.action,
@@ -378,6 +379,15 @@ export async function materializeGenerationOutput(db: Db, generationId: string) 
     return { kind: "take" as const, id };
   }
   return null;
+}
+
+/** INV-STB-006: a take's conditioning provenance — which start frame (if any) it was generated from. */
+export async function takeProvenance(db: Db, takeId: string): Promise<{ startFrameAssetId: string | null }> {
+  const [t] = await db.select().from(take).where(eq(take.id, takeId));
+  if (!t) throw new StbValidationError("not_found", "Take not found");
+  const [g] = await db.select().from(generation).where(eq(generation.id, t.generationId));
+  const snap = g?.promptSnapshot as { refs?: { startFrameAssetId?: string } } | undefined;
+  return { startFrameAssetId: snap?.refs?.startFrameAssetId ?? null };
 }
 
 export async function selectFrame(db: Db, input: { shotId: string; frameCandidateId: string }) {

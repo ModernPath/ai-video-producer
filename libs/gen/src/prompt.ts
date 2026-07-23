@@ -1,5 +1,5 @@
 // REQ-GEN-013 — deterministic prompt assembly (docs/14-generation.md §5).
-export const PROMPT_TEMPLATE_VERSION = 2; // v2: natural prose (USER feedback #2 — no label slop)
+export const PROMPT_TEMPLATE_VERSION = 3; // v3: model prompt guidelines (USER 2026-07-23) — single-scene pin, explicit audio intent, ref preservation, inpainting formula
 
 export interface DirectionInput {
   synopsis: string;
@@ -25,6 +25,8 @@ export interface TakePromptInput {
   direction: DirectionInput;
   /** REQ-STB-013: user-authored script — used verbatim as the creative body. */
   customPrompt?: string | undefined;
+  /** v3: number of reference images attached to the request (drives preservation phrasing). */
+  referenceImageCount?: number | undefined;
 }
 
 function sentence(text: string): string {
@@ -45,9 +47,12 @@ export function assembleTakePrompt(i: TakePromptInput): string {
   if (d.mood) parts.push(sentence(d.mood));
   for (const e of i.entities) parts.push(sentence(`Featuring ${e.name}, ${e.description}`));
   if (i.stylePrompt) parts.push(sentence(i.stylePrompt));
+  // v3 guideline: our takes are single shots — pin it so the model doesn't invent cuts.
+  parts.push(`A single continuous shot, no scene cuts.`);
   if (d.dialogue) parts.push(sentence(`Spoken line: "${d.dialogue}"`));
-  if (d.audioNotes) parts.push(sentence(`Sound: ${d.audioNotes}`));
-  parts.push(`A cinematic ${i.aspectRatio} video clip, ${i.durationSeconds} seconds, natural motion, with audio.`);
+  if (d.audioNotes) parts.push(sentence(`Sound design: ${d.audioNotes}`));
+  if (!d.dialogue && !d.audioNotes) parts.push(`No dialogue; natural ambient sound only.`);
+  parts.push(`A cinematic ${i.aspectRatio} video clip, ${i.durationSeconds} seconds, natural motion.`);
   return parts.join(" ");
 }
 
@@ -94,11 +99,12 @@ export interface EditPromptInput {
 }
 
 export function assembleEditPrompt(i: EditPromptInput): string {
+  // v3 guideline: simple edit instruction + the inpainting formula — overly descriptive edits cause unintended changes.
   return [
-    `EDIT: ${i.instruction}`,
-    `Preserve the subject's identity, framing, and composition except where the edit requires otherwise.`,
-    `FORMAT: still image, ${i.aspectRatio} aspect ratio.`,
-  ].join("\n");
+    sentence(i.instruction),
+    `Keep everything else in the image exactly the same, preserving the original style, lighting, and composition.`,
+    `Still image, ${i.aspectRatio} aspect ratio.`,
+  ].join(" ");
 }
 
 /** Natural-prose still-image prompt (template v2). Custom text is verbatim + a minimal format tail. */
@@ -114,6 +120,10 @@ export function assembleFramePrompt(i: Omit<TakePromptInput, "durationSeconds">)
   if (d.mood) parts.push(sentence(d.mood));
   for (const e of i.entities) parts.push(sentence(`Featuring ${e.name}, ${e.description}`));
   if (i.stylePrompt) parts.push(sentence(i.stylePrompt));
+  if (i.referenceImageCount) {
+    // v3 guideline: high-fidelity detail preservation when composing from reference images.
+    parts.push(`Use the provided reference images for the depicted subjects; keep each subject's features completely unchanged and integrate them naturally into the scene.`);
+  }
   parts.push(`A cinematic still image, ${i.aspectRatio}, high detail.`);
   return parts.join(" ");
 }

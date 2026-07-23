@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 17 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -10,7 +10,7 @@ Totals: 0 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
 | REQ-STB-003 | Single selection per slot / take | P1 | IN_REVIEW | INV-STB-003 | tests/shots.int.spec.ts | src/service.ts |
 | REQ-STB-004 | Take selectable only when asset ready | P1 | IN_REVIEW | INV-STB-004 | tests/shots.int.spec.ts | src/service.ts |
 | REQ-STB-005 | Take belongs to its shot, never moved | P2 | PROPOSED | INV-STB-005 | — | — |
-| REQ-STB-006 | Frame re-selection keeps takes + provenance | P2 | PROPOSED | INV-STB-006 | — | — |
+| REQ-STB-006 | Frame re-selection keeps takes + provenance | P2 | IN_REVIEW | INV-STB-006 | tests/frame-reselect.int.spec.ts | takeProvenance, 'from older frame' badge (page.tsx) |
 | REQ-STB-007 | Shot-plan apply protects paid shots | P2 | PROPOSED | INV-STB-007, BR-STB-005 | — | — |
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
@@ -188,4 +188,15 @@ Totals: 0 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
   - GIVEN a selected candidate WHEN removal attempted THEN rejected `conflict` and nothing changes.
 - **Tests:** `tests/remove.int.spec.ts` + browser E2E · **Code:** `src/service.ts`, ✕ remove UI · **Log:** LOG 2026-07-23 (slice 4)
 
-*(PROPOSED blocks 005–007: statements live in `docs/13-storyboard.md`; elaborate when promoted.)*
+### REQ-STB-006 — Frame re-selection keeps takes + provenance
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** should · **Owner:** —
+- **Raised-by:** seeded from `docs/13-storyboard.md`; promoted this slice
+- **Source:** INV-STB-006
+- **Statement:** Selecting a different start frame shall never destroy or regenerate existing takes; each take's conditioning frame remains queryable (takeProvenance) and the UI marks takes generated from a non-current frame.
+- **Acceptance criteria:**
+  - GIVEN a take generated from frame A WHEN frame B is selected THEN the take survives, its selection is untouched, and takeProvenance returns frame A's asset.
+  - GIVEN the storyboard WHEN a take's conditioning frame ≠ the current selection THEN a "from older frame" badge shows.
+- **Tests:** `tests/frame-reselect.int.spec.ts` · **Code:** `src/service.ts` (takeProvenance), `apps/web` takes strip badge · **Log:** LOG 2026-07-23 (slice 13)
+- **Deferred / notes:** —
+
+*(PROPOSED blocks 005 + 007: statements live in `docs/13-storyboard.md`; elaborate when promoted.)*

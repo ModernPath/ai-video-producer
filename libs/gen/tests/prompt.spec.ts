@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PROMPT_TEMPLATE_VERSION, assembleTakePrompt } from "../src/prompt";
+import { PROMPT_TEMPLATE_VERSION, assembleEditPrompt, assembleFramePrompt, assembleTakePrompt } from "../src/prompt";
 
 const input = {
   aspectRatio: "16:9" as const,
@@ -40,5 +40,49 @@ describe("REQ-GEN-013: deterministic prompt assembly", () => {
 
   it("exports a template version for snapshot provenance", () => {
     expect(PROMPT_TEMPLATE_VERSION).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe("REQ-GEN-013 v3: model prompt guidelines (USER 2026-07-23 Omni/Nano Banana guide)", () => {
+  const base = {
+    aspectRatio: "16:9" as const,
+    durationSeconds: 6,
+    entities: [],
+    direction: { synopsis: "A quiet morning", subject: "a barista", action: "pours coffee" },
+  };
+
+  it("auto video prompts pin a single continuous shot and default to no dialogue", () => {
+    const p = assembleTakePrompt(base);
+    expect(p).toMatch(/single continuous shot/i);
+    expect(p).toMatch(/no scene cuts/i);
+    expect(p).toMatch(/no dialogue/i);
+  });
+
+  it("dialogue/audio notes replace the no-dialogue default with explicit sound design", () => {
+    const p = assembleTakePrompt({
+      ...base,
+      direction: { ...base.direction, dialogue: "Good morning", audioNotes: "soft cafe ambience" },
+    });
+    expect(p).not.toMatch(/no dialogue/i);
+    expect(p).toMatch(/Sound design: soft cafe ambience/);
+  });
+
+  it("frame prompts with reference images demand exact appearance preservation", () => {
+    const p = assembleFramePrompt({ ...base, referenceImageCount: 2 });
+    expect(p).toMatch(/reference images/i);
+    expect(p).toMatch(/completely unchanged|exact appearance/i);
+  });
+
+  it("edit prompts are simple and keep everything else the same (inpainting formula)", () => {
+    const p = assembleEditPrompt({ instruction: "Make the phone invisible", aspectRatio: "16:9" });
+    expect(p).toMatch(/Make the phone invisible/);
+    expect(p).toMatch(/Keep everything else in the image exactly the same/);
+    expect(p).toMatch(/preserving the original style, lighting, and composition/);
+  });
+
+  it("custom user text stays verbatim — guidelines only shape auto prompts", () => {
+    const p = assembleTakePrompt({ ...base, customPrompt: "My exact vision" });
+    expect(p.startsWith("My exact vision")).toBe(true);
+    expect(p).not.toMatch(/single continuous shot/i);
   });
 });

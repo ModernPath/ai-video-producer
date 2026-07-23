@@ -86,6 +86,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     activeByShot.set(shotId, e);
   }
 
+  const allTakes = [...candidatesByShot.values()].flatMap((c) => c.takes);
+  const takeGens = allTakes.length
+    ? await d.select().from(generation).where(inArray(generation.id, allTakes.map((t) => t.generationId)))
+    : [];
+  const takeCondFrame = new Map(
+    takeGens.map((g) => [g.id, ((g.promptSnapshot as { refs?: { startFrameAssetId?: string } }).refs?.startFrameAssetId) ?? null])
+  );
   const generated = shots.filter((s) => s.selectedTakeId).length;
   const music = await getMusicBrief(d, id);
   const orgEntities = await listEntities(d, p.organizationId);
@@ -242,6 +249,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     {cands.takes.map((t) => (
                       <div key={t.id} style={{ display: "grid", gap: 5, justifyItems: "start" }}>
                         <Tile video label={`take ${t.id.slice(-4)} · ${t.durationActualS ?? s.durationS}s`} selected={s.selectedTakeId === t.id} assetId={t.videoAssetId} />
+                        {(() => {
+                          const cond = takeCondFrame.get(t.generationId);
+                          const selAsset = cands.frames.find((f) => f.id === s.selectedStartFrameId)?.imageAssetId;
+                          return cond && selAsset && cond !== selAsset ? (
+                            <span className="mono muted" title="This take was generated from a previously selected start frame (INV-STB-006 — it is preserved, not regenerated)" style={{ fontSize: 9, border: "1px dashed var(--line)", borderRadius: 4, padding: "1px 5px" }}>from older frame</span>
+                          ) : null;
+                        })()}
                         {s.selectedTakeId !== t.id && (
                           <div style={{ display: "flex", gap: 6 }}>
                             <form action={selectTakeAction}>
