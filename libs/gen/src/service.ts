@@ -2,7 +2,10 @@
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import type { FrameQuality, GenerationKind } from "@avd/shared/config";
-import { PROMPT_TEMPLATE_VERSION, assembleFramePrompt, assembleTakePrompt, type TakePromptInput } from "./prompt";
+import {
+  PROMPT_TEMPLATE_VERSION, assembleFramePrompt, assembleScriptPrompt, assembleShotPlanPrompt,
+  assembleTakePrompt, type TakePromptInput, type TextPromptInput,
+} from "./prompt";
 import { resolveModel } from "./routing";
 import { generation } from "./schema";
 
@@ -18,7 +21,8 @@ export interface EnqueueInput {
   commandId: string;
   target: Record<string, unknown>;
   quality?: FrameQuality;
-  promptInput: TakePromptInput;
+  promptInput?: TakePromptInput;   // media kinds
+  textInput?: TextPromptInput;     // script / shot_plan / music_brief kinds
 }
 
 export class GenConfigError extends Error {}
@@ -28,10 +32,11 @@ export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<st
     throw new GenConfigError("Generation is not configured: set GEMINI_API_KEY or MOCK_GEN=1"); // REQ-GEN-015
   }
   const id = uuidv7();
-  const prompt =
-    input.kind === "frame" || input.kind === "image_edit"
-      ? assembleFramePrompt(input.promptInput)
-      : assembleTakePrompt(input.promptInput);
+  let prompt: string;
+  if (input.kind === "frame" || input.kind === "image_edit") prompt = assembleFramePrompt(input.promptInput!);
+  else if (input.kind === "take" || input.kind === "retake") prompt = assembleTakePrompt(input.promptInput!);
+  else if (input.kind === "shot_plan") prompt = assembleShotPlanPrompt(input.textInput!);
+  else prompt = assembleScriptPrompt(input.textInput!);
 
   await db.insert(generation).values({
     id,
@@ -44,9 +49,9 @@ export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<st
       prompt,
       templateVersion: PROMPT_TEMPLATE_VERSION,
       refAssetIds: [], // populated by REQ-GEN-009 slice
-      input: input.promptInput,
+      input: input.promptInput ?? input.textInput,
     },
-    params: { durationSeconds: input.promptInput.durationSeconds, quality: input.quality ?? "standard" },
+    params: { durationSeconds: input.promptInput?.durationSeconds, quality: input.quality ?? "standard" },
     commandId: input.commandId,
     principal: input.principal,
   });

@@ -76,8 +76,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
   return (
     <main style={{ maxWidth: 1080, margin: "0 auto", padding: "36px 24px" }}>
-      <p className="mono muted" style={{ fontSize: 12 }}>
+      <p className="mono muted" style={{ fontSize: 12, display: "flex", gap: 16 }}>
         <Link href="/">← projects</Link>
+        <Link href={`/p/${id}/script`} style={{ color: "var(--accent)" }}>script studio →</Link>
       </p>
       <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap", marginTop: 8 }}>
         <h1 className="disp" style={{ fontSize: 24 }}>{p.title}</h1>

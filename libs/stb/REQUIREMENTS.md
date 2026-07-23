@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 6 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 5 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -12,9 +12,10 @@ Totals: 0 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 6 PROPOSED · 0 DEF
 | REQ-STB-005 | Take belongs to its shot, never moved | P2 | PROPOSED | INV-STB-005 | — | — |
 | REQ-STB-006 | Frame re-selection keeps takes + provenance | P2 | PROPOSED | INV-STB-006 | — | — |
 | REQ-STB-007 | Shot-plan apply protects paid shots | P2 | PROPOSED | INV-STB-007, BR-STB-005 | — | — |
-| REQ-STB-008 | Script versions via draft/revise | P2 | PROPOSED | `docs/13` §6 | — | — |
+| REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal rules (soft, unselected) | P2 | PROPOSED | POL-STB-002/003 | — | — |
 | REQ-STB-010 | Music brief set/attach/mix-mode | P3 | PROPOSED | BR-STB-007 | — | — |
+| REQ-STB-011 | Shot plan proposal materializes and applies | P2 | IN_REVIEW | `docs/13` §6 ProposeShotPlan/ApplyShotPlan | tests/script.int.spec.ts | src/service.ts |
 
 ---
 
@@ -51,4 +52,22 @@ Totals: 0 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 6 PROPOSED · 0 DEF
   - GIVEN a take whose asset is `pending`/`failed` WHEN SelectTake THEN rejected `asset_not_ready`.
 - **Tests:** `tests/shots.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 1)
 
-*(PROPOSED blocks 005–010: statements live in `docs/13-storyboard.md`; elaborate when promoted.)*
+### REQ-STB-008 — Script versions via draft/revise
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must
+- **Source:** `docs/13` §6 (DraftScript), BR-STB-005
+- **Statement:** DraftScript produces a new immutable script version via GEN (kind `script`); versions increment; content persists with generation provenance.
+- **Acceptance criteria:**
+  - GIVEN a project with a brief WHEN DraftScript completes THEN script_version v1 exists with non-empty content and generation_id.
+  - GIVEN an existing v1 WHEN DraftScript again THEN v2 exists; v1 unchanged.
+- **Tests:** `tests/script.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 2)
+
+### REQ-STB-011 — Shot plan proposal materializes and applies
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must
+- **Source:** `docs/13` §6 (ProposeShotPlan / ApplyShotPlan), INV-STB-001/002
+- **Statement:** ProposeShotPlan (kind `shot_plan`) yields a stored proposal of shots (title, direction, duration within bounds); ApplyShotPlan creates those shots appended in order and marks the proposal applied. MVP: additive only; update/remove diff arms with paid-work protection follow in REQ-STB-007.
+- **Acceptance criteria:**
+  - GIVEN a script version WHEN ProposeShotPlan completes THEN a proposal exists with ≥3 shots, each duration within config bounds.
+  - GIVEN a proposal WHEN ApplyShotPlan THEN shots exist in proposal order at the storyboard tail and the proposal is `applied`.
+- **Tests:** `tests/script.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 2)
+
+*(PROPOSED blocks 005–007, 009–010: statements live in `docs/13-storyboard.md`; elaborate when promoted.)*

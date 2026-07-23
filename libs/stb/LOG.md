@@ -22,3 +22,10 @@
 **Discovered:** header "0/1 generated" briefly shown pre-refresh — revalidation is fine, no action.
 **Follow-ups:** human review for 001–004; worker extraction; AST ledger seed.
 **Gate:** full suite green (20 tests).
+
+## 2026-07-23 — STB slice 2: script studio (REQ-STB-008/011 → IN_REVIEW)
+**Done:** red-first — draftScript → GEN kind `script` → script_version v1/v2 immutable with provenance; proposeShotPlan → kind `shot_plan` → stored proposal (mock plan: 3–7 in-bounds shots ≈ target length); applyShotPlan appends shots in order (additive MVP). GEN: text kinds land on generation.output (migration 0005), TextPromptInput + script/shot-plan assemblers. Web: /p/[id]/script page (draft, redraft, break-into-shots, apply) — browser-verified: brief → script v1 → 5-shot plan (28s/30s) → applied storyboard.
+**Fixed:** migration race under parallel suites — pg_advisory_lock in migrator.
+**Deferred:** revise-with-instruction chat UX; diff apply with paid-work protection (REQ-STB-007).
+**Discovered:** server-action forms ignore clicks pre-hydration (bit us twice in browser tests) → BACKLOG (pending-state/disable until hydrated). Duplicate "Wake the City" project from an earlier double-submit → BACKLOG cleanup + idempotent create.
+**Gate:** full suite 28/28 green.

@@ -24,6 +24,39 @@ export function fixtureSvg(seed: string, label: string, aspectRatio: "16:9" | "9
   return new TextEncoder().encode(svg);
 }
 
+export function fixtureScript(i: { projectTitle: string; brief: Record<string, unknown>; targetDurationSeconds: number }): string {
+  return [
+    `# ${i.projectTitle} — draft script (mock)`,
+    ``,
+    `COLD OPEN — establishing`,
+    `The world of "${String(i.brief["idea"] ?? i.projectTitle)}" wakes up. First light, held breath.`,
+    ``,
+    `BUILD — motion`,
+    `Momentum gathers; the subject moves through the space with intent.`,
+    ``,
+    `PAYOFF — reveal`,
+    `The hero moment lands. Hold, then cut to black. (${i.targetDurationSeconds}s target)`,
+  ].join("\n");
+}
+
+const beatTitles = ["Cold open", "The wake", "Momentum", "Close-up beat", "Crowd swell", "Hero reveal", "Logo out"];
+
+export function fixtureShotPlan(i: { projectTitle: string; targetDurationSeconds: number; minS: number; maxS: number }) {
+  const n = Math.min(beatTitles.length, Math.max(3, Math.round(i.targetDurationSeconds / 6)));
+  const base = Math.min(i.maxS, Math.max(i.minS, Math.round(i.targetDurationSeconds / n)));
+  return beatTitles.slice(0, n).map((title, idx) => ({
+    title: `${title}`,
+    durationS: Math.min(i.maxS, Math.max(i.minS, base + (idx % 2 === 0 ? 0 : -1))),
+    direction: {
+      synopsis: `${title} of ${i.projectTitle}`,
+      subject: "hero subject",
+      action: idx === 0 ? "slow reveal" : idx === n - 1 ? "hold and settle" : "dynamic movement",
+      camera: idx % 2 === 0 ? "wide, slow push-in" : "close, handheld energy",
+      mood: "cinematic dawn light",
+    },
+  }));
+}
+
 export function fixtureMp4(): Uint8Array {
   const candidates = [
     process.env.FIXTURES_DIR,

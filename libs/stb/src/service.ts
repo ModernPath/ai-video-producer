@@ -6,7 +6,8 @@ import { config } from "@avd/shared/config";
 import { asset } from "@avd/ast/schema";
 import { enqueueGeneration } from "@avd/gen";
 import { generation } from "@avd/gen/schema";
-import { frameCandidate, shot, take } from "./schema";
+import { frameCandidate, scriptVersion, shot, shotPlanProposal, take } from "./schema";
+import { project } from "@avd/prj/schema";
 
 export class StbValidationError extends Error {
   constructor(public code: string, message: string) {
@@ -128,10 +129,119 @@ export async function requestTake(
   });
 }
 
+// ---- Script studio (REQ-STB-008 / REQ-STB-011) ----
+
+async function getProjectOrThrow(db: Db, projectId: string) {
+  const [p] = await db.select().from(project).where(eq(project.id, projectId));
+  if (!p) throw new StbValidationError("not_found", "Project not found");
+  return p;
+}
+
+export async function draftScript(db: Db, input: { projectId: string; principal: string; instruction?: string }) {
+  const p = await getProjectOrThrow(db, input.projectId);
+  return enqueueGeneration(db, {
+    organizationId: p.organizationId,
+    projectId: p.id,
+    principal: input.principal,
+    kind: "script",
+    commandId: uuidv7(),
+    target: { projectId: p.id },
+    textInput: {
+      projectTitle: p.title,
+      brief: (p.brief ?? {}) as Record<string, unknown>,
+      targetDurationSeconds: Number(p.targetDurationS),
+      instruction: input.instruction,
+    },
+  });
+}
+
+export async function latestScript(db: Db, projectId: string) {
+  const versions = await db.select().from(scriptVersion).where(eq(scriptVersion.projectId, projectId));
+  return versions.sort((a, b) => b.version - a.version)[0] ?? null;
+}
+
+export async function proposeShotPlan(db: Db, input: { projectId: string; principal: string }) {
+  const p = await getProjectOrThrow(db, input.projectId);
+  const script = await latestScript(db, input.projectId);
+  if (!script) throw new StbValidationError("no_script", "Draft a script before proposing a shot plan");
+  return enqueueGeneration(db, {
+    organizationId: p.organizationId,
+    projectId: p.id,
+    principal: input.principal,
+    kind: "shot_plan",
+    commandId: uuidv7(),
+    target: { projectId: p.id, scriptVersionId: script.id },
+    textInput: {
+      projectTitle: p.title,
+      brief: (p.brief ?? {}) as Record<string, unknown>,
+      targetDurationSeconds: Number(p.targetDurationS),
+      scriptText: script.content,
+    },
+  });
+}
+
+export interface PlannedShot {
+  title: string;
+  durationS: number;
+  direction: DirectionJson;
+}
+
+/** MVP: additive apply. Update/remove arms with paid-work protection land with REQ-STB-007. */
+export async function applyShotPlan(db: Db, input: { proposalId: string; principal: string }) {
+  const [proposal] = await db.select().from(shotPlanProposal).where(eq(shotPlanProposal.id, input.proposalId));
+  if (!proposal) throw new StbValidationError("not_found", "Proposal not found");
+  if (proposal.status !== "proposed") throw new StbValidationError("conflict", "Proposal already resolved");
+  const [p] = await db.select().from(project).where(eq(project.id, proposal.projectId));
+  const shots = proposal.changes as PlannedShot[];
+  for (const s of shots) {
+    await createShot(db, {
+      organizationId: p!.organizationId,
+      projectId: proposal.projectId,
+      title: s.title,
+      direction: s.direction,
+      durationS: s.durationS, // INV-STB-001 enforced by createShot
+    });
+  }
+  await db.update(shotPlanProposal).set({ status: "applied" }).where(eq(shotPlanProposal.id, input.proposalId));
+}
+
 /** STB consumer for gen.GenerationCompleted — materializes candidates (docs/41 choreography). */
 export async function materializeGenerationOutput(db: Db, generationId: string) {
   const [g] = await db.select().from(generation).where(eq(generation.id, generationId));
-  if (!g || g.status !== "succeeded" || !g.outputAssetIds?.length) return null;
+  if (!g || g.status !== "succeeded") return null;
+
+  // Text kinds → script version / plan proposal (REQ-STB-008/011)
+  if (g.kind === "script") {
+    const out = g.output as { text?: string } | null;
+    if (!out?.text) return null;
+    const latest = await latestScript(db, g.projectId);
+    const id = uuidv7();
+    await db.insert(scriptVersion).values({
+      id,
+      projectId: g.projectId,
+      version: (latest?.version ?? 0) + 1,
+      content: out.text,
+      source: "drafted",
+      generationId: g.id,
+    });
+    return { kind: "script" as const, id };
+  }
+  if (g.kind === "shot_plan") {
+    const out = g.output as { shots?: PlannedShot[] } | null;
+    if (!out?.shots?.length) return null;
+    const target = g.target as { scriptVersionId?: string };
+    const id = uuidv7();
+    await db.insert(shotPlanProposal).values({
+      id,
+      projectId: g.projectId,
+      scriptVersionId: target.scriptVersionId ?? null,
+      changes: out.shots,
+      generationId: g.id,
+    });
+    return { kind: "shot_plan" as const, id };
+  }
+
+  if (!g.outputAssetIds?.length) return null;
   const target = g.target as { shotId?: string; slot?: "start" | "end" };
   if (!target.shotId) return null;
 

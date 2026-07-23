@@ -40,6 +40,31 @@ export function assembleTakePrompt(i: TakePromptInput): string {
   return lines.join("\n");
 }
 
+export interface TextPromptInput {
+  projectTitle: string;
+  brief: Record<string, unknown>;
+  targetDurationSeconds: number;
+  scriptText?: string | undefined;   // for shot_plan / revise
+  instruction?: string | undefined;  // for revise
+}
+
+export function assembleScriptPrompt(i: TextPromptInput): string {
+  return [
+    `TASK: Write a video script for a ${i.targetDurationSeconds}-second video titled "${i.projectTitle}".`,
+    `BRIEF: ${JSON.stringify(i.brief)}`,
+    i.instruction ? `INSTRUCTION: ${i.instruction}` : "",
+    i.scriptText ? `CURRENT SCRIPT:\n${i.scriptText}` : "",
+  ].filter(Boolean).join("\n");
+}
+
+export function assembleShotPlanPrompt(i: TextPromptInput): string {
+  return [
+    `TASK: Break the script into 4–10 second shots (structured output) totaling ≈${i.targetDurationSeconds}s.`,
+    `BRIEF: ${JSON.stringify(i.brief)}`,
+    `SCRIPT:\n${i.scriptText ?? ""}`,
+  ].join("\n");
+}
+
 export function assembleFramePrompt(i: Omit<TakePromptInput, "durationSeconds">): string {
   const lines: string[] = [];
   lines.push(`FORMAT: still image, ${i.aspectRatio} aspect ratio.`);

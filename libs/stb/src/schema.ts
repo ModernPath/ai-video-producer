@@ -28,6 +28,26 @@ export const frameCandidate = stb.table("frame_candidate", {
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });
 
+export const scriptVersion = stb.table("script_version", {
+  id: uuid("id").primaryKey(),
+  projectId: uuid("project_id").notNull(),
+  version: integer("version").notNull(),
+  content: text("content").notNull(),
+  source: text("source", { enum: ["drafted", "revised", "manual"] }).notNull().default("drafted"),
+  generationId: uuid("generation_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const shotPlanProposal = stb.table("shot_plan_proposal", {
+  id: uuid("id").primaryKey(),
+  projectId: uuid("project_id").notNull(),
+  scriptVersionId: uuid("script_version_id"),
+  changes: jsonb("changes").notNull(),
+  status: text("status", { enum: ["proposed", "applied", "discarded"] }).notNull().default("proposed"),
+  generationId: uuid("generation_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const take = stb.table("take", {
   id: uuid("id").primaryKey(),
   shotId: uuid("shot_id").notNull(),

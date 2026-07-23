@@ -120,3 +120,28 @@ export async function exportAction(formData: FormData) {
   await runNextExport(db(), { organizationId: p.organizationId }); // dev-inline worker
   revalidatePath(`/p/${projectId}`);
 }
+
+export async function draftScriptAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { draftScript, materializeGenerationOutput } = await import("@avd/stb");
+  const genId = await draftScript(db(), { projectId, principal: PRINCIPAL });
+  await drainQueueAndMaterialize([genId]);
+  void materializeGenerationOutput; // materialized in drain
+  revalidatePath(`/p/${projectId}/script`);
+}
+
+export async function proposePlanAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { proposeShotPlan } = await import("@avd/stb");
+  const genId = await proposeShotPlan(db(), { projectId, principal: PRINCIPAL });
+  await drainQueueAndMaterialize([genId]);
+  revalidatePath(`/p/${projectId}/script`);
+}
+
+export async function applyPlanAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { applyShotPlan } = await import("@avd/stb");
+  await applyShotPlan(db(), { proposalId: String(formData.get("proposalId")), principal: PRINCIPAL });
+  revalidatePath(`/p/${projectId}`);
+  redirect(`/p/${projectId}`);
+}

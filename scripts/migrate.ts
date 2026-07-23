@@ -6,6 +6,7 @@ import postgres from "postgres";
 export async function migrate(url = process.env.DATABASE_URL ?? "postgres://avd:avd@localhost:54329/avd") {
   const sql = postgres(url, { max: 1, onnotice: () => {} });
   try {
+    await sql`SELECT pg_advisory_lock(420001)`; // serialize concurrent test-suite migrations
     await sql`CREATE SCHEMA IF NOT EXISTS shared`;
     await sql`CREATE TABLE IF NOT EXISTS shared.schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`;
     const dir = join(import.meta.dirname, "..", "migrations");
@@ -19,6 +20,7 @@ export async function migrate(url = process.env.DATABASE_URL ?? "postgres://avd:
       console.log(`applied ${file}`);
     }
   } finally {
+    await sql`SELECT pg_advisory_unlock(420001)`.catch(() => {});
     await sql.end();
   }
 }

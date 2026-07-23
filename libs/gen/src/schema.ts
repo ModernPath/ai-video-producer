@@ -24,6 +24,7 @@ export const generation = gen.table("generation", {
   costUsd: numeric("cost_usd", { precision: 10, scale: 4 }),
   providerOpRef: text("provider_op_ref"),
   outputAssetIds: uuid("output_asset_ids").array(),
+  output: jsonb("output"), // text-kind results (script text, shot plan JSON)
   commandId: uuid("command_id").notNull(),
   principal: text("principal").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

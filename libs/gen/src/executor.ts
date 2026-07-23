@@ -5,8 +5,9 @@ import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import { asset } from "@avd/ast/schema";
 import { assetKey, putObject } from "@avd/ast/storage";
+import { config } from "@avd/shared/config";
 import { computeCostUsd } from "./cost";
-import { fixtureMp4, fixtureSvg } from "./fixtures";
+import { fixtureMp4, fixtureScript, fixtureShotPlan, fixtureSvg } from "./fixtures";
 import { generation } from "./schema";
 import { mockEnabled } from "./service";
 
@@ -41,6 +42,25 @@ export async function runNextGeneration(db: Db, opts: { organizationId?: string 
       .set({ status: "failed", errorCode: "provider_unavailable", errorDetail: "real provider path pending REQ-GEN-010", finishedAt: new Date() })
       .where(eq(generation.id, next.id));
     return { generationId: next.id, status: "failed" };
+  }
+
+  // Text kinds: result lands on generation.output, no asset (docs/40 §5).
+  if (next.kind === "script" || next.kind === "shot_plan" || next.kind === "music_brief" || next.kind === "direction") {
+    const snap = next.promptSnapshot as { input?: { projectTitle?: string; brief?: Record<string, unknown>; targetDurationSeconds?: number } };
+    const ti = {
+      projectTitle: snap.input?.projectTitle ?? "Untitled",
+      brief: snap.input?.brief ?? {},
+      targetDurationSeconds: snap.input?.targetDurationSeconds ?? config.project.defaultTargetDurationSeconds,
+    };
+    const output =
+      next.kind === "shot_plan"
+        ? { shots: fixtureShotPlan({ ...ti, minS: config.shot.minSeconds, maxS: config.shot.maxSeconds }) }
+        : { text: fixtureScript(ti) };
+    await db
+      .update(generation)
+      .set({ status: "succeeded", output, costUsd: "0.0000", finishedAt: new Date() })
+      .where(eq(generation.id, next.id));
+    return { generationId: next.id, status: "succeeded" };
   }
 
   const kind = next.kind as keyof typeof assetKindFor;
