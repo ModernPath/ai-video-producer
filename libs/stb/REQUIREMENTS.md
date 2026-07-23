@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 26 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -16,8 +16,8 @@ Totals: 0 DONE · 26 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
 | REQ-STB-026 | Archetype selection injects directing recipe | P7 | IN_REVIEW | docs/87 | libs/gen/tests/prompt.spec.ts (REQ-STB-026 block) + snapshot E2E | config/archetypes.ts, migration 0021, recipeFor injection ×3, script-page select |
-| REQ-STB-027 | Archetype-aware planning (durations/animation/audio bias) | P7 | PROPOSED | docs/87 — planBias/musicBias delivered via 026; remaining: defaults (audio mode, shot seconds) + eval renders | — | — |
-| REQ-STB-028 | Lyrics-first flow (plan shots from transcript sections) | P7 | PROPOSED | docs/87 | — | — |
+| REQ-STB-027 | Archetype defaults (audio mode) | P7 | IN_REVIEW | docs/87 | E2E (product-launch → mix) | archetypes defaults, setProjectArchetype |
+| REQ-STB-028 | Music-led planning (transcript in plan prompt) | P7 | IN_REVIEW | docs/87 | prompt.spec REQ-STB-028 + snapshot E2E | prompt transcript block, proposeShotPlan wiring |
 | REQ-STB-025 | Lyric-synced cut suggestions (♪ MUSIC SYNC) | P6 | IN_REVIEW | USER Lyria epic ("time the change of scene according to song timing") | tests/music-sync.spec.ts + update-duration.int + browser E2E | src/music-sync.ts, updateShotDuration, applySyncAction, SYNC panel |
 | REQ-STB-024 | Plan-authored animation shots (free, no frame spend) | P6 | IN_REVIEW | USER Remotion epic ("purely remotion animations (prompt)") | plan-normalize spec + real E2E frame | migration 0020, normalize/apply, plan prompt, applyPlanAction branch, badge+prefill UI |
 | REQ-STB-023 | Music brief includes timed lyrics unless instrumental | P5 | IN_REVIEW | USER 2026-07-23 (Lyria epic) | libs/gen/tests/prompt.spec.ts + real-model check | assembleMusicBriefPrompt lyrics rule |
@@ -311,3 +311,15 @@ Totals: 0 DONE · 26 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
   - GIVEN the script page THEN a directing select persists the choice.
 - **Tests:** `libs/gen/tests/prompt.spec.ts` (REQ-STB-026) · snapshot E2E · browser (select present; submit verified server-side — extension click-drop) · **Code:** `libs/shared/src/config/archetypes.ts`, migration 0021, STB recipeFor ×3 injection, PRJ setProjectArchetype, script-page select · **Log:** LOG 2026-07-23 (slice 24)
 - **Deferred / notes:** archetype defaults (audio mode, shot-length caps) and per-archetype eval renders belong to REQ-STB-027.
+
+### REQ-STB-027 — Archetype defaults
+- **Status:** IN_REVIEW · **Stage:** P7 · **Priority:** could · **Owner:** —
+- **Statement:** Selecting an archetype applies its recipe defaults to the project (v1: audioMixMode — music for music-led archetypes, mix where native sound matters).
+- **Tests:** E2E: product-launch → audioMixMode mix; brand-pulse → music · **Code:** archetypes defaults, PRJ setProjectArchetype · **Log:** LOG (slice 25)
+- **Deferred / notes:** per-archetype eval renders (taste review, docs/87) remain before the epic is DONE — tracked here.
+
+### REQ-STB-028 — Music-led planning
+- **Status:** IN_REVIEW · **Stage:** P7 · **Priority:** should · **Owner:** —
+- **Statement:** When the project's track has a transcript, the shot-plan prompt includes it with instructions to align shot boundaries to the [MM:SS] sections and to carry matching lyric lines into animation-shot text.
+- **Tests:** prompt.spec REQ-STB-028 (block + alignment + lyric-into-animation instructions; absent when no transcript) · snapshot E2E on Aurora (transcript + DIRECTING both present in the plan prompt) · **Code:** prompt transcript block, proposeShotPlan getMusicBrief wiring · **Log:** LOG (slice 25)
+- **Deferred / notes:** full lyrics-FIRST orchestration (one-click: brief→track→transcript→plan) is UX sugar over these pieces — add if the manual sequence proves clumsy.

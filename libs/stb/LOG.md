@@ -1,5 +1,13 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 25: REQ-STB-027 + 028 (→ IN_REVIEW)
+**Done:** archetype defaults (audioMixMode per recipe) applied on selection — E2E: product-launch flipped Aurora to mix, restored to brand-pulse/music. Music-led planning: plan prompt gains the TRANSCRIPT block (align boundaries to [MM:SS] sections; lyric lines into animation-shot text) whenever a transcript exists — red-first prompt tests + live snapshot E2E (transcript + DIRECTING co-present). The full docs/87 loop is now wired: archetype shapes script/plan/music; transcript shapes the plan; music-sync shapes durations; animation shots carry type.
+**Decisions:** lyrics-FIRST one-click orchestration deferred until the manual sequence proves clumsy.
+**Deferred:** per-archetype eval renders (the real taste test — needs fresh spend headroom, likely tomorrow's cap).
+**Discovered:** —
+**Follow-ups:** eval renders per archetype.
+**Gate:** full suite green (130 passed).
+
 ## 2026-07-23 — slice 24: REQ-STB-026 archetype selection (→ IN_REVIEW)
 **Done:** six directing recipes as config (archetypes.ts — taste is now tunable data); migration 0021 (project.archetype); recipeFor injects DIRECTING into script+plan, planBias into plan, musicBias into music brief; PRJ setProjectArchetype; script-page "directing:" select. Red-first prompt tests; E2E: Brand pulse set on Aurora → draft snapshot opens with the full DIRECTING block (verified, gen canceled — no spend).
 **Decisions:** recipes are config-not-code so taste iteration never needs a code review; freeform (null) stays the default.

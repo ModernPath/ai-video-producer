@@ -125,3 +125,19 @@ describe("REQ-STB-026: archetype directing blocks reach the prompts", () => {
     expect(assembleScriptPrompt(base)).not.toContain("DIRECTING");
   });
 });
+
+describe("REQ-STB-028: transcript reaches the shot-plan prompt for music-led planning", () => {
+  it("plan prompt includes the transcript block and alignment instruction", () => {
+    const plan = assembleShotPlanPrompt({
+      projectTitle: "T", brief: {}, targetDurationSeconds: 20, entities: [], scriptText: "s",
+      transcript: "[00:00] [Intro]\n[00:19] [Chorus] hands up",
+    });
+    expect(plan).toContain("[00:19] [Chorus] hands up");
+    expect(plan).toMatch(/align.*sections|sections.*align/i);
+    expect(plan).toMatch(/lyric.*animation|animation.*lyric/i);
+  });
+  it("no transcript, no block", () => {
+    const plan = assembleShotPlanPrompt({ projectTitle: "T", brief: {}, targetDurationSeconds: 20, entities: [], scriptText: "s" });
+    expect(plan).not.toContain("TRANSCRIPT");
+  });
+});

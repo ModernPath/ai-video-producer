@@ -316,6 +316,7 @@ export async function latestScript(db: Db, projectId: string) {
 }
 
 export async function proposeShotPlan(db: Db, input: { projectId: string; principal: string }) {
+  const briefRow = await getMusicBrief(db, input.projectId); // REQ-STB-028: music-led planning
   const p = await getProjectOrThrow(db, input.projectId);
   const script = await latestScript(db, input.projectId);
   if (!script) throw new StbValidationError("no_script", "Draft a script before proposing a shot plan");
@@ -333,6 +334,7 @@ export async function proposeShotPlan(db: Db, input: { projectId: string; princi
       targetDurationSeconds: Number(p.targetDurationS),
       scriptText: script.content,
       entities: cast.entities,
+      transcript: briefRow?.transcript ?? undefined, // REQ-STB-028
       ...recipeFor(p),
     },
   });
