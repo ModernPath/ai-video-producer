@@ -1,5 +1,13 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 27: music-failure visibility + typecheck catch + review refresh
+**Done:** script-page failure banner now covers `music` and `transcript` kinds with a specific hint for policy blocks ("Regenerate the brief, then Generate track again — failed generations are never charged") — verified rendering live on the eval project's real failed row. Typecheck caught that TextPromptInput.transcript never landed (vitest doesn't typecheck; slice-25 edit had silently missed) — fixed properly. Sign-off review page refreshed: 73 IN_REVIEW, $3.61 total spend, eval evidence noted; same URL.
+**Decisions:** —
+**Deferred:** —
+**Discovered:** two silent-replace misses in one day (template param, transcript field) — process note: after python str.replace edits, ALWAYS run tsc, not just vitest.
+**Follow-ups:** evals #2–6 on tomorrow's cap.
+**Gate:** full suite green (130 passed); web tsc clean.
+
 ## 2026-07-23 — slice 26: ARCHETYPE EVAL #1 — Hype countdown ($0.83) + three taste fixes
 **Done:** first docs/87 eval render, full path on "EVAL Hype Countdown": archetype plan came out EXACTLY per recipe (filmed beats alternating kinetic 3-2-1 interstitials, all 4s, reveal, end card — zero manual intervention); 4 real frames, real Veo reveal take (can slamming into rain-soaked neon street), free animations, Lyria (first brief POLICY-BLOCKED on "aggressive/industrial" vocabulary), export + share.
 **Taste review vs the six principles:** structure ✓ (countdown arc is inherent); one-idea-per-shot ✓; continuity ✓ (can in every filmed shot); contrast cuts ✓ (filmed/graphic alternation is the archetype's core); land-cuts-on-music — untested (transcript exists but sync panel not applied this run); end-held-frame ✓ (end card). DEFECTS FOUND & FIXED: (1) Veo burned a timecode overlay into the reveal → auto video prompts now forbid on-screen text/timestamps/UI (v3 guideline, red-tested); (2) countdown digits rendered small/quiet → KineticText now scales font by content length (single digit = 420px, fills frame — re-rendered & re-exported, frame-verified); (3) requestAnimationTake silently dropped the template param (earlier replace never landed) → fixed, template now in snapshots.

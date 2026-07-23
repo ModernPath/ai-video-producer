@@ -31,7 +31,7 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
   const failedGens = await d
     .select()
     .from(generation)
-    .where(and(eq(generation.projectId, id), eq(generation.status, "failed"), inArray(generation.kind, ["script", "shot_plan", "music_brief"])))
+    .where(and(eq(generation.projectId, id), eq(generation.status, "failed"), inArray(generation.kind, ["script", "shot_plan", "music_brief", "music", "transcript"])))
     .orderBy(desc(generation.createdAt))
     .limit(1);
   const lastFailure = failedGens[0];
@@ -69,7 +69,11 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
           <p className="mono" style={{ fontSize: 11, color: "#e0763a" }}>
             {lastFailure.kind} failed · {lastFailure.errorCode}: {lastFailure.errorDetail?.slice(0, 220)}
           </p>
-          <p className="muted" style={{ fontSize: 11, marginTop: 4 }}>Adjust the prompt or try again — nothing was charged for failed text generations.</p>
+          <p className="muted" style={{ fontSize: 11, marginTop: 4 }}>
+            {lastFailure.kind === "music"
+              ? "The music model blocked this brief (usually intense vocabulary) — hit Regenerate on the brief, then Generate track again. Failed generations are never charged."
+              : "Adjust the prompt or try again — failed generations are never charged."}
+          </p>
         </section>
       )}
 

@@ -70,6 +70,7 @@ export interface TextPromptInput {
   directing?: string | undefined;  // REQ-STB-026: archetype directing block (docs/87)
   planBias?: string | undefined;   // REQ-STB-026: plan-only guidance
   musicBias?: string | undefined;  // REQ-STB-026: music-only guidance
+  transcript?: string | undefined; // REQ-STB-028: MM:SS track transcript for music-led planning
 }
 
 function castBlock(entities?: EntityBlock[]): string[] {
