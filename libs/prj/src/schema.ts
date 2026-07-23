@@ -13,5 +13,6 @@ export const project = prj.table("project", {
   targetDurationS: numeric("target_duration_s", { precision: 5, scale: 1 }).notNull(),
   brief: jsonb("brief").notNull().default({}),
   audioMixMode: text("audio_mix_mode", { enum: ["native", "music", "mix"] }).notNull().default("native"),
+  commandId: uuid("command_id"), // REQ-PRJ-002 idempotent create
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

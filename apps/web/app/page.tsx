@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
+import { v7 as uuidv7 } from "uuid";
 import { project } from "@avd/prj/schema";
 import { createProjectAction } from "./actions";
 import { db } from "../lib/db";
@@ -23,6 +24,7 @@ export default async function Home() {
       </h1>
 
       <form action={createProjectAction} style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
+        <input type="hidden" name="commandId" value={uuidv7()} />
         <input
           name="title"
           placeholder="New video title…"

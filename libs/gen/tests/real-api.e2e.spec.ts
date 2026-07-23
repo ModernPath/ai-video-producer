@@ -52,13 +52,18 @@ describe.skipIf(!enabled)("REAL API e2e: gemini text + draft image (≈$0.04/run
     await client.end();
   });
 
-  it("real text: script model returns non-empty content", async () => {
+  it("real text: cast-aware script prompt returns usable content", async () => {
+    const { assembleScriptPrompt } = await import("../src/prompt");
     const provider = createGeminiProvider();
-    const res = await provider.generateText({
-      model: modelRoutes.script,
-      prompt: "Write one short cinematic tagline (max 12 words) for a coffee brand dawn video.",
+    const prompt = assembleScriptPrompt({
+      projectTitle: "Dawn Ritual",
+      brief: { idea: "a sunrise ritual film - the KAIJU Can fuels a barista's first pour" },
+      targetDurationSeconds: 20,
+      entities: [{ kind: "product", name: "KAIJU Can", description: "green 330ml energy drink can with claw logo" }],
     });
-    expect((res.text ?? "").length).toBeGreaterThan(4);
+    const res = await provider.generateText({ model: modelRoutes.script, prompt });
+    expect((res.text ?? "").length).toBeGreaterThan(50);
+    console.log("[real script sample]", (res.text ?? "").slice(0, 400));
   }, 60_000);
 
   it("real image: draft frame flows through the full pipeline with billed cost", async () => {

@@ -146,3 +146,8 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 ## 2026-07-23 — Build loop iteration 22 (user directives)
 **Done:** (1) Next.js 16.2.11 upgrade — build now type-checks libs; strict-optional fixes landed; all green. (2) REQ-STB-012 video prompt → cast-aware script/shot/music prompts (IN_REVIEW): the "prompt for the video" now drives 3.6-flash with the project's assets in context, and shot directions are framed as ready image prompts.
 **Next:** review sweep (33 IN_REVIEW) · real-ring run of cast-aware script (verify quality) · remaining hardening pool.
+
+## 2026-07-23 — Build loop iteration 23
+**Done:** (1) Real-ring script test upgraded to cast-aware prompt — 3.6-flash returned a titled script; backlog item closed. (2) PRJ ledger seeded; REQ-PRJ-002 idempotent creation IN_REVIEW (browser double-click → 1 project) — the dup-project papercut is dead.
+**Observed:** user is actively testing in the dev app (new projects present). Loop will treat user-created data as untouchable.
+**Next:** review sweep (35 IN_REVIEW) · PRJ-003/004 test backfill · REQ-ASM-006 retry · GEN hardening.

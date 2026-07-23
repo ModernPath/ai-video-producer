@@ -29,15 +29,15 @@ export async function createProjectAction(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   if (!title) return;
   const aspectRatio = formData.get("aspectRatio") === "9:16" ? "9:16" : "16:9";
-  const id = uuidv7();
   const idea = String(formData.get("idea") ?? "").trim();
-  await db().insert(project).values({
-    id,
+  const commandId = String(formData.get("commandId") || uuidv7()); // per-render id → replay-safe (REQ-PRJ-002)
+  const { createProject } = await import("@avd/prj/service");
+  const id = await createProject(db(), {
     organizationId: await devOrgId(),
     title,
     aspectRatio,
-    targetDurationS: String(config.project.defaultTargetDurationSeconds),
-    ...(idea ? { brief: { idea } } : {}),
+    commandId,
+    ...(idea ? { idea } : {}),
   });
   redirect(`/p/${id}`);
 }
