@@ -1,5 +1,10 @@
 # Build Log — STB (Story & Storyboard)
 
+## 2026-07-23 — slice 39: plan-authored template choice + ring re-run
+**Done:** eval-#2 finding closed — the shot-plan model now chooses the animation TEMPLATE per shot ("title" for held cards, "kinetic" for punchy word-by-word type: countdown digits, lyric lines, interstitials); normalize validates both (red-first), apply+first-frames renders with the plan's choice, and the per-shot template select prefills from it. DoD §9.8: real ring re-run green (3/3) covering yesterday's entity-prose dedup.
+**Decisions:** — **Deferred:** — **Discovered:** — **Follow-ups:** —
+**Gate:** full suite 136; real ring 3/3; tsc clean.
+
 ## 2026-07-23 — slice 38: user's orphaned take completed + prose dedup
 **Done:** the reaped orphan (user's own $-take click on "Momentum", Pasi testaa) completed via the REQ-GEN-014 retry path — real Veo take generated, materialized, left UNSELECTED for the user's judgment; the failed row shows `orphaned` + retry in RECENT GENERATIONS exactly as designed. Micro-fix from reviewing their board: "Featuring Pasi, Pasi" prose echo when an entity's description repeats its name — dedup'd in both take and frame assembly (red-first).
 **Decisions:** never auto-select a take generated on the user's behalf — their creative call.

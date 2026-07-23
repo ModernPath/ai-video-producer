@@ -34,6 +34,14 @@ describe("shot plan normalization", () => {
 });
 
 describe("REQ-STB-024: plan-authored animation shots", () => {
+  it("accepts the kinetic template from the plan", () => {
+    const out = normalizePlannedShots({ shots: [
+      { title: "Interstitial", durationS: 4, direction: { synopsis: "s", subject: "x", action: "y" },
+        animation: { template: "kinetic", text: "ONE CITY" } },
+    ]});
+    expect(out[0]!.animation).toEqual({ template: "kinetic", text: "ONE CITY" });
+  });
+
   it("passes a well-formed animation block through; junk animation dropped", () => {
     const out = normalizePlannedShots({ shots: [
       { title: "Logo out", durationS: 4, direction: { synopsis: "brand end card", subject: "logo", action: "hold" },

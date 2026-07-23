@@ -4,7 +4,7 @@ import { config, providerLimits } from "@avd/shared/config";
 import type { DirectionJson } from "./service";
 
 export interface PlannedAnimation {
-  template: "title";
+  template: "title" | "kinetic";
   text: string;
   subtext?: string | undefined;
 }
@@ -71,8 +71,8 @@ export function normalizePlannedShots(raw: unknown): NormalizedPlannedShot[] {
       ...(videoPrompt ? { videoPrompt } : {}),
       ...((): { animation?: PlannedAnimation } => {
         const a = s.animation as Record<string, unknown> | undefined;
-        if (a && a.template === "title" && typeof a.text === "string" && a.text.trim()) {
-          return { animation: { template: "title", text: a.text.trim(), ...(typeof a.subtext === "string" && a.subtext.trim() ? { subtext: a.subtext.trim() } : {}) } };
+        if (a && (a.template === "title" || a.template === "kinetic") && typeof a.text === "string" && a.text.trim()) {
+          return { animation: { template: a.template as "title" | "kinetic", text: a.text.trim(), ...(typeof a.subtext === "string" && a.subtext.trim() ? { subtext: a.subtext.trim() } : {}) } };
         }
         return {};
       })(),

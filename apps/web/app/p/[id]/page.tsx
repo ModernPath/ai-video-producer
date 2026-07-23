@@ -343,7 +343,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     <form action={animationTakeAction} style={{ display: "flex", gap: 4, alignItems: "center" }}>
                       <input type="hidden" name="projectId" value={id} />
                       <input type="hidden" name="shotId" value={s.id} />
-                      <select name="template" className="mono" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 5, color: "var(--ink)", fontSize: 10, padding: "2px 4px" }}>
+                      <select name="template" defaultValue={((s.animation as { template?: string } | null)?.template) ?? "title"} className="mono" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 5, color: "var(--ink)", fontSize: 10, padding: "2px 4px" }}>
                         <option value="title">title</option>
                         <option value="kinetic">kinetic</option>
                       </select>

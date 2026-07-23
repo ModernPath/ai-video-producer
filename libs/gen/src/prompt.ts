@@ -103,8 +103,8 @@ export function assembleShotPlanPrompt(i: TextPromptInput): string {
     i.transcript
       ? `TRANSCRIPT of the attached track (align shot boundaries to these [MM:SS] sections; where the direction calls for animation shots, put the matching lyric lines into their text):\n${i.transcript}`
       : "",
-    `Return ONLY a JSON object exactly shaped: {"shots":[{"title":string,"durationS":4|6|8,"direction":{"synopsis":string,"subject":string,"action":string,"camera":string,"mood":string},"imagePrompt":string,"videoPrompt":string,"animation":{"template":"title","text":string,"subtext":string}|null}]} — no markdown fences, no commentary.`,
-    `Set "animation" ONLY for pure graphic shots (title cards, brand end-cards, logo stings): template "title" with the on-screen text (and optional subtext). Filmed/generated shots get animation:null.`,
+    `Return ONLY a JSON object exactly shaped: {"shots":[{"title":string,"durationS":4|6|8,"direction":{"synopsis":string,"subject":string,"action":string,"camera":string,"mood":string},"imagePrompt":string,"videoPrompt":string,"animation":{"template":"title"|"kinetic","text":string,"subtext":string}|null}]} — no markdown fences, no commentary.`,
+    `Set "animation" ONLY for pure graphic shots: template "title" for held cards (end-cards, quiet titles — optional subtext) or "kinetic" for punchy word-by-word type (countdown digits, lyric lines, interstitial statements). Filmed/generated shots get animation:null.`,
     `imagePrompt = a complete production-ready still-image prompt; videoPrompt = a complete video prompt (motion, camera, mood). Reference cast members by name.`,
     `BRIEF: ${JSON.stringify(i.brief)}`,
     ...castBlock(i.entities),

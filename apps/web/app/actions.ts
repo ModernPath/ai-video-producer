@@ -179,10 +179,10 @@ export async function applyPlanAction(formData: FormData) {
       const animByShot = new Map(rows.map((r) => [r.id, r.animation as { text?: string } | null]));
       const genIds: string[] = [];
       for (const shotId of shotIds) {
-        const anim = animByShot.get(shotId);
+        const anim = animByShot.get(shotId) as { text?: string; template?: "title" | "kinetic" } | null;
         if (anim?.text) {
           // REQ-STB-024: pure-graphic shot — render the free animation take instead of buying a frame
-          genIds.push(await requestAnimationTake(db(), { shotId, text: anim.text, principal: PRINCIPAL, aspectRatio: p.aspectRatio }));
+          genIds.push(await requestAnimationTake(db(), { shotId, text: anim.text, template: anim.template ?? "title", principal: PRINCIPAL, aspectRatio: p.aspectRatio }));
         } else {
           genIds.push(await requestFrame(db(), { shotId, slot: "start", principal: PRINCIPAL, aspectRatio: p.aspectRatio }));
         }
