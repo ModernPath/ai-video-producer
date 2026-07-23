@@ -12,7 +12,7 @@ import { mockEnabled } from "./service";
 import { defaultProvider, ProviderError, type GenProvider } from "./provider";
 import { generation } from "./schema";
 
-const TEXT_KINDS = new Set(["script", "shot_plan", "direction", "music_brief"]);
+const TEXT_KINDS = new Set(["script", "shot_plan", "direction", "music_brief", "transcript"]);
 const VIDEO_KINDS = ["take", "retake"] as const;
 
 function isVideoKind(kind: string): boolean {
@@ -110,10 +110,18 @@ async function processGenerationRow(
 
   try {
     if (TEXT_KINDS.has(next.kind)) {
+      // REQ-GEN-020: transcript carries an audio ref — fetch the track bytes for the model
+      let audio: { bytes: Uint8Array; mime: string } | undefined;
+      const audioAssetId = (snapshot.refs as { audioAssetId?: string } | undefined)?.audioAssetId;
+      if (next.kind === "transcript" && audioAssetId) {
+        const [track] = await db.select().from(asset).where(eq(asset.id, audioAssetId));
+        if (track) audio = await getObject(track.storageKey);
+      }
       const res = await provider.generateText({
         model: next.modelId,
         prompt: snapshot.prompt,
         json: next.kind === "shot_plan",
+        audio,
         meta: { ...snapshot.input, kind: next.kind },
       });
       const output = res.json ? (res.json as Record<string, unknown>) : { text: res.text ?? "" };

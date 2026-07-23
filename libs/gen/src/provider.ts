@@ -11,6 +11,7 @@ export class ProviderError extends Error {
 }
 
 export interface TextRequest {
+  audio?: { bytes: Uint8Array; mime: string } | undefined; // REQ-GEN-020
   model: string;
   prompt: string;
   json?: boolean;
@@ -46,6 +47,9 @@ export const mockProvider: GenProvider = {
   name: "mock",
   billsCost: false,
   async generateText(r) {
+    if (r.audio) {
+      return { text: "[00:00] (intro) instrumental\n[00:05] [Verse] mock line one\n[00:12] [Chorus] mock chorus line" };
+    }
     const meta = (r.meta ?? {}) as { projectTitle?: string; brief?: Record<string, unknown>; targetDurationSeconds?: number };
     const ti = {
       projectTitle: meta.projectTitle ?? "Untitled",
@@ -90,7 +94,12 @@ export function createGeminiProvider(): GenProvider {
       try {
         const res = await client.models.generateContent({
           model: r.model,
-          contents: r.prompt,
+          contents: r.audio
+            ? [{ role: "user", parts: [
+                { inlineData: { data: Buffer.from(r.audio.bytes).toString("base64"), mimeType: r.audio.mime } },
+                { text: r.prompt },
+              ] }]
+            : r.prompt, // REQ-GEN-020: audio understanding via inline part (≤20MB)
           ...(r.json ? { config: { responseMimeType: "application/json" } } : {}),
         });
         const text = res.text ?? "";

@@ -57,6 +57,7 @@ export const musicBrief = stb.table("music_brief", {
   prompt: text("prompt").notNull(),
   generationId: uuid("generation_id"),
   activeTrackAssetId: uuid("active_track_asset_id"),
+  transcript: text("transcript"), // REQ-GEN-020
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

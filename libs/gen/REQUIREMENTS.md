@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 17 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 18 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -22,7 +22,7 @@ Totals: 0 DONE · 17 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
 | REQ-GEN-017 | Live progress reaches the UI (SSE) | P2 | IN_REVIEW | `docs/07` §1, ADR-006 (enabler) | libs/prj/tests/activity.int.spec.ts + browser E2E | libs/prj/src/activity.ts, apps/web (events route, LiveRefresh) |
 | REQ-GEN-016 | Jobs execute via queue worker (pg-boss) | P2 | IN_REVIEW | `docs/03` §1–2 (enabler) | apps/worker/tests/handlers.int.spec.ts + browser E2E | apps/worker/src/*, libs/shared/src/queue.ts |
 | REQ-GEN-019 | Lyria music generation (brief → real track) | P5 | IN_REVIEW | USER 2026-07-23; docs/85 §Music | libs/stb/tests/music-track.int.spec.ts + real E2E ($0.08) | migration 0017, provider generateMusic (Interactions REST), executor music branch, requestMusicTrack, ♫ UI |
-| REQ-GEN-020 | Audio transcription MM:SS + diarization (sync) | P5 | PROPOSED | USER 2026-07-23; docs/85 §Music | — | — |
+| REQ-GEN-020 | Audio transcription MM:SS (sync) | P5 | IN_REVIEW | USER 2026-07-23; docs/85 §Music | libs/stb/tests/transcript.int.spec.ts + real E2E | migration 0019, provider audio parts, executor ref fetch, requestTranscript, ⏱ UI |
 | REQ-GEN-018 | Race-safe claim across parallel workers | P5 | PROPOSED | `docs/03` §2 (enabler) | — | — |
 
 ### REQ-GEN-016 — Jobs execute via queue worker (pg-boss)
@@ -189,4 +189,12 @@ Totals: 0 DONE · 17 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
 - **Deferred / notes:** ALSO this slice — Veo price corrected to $0.10/s (720p, pricing page 2026-07-23; was $0.15 overestimate; tests cascaded). Lyria clip model unused for now (pro covers the need).
 
 ### REQ-GEN-020 — Audio transcription with timestamps
-- **Status:** PROPOSED · **Stage:** P5 · **Source:** USER 2026-07-23. Transcribe an attached track (gemini-3.6-flash audio input) into MM:SS-timestamped lyrics/segments (diarization supported) to drive lyric-synced scene timing and singing characters.
+- **Status:** IN_REVIEW · **Stage:** P5 · **Priority:** should · **Owner:** —
+- **Raised-by:** USER 2026-07-23 (Lyria epic — "time the change of scene according to song timing lyrics")
+- **Source:** docs/85 §Music (gemini-3.6-flash audio understanding, inline ≤20MB)
+- **Statement:** The attached music track can be transcribed into [MM:SS]-timestamped lines — lyrics per line for vocal tracks, labeled sections ([Verse]/[Chorus]) for instrumentals — stored on the music brief and shown on the script page; audio travels as a generation ref (audioAssetId) with full provenance.
+- **Acceptance criteria:**
+  - GIVEN an attached track WHEN transcribed THEN kind `transcript` with the audio ref in the snapshot; output lands in music_brief.transcript with MM:SS stamps.
+  - GIVEN no track THEN rejected `not_found`.
+- **Tests:** `libs/stb/tests/transcript.int.spec.ts` (mock audio part path) + real E2E (Aurora's 2:41 Lyria track → section structure 00:00 Intro … 02:32 Outro, visible in UI) · **Code:** migration 0019, provider inlineData audio parts, executor audio-ref fetch, STB requestTranscript/materialize, ⏱ Transcribe + transcript block · **Log:** LOG 2026-07-23
+- **Deferred / notes:** consuming the timestamps (lyric-synced cut suggestions, ANM-003 caption overlays) is the next epic slice; diarization prompt-ready but unexercised (no multi-voice tracks yet).

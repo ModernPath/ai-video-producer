@@ -351,6 +351,28 @@ export async function requestMusicTrack(db: Db, input: { projectId: string; prin
   });
 }
 
+/** REQ-GEN-020: transcribe the attached track into MM:SS-timestamped lines (drives lyric-synced cuts). */
+export async function requestTranscript(db: Db, input: { projectId: string; principal: string }) {
+  const p = await getProjectOrThrow(db, input.projectId);
+  const brief = await getMusicBrief(db, input.projectId);
+  if (!brief?.activeTrackAssetId) throw new StbValidationError("not_found", "No track attached — attach or generate one first");
+  return enqueueGeneration(db, {
+    organizationId: p.organizationId,
+    projectId: p.id,
+    principal: input.principal,
+    kind: "transcript",
+    commandId: uuidv7(),
+    target: { projectId: p.id },
+    refs: { audioAssetId: brief.activeTrackAssetId },
+    textInput: {
+      projectTitle: p.title,
+      brief: {},
+      targetDurationSeconds: Number(p.targetDurationS),
+      scriptText: "Transcribe this song precisely. For every lyric line (or musical section if instrumental) output one line formatted as [MM:SS] text — timestamps in MM:SS from the start. Label song sections like [Verse]/[Chorus]/[Bridge] where identifiable. If multiple voices, note the speaker. Output only the timestamped lines.",
+    },
+  });
+}
+
 /** Test seam: set a brief without a generation round-trip. */
 export async function upsertMusicBriefForTest(db: Db, input: { projectId: string; prompt: string }) {
   const existing = await getMusicBrief(db, input.projectId);
@@ -434,6 +456,12 @@ export async function materializeGenerationOutput(db: Db, generationId: string) 
       generationId: g.id,
     });
     return { kind: "script" as const, id };
+  }
+  if (g.kind === "transcript") {
+    const out = g.output as { text?: string } | null;
+    if (!out?.text) return null;
+    await db.update(musicBrief).set({ transcript: out.text }).where(eq(musicBrief.projectId, g.projectId)); // REQ-GEN-020
+    return { kind: "transcript" as const, id: g.projectId };
   }
   if (g.kind === "music_brief") {
     const out = g.output as { text?: string } | null;

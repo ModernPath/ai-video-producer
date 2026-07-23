@@ -26,7 +26,7 @@ export interface EnqueueInput {
   quality?: FrameQuality | undefined;
   promptInput?: TakePromptInput | undefined;   // media kinds
   textInput?: TextPromptInput | undefined;     // script / shot_plan / music_brief kinds
-  refs?: { startFrameAssetId?: string; entityRefAssetIds?: string[]; editSourceAssetId?: string } | undefined; // REQ-GEN-009/012 + REQ-AST-006
+  refs?: { startFrameAssetId?: string; entityRefAssetIds?: string[]; editSourceAssetId?: string; audioAssetId?: string } | undefined; // audioAssetId: REQ-GEN-020 // REQ-GEN-009/012 + REQ-AST-006
   editInput?: EditPromptInput | undefined; // image_edit kinds
 }
 
@@ -70,6 +70,7 @@ export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<st
   else if (input.kind === "shot_plan") prompt = assembleShotPlanPrompt(input.textInput!);
   else if (input.kind === "music_brief") prompt = assembleMusicBriefPrompt(input.textInput!); // was falling through to the SCRIPT prompt (QA 2026-07-23)
   else if (input.kind === "music") prompt = input.textInput!.scriptText ?? ""; // REQ-GEN-019: brief verbatim
+  else if (input.kind === "transcript") prompt = input.textInput!.scriptText ?? ""; // REQ-GEN-020: full instruction assembled in STB
   else if (input.kind === "animation") prompt = `Remotion ${String((input.promptInput as { template?: string } | undefined)?.template ?? "title")}: ${input.promptInput?.customPrompt ?? ""}`; // REQ-ANM-001: provenance only — render is deterministic from props
   else prompt = assembleScriptPrompt(input.textInput!);
 
@@ -86,6 +87,7 @@ export async function enqueueGeneration(db: Db, input: EnqueueInput): Promise<st
       refAssetIds: [
         ...(input.refs?.startFrameAssetId ? [input.refs.startFrameAssetId] : []),
         ...(input.refs?.editSourceAssetId ? [input.refs.editSourceAssetId] : []),
+        ...(input.refs?.audioAssetId ? [input.refs.audioAssetId] : []),
         ...(input.refs?.entityRefAssetIds ?? []),
       ], // INV-GEN-001
       refs: input.refs ?? {},

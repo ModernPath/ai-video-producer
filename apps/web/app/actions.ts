@@ -361,6 +361,15 @@ export async function setProjectStyleAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/** REQ-GEN-020: transcribe the attached track (MM:SS) for lyric-synced timing. */
+export async function transcribeTrackAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { requestTranscript } = await import("@avd/stb");
+  const genId = await requestTranscript(db(), { projectId, principal: PRINCIPAL });
+  await drainQueueAndMaterialize([genId]);
+  revalidatePath(`/p/${projectId}/script`);
+}
+
 /** REQ-ANM-001: free Remotion animation take (title card) for a shot. */
 export async function animationTakeAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));

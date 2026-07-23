@@ -1,5 +1,13 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-23 — REQ-GEN-020 MM:SS audio transcription (→ IN_REVIEW)
+**Done:** red-first: kind `transcript` (migration 0019 + music_brief.transcript), provider generateText accepts audio (gemini inlineData parts ≤20MB; mock returns timestamped fixture), executor fetches the audio ref's bytes (refs.audioAssetId, in provenance refAssetIds), STB requestTranscript (instruction asks [MM:SS] per lyric line, sections labeled, speakers noted) + materialize onto the brief; ⏱ Transcribe button + transcript block on the script page. Real E2E: Aurora's 2:41 Lyria instrumental → clean section map ([00:00] Intro … [00:36] Chorus … [02:32] Outro) — exactly the scene-timing data the USER described.
+**Decisions:** transcript stored on music_brief (canonical, survives regeneration listing); consuming timestamps (cut suggestions/captions) is a separate slice.
+**Deferred:** lyric-synced cut suggestions + ANM-003 caption overlays.
+**Discovered:** —
+**Follow-ups:** —
+**Gate:** full suite green (116 passed); real E2E verified in UI.
+
 ## 2026-07-23 — REQ-GEN-019 Lyria music generation (→ IN_REVIEW) + Veo price correction
 **Done:** full Lyria slice red-first: kind `music` (migration 0017 constraint), route lyria-3-pro-preview + $0.08/track price, provider.generateMusic via Interactions REST (SDK doesn't wrap it; steps→model_output→audio block base64), executor music branch (audio asset, outputAssetIds), STB requestMusicTrack (brief verbatim) + materialize attaches as active track (project-scoped branch BEFORE the shotId guard), ♫ Generate track ≈ $0.08 button. REAL E2E in browser: Aurora brief → 3.9MB MP3 (~2min) generated, attached, serving; billed exactly $0.08. OQ-114 resolved from pricing page. Price drift caught same page: Veo 3.1 fast is $0.10/s at 720p (we billed estimates at $0.15/s) — corrected in priceTable with test cascade (0.975→0.65 for 6.5s).
 **Decisions:** brief text goes verbatim to Lyria (it IS the model-ready prompt incl. lyrics); pro model only (clip unused).

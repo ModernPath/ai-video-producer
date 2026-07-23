@@ -14,7 +14,8 @@ export type GenerationKind =
   | "retake"
   | "music_brief"
   | "music" // REQ-GEN-019: Lyria track from the brief
-  | "animation"; // REQ-ANM-001: local Remotion render (free)
+  | "animation" // REQ-ANM-001: local Remotion render (free)
+  | "transcript"; // REQ-GEN-020: MM:SS audio transcription
 
 export type FrameQuality = "draft" | "standard" | "hero";
 
@@ -28,6 +29,7 @@ export const modelRoutes: Record<Exclude<GenerationKind, "frame" | "image_edit">
   music_brief: "gemini-3.6-flash",
   music: "lyria-3-pro-preview", // full song ~2min, $0.08 (OQ-114 resolved 2026-07-23)
   animation: "remotion-local", // engine id, not a provider model — renders in-process
+  transcript: "gemini-3.6-flash", // audio understanding (docs/85 §Music)
   frame: {
     draft: "gemini-3.1-flash-lite-image",
     standard: "gemini-3.1-flash-image",

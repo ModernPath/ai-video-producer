@@ -5,7 +5,7 @@ import { project } from "@avd/prj/schema";
 import { scriptVersion, shotPlanProposal } from "@avd/stb/schema";
 import { getMusicBrief } from "@avd/stb";
 import { priceTable } from "@avd/shared/config";
-import { applyPlanAction, draftScriptAction, generateMusicTrackAction, musicBriefAction, proposePlanAction, updateBriefAction, uploadTrackAction } from "../../../actions";
+import { applyPlanAction, draftScriptAction, generateMusicTrackAction, musicBriefAction, proposePlanAction, transcribeTrackAction, updateBriefAction, uploadTrackAction } from "../../../actions";
 import { LiveRefresh } from "../../../../components/LiveRefresh";
 import { db } from "../../../../lib/db";
 import { Markdown } from "../../../../components/Markdown";
@@ -155,11 +155,21 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
             <div style={{ marginTop: 10, background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 8, padding: 12 }}>
               <Markdown>{music.prompt}</Markdown>
             </div>
+            {music.transcript && (
+              <details style={{ marginTop: 10 }} open>
+                <summary className="mono muted" style={{ fontSize: 10, cursor: "pointer" }}>TRACK TRANSCRIPT · MM:SS (drives lyric-synced timing)</summary>
+                <pre className="mono" style={{ whiteSpace: "pre-wrap", fontSize: 11, lineHeight: 1.7, background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 8, padding: 12, marginTop: 6 }}>{music.transcript}</pre>
+              </details>
+            )}
             <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 10, flexWrap: "wrap" }}>
               {music.activeTrackAssetId ? (
                 <>
                   <span className="mono" style={{ fontSize: 11, color: "var(--ok)" }}>track attached ✓</span>
                   <audio controls src={`/api/assets/${music.activeTrackAssetId}`} style={{ height: 30 }} />
+                  <form action={transcribeTrackAction} style={{ display: "inline" }}>
+                    <input type="hidden" name="projectId" value={id} />
+                    <button type="submit" style={btn} title="MM:SS-timestamped lyrics/sections via audio understanding — for lyric-synced cuts">⏱ Transcribe</button>
+                  </form>
                 </>
               ) : (
                 <span className="muted" style={{ fontSize: 11 }}>Copy the prompt into Suno, generate, then attach the audio:</span>
