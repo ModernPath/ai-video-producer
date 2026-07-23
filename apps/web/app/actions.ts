@@ -145,3 +145,21 @@ export async function applyPlanAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
   redirect(`/p/${projectId}`);
 }
+
+/** Batch: generate a start frame for every shot lacking one (docs/features/storyboard.md). */
+export async function generateMissingFramesAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const [p] = await db().select().from(project).where(eq(project.id, projectId));
+  if (!p) return;
+  const { listShots, listCandidates } = await import("@avd/stb");
+  const shots = await listShots(db(), projectId);
+  const genIds: string[] = [];
+  for (const s of shots) {
+    const { frames } = await listCandidates(db(), s.id);
+    if (frames.length === 0) {
+      genIds.push(await requestFrame(db(), { shotId: s.id, slot: "start", principal: PRINCIPAL, aspectRatio: p.aspectRatio }));
+    }
+  }
+  await drainQueueAndMaterialize(genIds);
+  revalidatePath(`/p/${projectId}`);
+}

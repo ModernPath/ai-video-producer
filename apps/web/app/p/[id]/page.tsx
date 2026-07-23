@@ -7,8 +7,11 @@ import { generation } from "@avd/gen/schema";
 import { exportJob } from "@avd/asm/schema";
 import { listCandidates, listShots } from "@avd/stb";
 import {
-  createShotAction, exportAction, generateFrameAction, generateTakeAction, selectFrameAction, selectTakeAction,
+  createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
+  selectFrameAction, selectTakeAction,
 } from "../../actions";
+import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
+import { SubmitButton } from "../../../components/SubmitButton";
 import { db } from "../../../lib/db";
 
 export const dynamic = "force-dynamic";
@@ -87,16 +90,22 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <span className="mono" style={{ fontSize: 12, marginLeft: "auto" }}>
           spend <b>${Number(cost).toFixed(2)}</b>
         </span>
+        <AnimaticPlayer
+          shots={shots.map((s) => {
+            const cands = candidatesByShot.get(s.id)!;
+            const frame = cands.frames.find((f) => f.id === s.selectedStartFrameId) ?? cands.frames[0];
+            return { id: s.id, durationS: Number(s.durationS), frameAssetId: frame?.imageAssetId ?? null, title: s.title };
+          })}
+        />
+        <form action={generateMissingFramesAction}>
+          <input type="hidden" name="projectId" value={id} />
+          <SubmitButton pendingLabel="Generating frames…">＋ Missing frames</SubmitButton>
+        </form>
         <form action={exportAction}>
           <input type="hidden" name="projectId" value={id} />
-          <button
-            type="submit"
-            disabled={shots.length === 0 || generated < shots.length}
-            style={{ ...btnPrimary, opacity: shots.length === 0 || generated < shots.length ? 0.45 : 1 }}
-            title={generated < shots.length ? "Every shot needs a selected take" : "Assemble and export"}
-          >
+          <SubmitButton primary disabled={shots.length === 0 || generated < shots.length} pendingLabel="Exporting…">
             Export cut
-          </button>
+          </SubmitButton>
         </form>
       </div>
 

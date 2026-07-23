@@ -19,3 +19,9 @@
 **Decisions:** ffmpeg via docker image in dev/tests; worker image bakes ffmpeg in prod. Export inline in server action until apps/worker lands.
 **Deferred:** audio mix (004), presets/normalization (005), retry UI (006), share links (007), exclusion arm (008).
 **Gate:** full suite 26/26 green.
+
+## 2026-07-23 — ASM slice 2: animatic (REQ-ASM-009 → IN_REVIEW)
+**Done:** red-first cue math (offsets/total/time-mapping/skip-missing) in src/animatic.ts; AnimaticPlayer client component (fullscreen overlay, RAF clock, per-shot progress segments, space/esc, replay); storyboard header integration with selected-frame fallback to first candidate. Batch "＋ Missing frames" action added. Browser-verified: 5-shot 28s animatic advances per durations with segment fill.
+**Also:** SubmitButton (useFormStatus) replaces raw buttons on export/batch — pending labels, no double-submit; home hides archived; duplicate empty "Wake the City" archived.
+**Deferred:** music under animatic (needs music attach, REQ-ASM-004 arm); scrubbing.
+**Gate:** full suite 31/31 green (see commit).

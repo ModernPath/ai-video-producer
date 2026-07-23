@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { project } from "@avd/prj/schema";
 import { createProjectAction } from "./actions";
 import { db } from "../lib/db";
@@ -7,7 +7,12 @@ import { db } from "../lib/db";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const projects = await db().select().from(project).orderBy(desc(project.createdAt)).limit(50);
+  const projects = await db()
+    .select()
+    .from(project)
+    .where(eq(project.status, "active"))
+    .orderBy(desc(project.createdAt))
+    .limit(50);
 
   return (
     <main style={{ maxWidth: 880, margin: "0 auto", padding: "56px 24px" }}>

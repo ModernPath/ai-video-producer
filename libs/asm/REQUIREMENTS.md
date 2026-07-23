@@ -1,7 +1,7 @@
 # Requirements Ledger — ASM (Assembly & Export)
 
 ## Dashboard — ASM (Assembly & Export)
-Totals: 0 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 5 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 5 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -13,6 +13,7 @@ Totals: 0 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 5 PROPOSED · 0 DEF
 | REQ-ASM-006 | Failed exports retain error, retryable | P2 | PROPOSED | INV-ASM-004 | — | — |
 | REQ-ASM-007 | Share links (token, revocable) | P5 | PROPOSED | INV-ASM-005 | — | — |
 | REQ-ASM-008 | Explicit exclusion of takeless shots | P2 | PROPOSED | INV-ASM-002 (exclusion arm) | — | — |
+| REQ-ASM-009 | Animatic preview (client-side, zero render cost) | P2 | IN_REVIEW | BR-ASM-005 | tests/animatic.spec.ts + browser E2E | src/animatic.ts, apps/web/components/AnimaticPlayer.tsx |
 
 ---
 
@@ -41,5 +42,14 @@ Totals: 0 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 5 PROPOSED · 0 DEF
 - **Acceptance criteria:**
   - GIVEN a succeeded export THEN its `output_asset_id` resolves to a ready video asset with bytes in storage.
 - **Tests:** `tests/export.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 1)
+
+### REQ-ASM-009 — Animatic preview (client-side, zero render cost)
+- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must
+- **Source:** BR-ASM-005, `docs/06` §4 ("cheap before expensive")
+- **Statement:** The storyboard offers an Animatic: each shot's selected start frame (fallback: first candidate) is shown for the shot's duration, in order, with a per-shot progress indication — no server render, no generation calls.
+- **Acceptance criteria:**
+  - GIVEN shot durations [6,5,6] THEN the cue list yields offsets [0,6,11] and total 17s; time t=7.2 maps to shot 2 (unit-tested math).
+  - GIVEN a project with frames WHEN Animatic plays THEN frames advance per durations (browser evidence).
+- **Tests:** `tests/animatic.spec.ts` + browser E2E · **Code:** `src/animatic.ts`, `apps/web/components/AnimaticPlayer.tsx` · **Log:** LOG 2026-07-23 (slice 2)
 
 *(PROPOSED 004–008: statements in `docs/15-assembly-export.md`.)*
