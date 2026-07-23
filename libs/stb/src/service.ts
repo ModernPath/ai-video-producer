@@ -52,7 +52,7 @@ export async function createShot(
   const [row] = await db
     .select({ maxPos: max(shot.position) })
     .from(shot)
-    .where(and(eq(shot.projectId, input.projectId), isNull(shot.deletedAt)));
+    .where(eq(shot.projectId, input.projectId)); // include soft-deleted rows: they still hold their position (unique constraint)
   const id = uuidv7();
   await db.insert(shot).values({
     id,
@@ -438,6 +438,19 @@ export async function removeTake(db: Db, input: { takeId: string }): Promise<voi
     throw new StbValidationError("conflict", "This take is selected — select another before removing");
   }
   await db.update(take).set({ deletedAt: new Date() }).where(eq(take.id, t.id));
+}
+
+export async function removeShot(db: Db, input: { shotId: string; confirmPaid?: boolean }): Promise<void> {
+  const [s] = await db.select().from(shot).where(eq(shot.id, input.shotId));
+  if (!s || s.deletedAt) throw new StbValidationError("not_found", "Shot not found");
+  if (s.selectedTakeId && !input.confirmPaid) {
+    // INV-STB-007: removals that discard paid takes need explicit confirmation
+    throw new StbValidationError("conflict", "This shot has a selected take — confirm removal to discard it");
+  }
+  const now = new Date();
+  await db.update(take).set({ deletedAt: now }).where(and(eq(take.shotId, s.id), isNull(take.deletedAt))); // media assets retained (INV-AST-003)
+  await db.update(frameCandidate).set({ deletedAt: now }).where(and(eq(frameCandidate.shotId, s.id), isNull(frameCandidate.deletedAt)));
+  await db.update(shot).set({ deletedAt: now }).where(eq(shot.id, s.id));
 }
 
 export async function listCandidates(db: Db, shotId: string) {

@@ -181,3 +181,6 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 **2. "launch multiple subagent workflows":** workflow wf_4ff2a6ca running — 4 parallel worktree agents: req/stb-016-017 (per-shot refs + first frames on apply), req/prj-backfill (archive+cost meter), req/asm-share (share links), req/gen-concurrency (video cap). Integration/merge next tick on completion.
 **Ops learnings:** docker exec needs -i for stdin SQL (silent no-op otherwise — bit twice); purge FK order (proposals before script versions).
 **Real-mode caution now active:** every Take click costs real money — concurrency cap agent + quota (REQ-GEN-004) rising in priority.
+
+- 2026-07-23 (user docs): gemini-omni-flash-preview Interactions API supports video tasks (image_to_video, reference_to_video, edit) — evaluate cost/quality vs veo-3.1-fast for takes/retakes; update OQ-112. Owner: GEN.
+- 2026-07-23 integrator follow-ups from workflow merge: swap page.tsx inline cost SQL for @avd/prj costMeterUsd (INV-PRJ-004); add share-link button to exports list (asm share.ts ready); per-shot ref picker UI (updateShotRefs ready); ASM export path archive guard (BR-PRJ-003).

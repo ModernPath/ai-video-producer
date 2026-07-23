@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 14 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,6 +15,8 @@ Totals: 0 DONE · 14 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
 | REQ-STB-008 | Script versions via draft/revise | P2 | IN_REVIEW | `docs/13` §6, BR-STB-005 | tests/script.int.spec.ts | src/service.ts |
 | REQ-STB-009 | Candidate removal (soft, unselected only) | P2 | IN_REVIEW | POL-STB-002/003, INV-AST-003 | tests/remove.int.spec.ts + browser | src/service.ts (removeFrameCandidate/removeTake) |
 | REQ-STB-010 | Music brief: generate Suno prompt (attach/mix arms follow) | P3 | IN_REVIEW | BR-STB-007, `docs/17` §1 | tests/music.int.spec.ts + browser E2E | src/service.ts, apps/web (script page) |
+| REQ-STB-018 | Normalize real-model shot plans (break-into-shots robust) | P0 | IN_REVIEW | USER BUG 2026-07-23 (raw markdown + plan silently dropped) | tests/plan-normalize.spec.ts | src/plan-normalize.ts, service.ts, gen/prompt.ts+provider.ts, script page (Markdown) |
+| REQ-STB-019 | Remove a shot (cut) from the storyboard | P1 | IN_REVIEW | USER 2026-07-23 "how can I remove cuts?" | tests/remove-shot.int.spec.ts | src/service.ts (removeShot), removeShotAction, ✕ Remove cut button |
 | REQ-STB-016 | Per-shot reference images on the image script | P1 | IN_REVIEW | USER spec revisit 2026-07-23 (2d) | tests/shot-refs-and-first-frames.int.spec.ts | migration 0013, src/schema.ts, src/service.ts (updateShotRefs) |
 | REQ-STB-017 | First frames auto-offered on plan apply | P1 | IN_REVIEW | USER spec revisit 2026-07-23 (3) | tests/shot-refs-and-first-frames.int.spec.ts | src/service.ts (applyShotPlan), apps/web (applyPlanAction + script page) |
 | REQ-STB-015 | Generate from script + prose auto-prompts (no slop) | P1 | IN_REVIEW | USER FEEDBACK #2 2026-07-23 | tests (prompt prose + scripts) + browser (buttons live; user-driving) | prompt v2, saveScriptsAndGenerateAction |
@@ -66,6 +68,30 @@ Totals: 0 DONE · 14 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DE
   - GIVEN a project with a brief WHEN DraftScript completes THEN script_version v1 exists with non-empty content and generation_id.
   - GIVEN an existing v1 WHEN DraftScript again THEN v2 exists; v1 unchanged.
 - **Tests:** `tests/script.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 2)
+
+### REQ-STB-018 — Normalize real-model shot plans
+- **Status:** IN_REVIEW · **Stage:** MVP · **Priority:** must · **Owner:** —
+- **Raised-by:** USER BUG 2026-07-23: "break into shots does not work and in overall text is raw markdown"
+- **Source:** BR-STB-005 (`docs/13`), OQ-113 (model output variance)
+- **Statement:** Shot-plan output from the real model shall be normalized (key variants, duration snap/clamp to allowed set, junk dropped) before materialization; script text shall render as markdown; failed text generations shall be visible on the script page.
+- **Acceptance criteria:**
+  - GIVEN model output in canonical or variant shapes (top-level array, `duration`/`durationSeconds`, `name`, snake_case prompts, `plan` key) WHEN normalized THEN usable shots result; garbage → [].
+  - GIVEN odd durations (5, 12) WHEN normalized THEN snapped/clamped to allowed {4,6,8}.
+  - GIVEN a stored proposal in raw model shape WHEN rendered or applied THEN it does not crash and applies normalized.
+- **Tests:** `tests/plan-normalize.spec.ts` (10 cases) · **Code:** `src/plan-normalize.ts` (used in service + web), `libs/gen/src/provider.ts` (fence-strip), `libs/gen/src/prompt.ts` (explicit JSON shape) · **Log:** LOG 2026-07-23 (slice 9)
+- **Deferred / notes:** browser-verified on user's real project (plan applied, 6 shots, frames generating).
+
+### REQ-STB-019 — Remove a shot (cut)
+- **Status:** IN_REVIEW · **Stage:** MVP · **Priority:** must · **Owner:** —
+- **Raised-by:** USER 2026-07-23: "how can I remove cuts?"
+- **Source:** `docs/13-storyboard.md` (add/split/remove shots), INV-STB-007 (paid-work protection)
+- **Statement:** The editor shall remove a shot from the storyboard (soft delete cascading to its frame candidates and takes; media assets retained); shots with a selected take require explicit confirmation.
+- **Acceptance criteria:**
+  - GIVEN a shot WHEN removed THEN listShots omits it and its candidates are soft-deleted; assets stay.
+  - GIVEN a shot with a selected take WHEN removal attempted without confirm THEN rejected `conflict`; with confirm THEN removed.
+  - GIVEN an already-removed shot WHEN removed again THEN `not_found`.
+- **Tests:** `tests/remove-shot.int.spec.ts` · **Code:** `src/service.ts` (removeShot; also fixed createShot position bug vs soft-deleted rows), `apps/web` removeShotAction + per-card ✕ button · **Log:** LOG 2026-07-23 (slice 9)
+- **Deferred / notes:** nicer confirm dialog (two-step) deferred — button label carries the warning.
 
 ### REQ-STB-016 — Per-shot reference images on the image script
 - **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must

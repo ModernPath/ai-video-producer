@@ -1,3 +1,4 @@
+import { ZoomImage } from "../../../components/ZoomImage";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { desc, eq, inArray, sql } from "drizzle-orm";
@@ -10,7 +11,7 @@ import { assembleFramePrompt, assembleTakePrompt } from "@avd/gen";
 import { listEntities, listProjectEntities } from "@avd/ast";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  removeCandidateAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
+  removeCandidateAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
 } from "../../actions";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
@@ -36,8 +37,7 @@ function Tile({ label, selected, assetId, video }: { label: string; selected: bo
       {video ? (
         <video src={`/api/assets/${assetId}`} muted playsInline preload="metadata" controls style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       ) : (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={`/api/assets/${assetId}`} alt={label} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <ZoomImage src={`/api/assets/${assetId}`} alt={label} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       )}
       <span className="mono" style={{ position: "absolute", left: 5, top: 5, fontSize: 9, background: "rgba(10,12,16,.8)", borderRadius: 4, padding: "1px 5px" }}>
         {label}
@@ -173,13 +173,22 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 <span className="mono" style={{ fontSize: 11, color: s.selectedTakeId ? "var(--ok)" : cands.frames.length ? "var(--accent)" : "var(--ink-2)" }}>
                   {s.selectedTakeId ? "generated" : cands.frames.length ? "framed" : "planned"}
                 </span>
+                <form action={removeShotAction} style={{ marginLeft: "auto" }}>
+                  <input type="hidden" name="projectId" value={id} />
+                  <input type="hidden" name="shotId" value={s.id} />
+                  {s.selectedTakeId && <input type="hidden" name="confirmPaid" value="1" />}
+                  <SubmitButton className="mono" style={{ fontSize: 10, background: "none", border: "1px solid var(--line)", borderRadius: 6, padding: "3px 8px", color: "var(--ink-2)", cursor: "pointer" }}
+                    title={s.selectedTakeId ? "Removes this cut AND its paid take" : "Remove this cut"}>
+                    {s.selectedTakeId ? "✕ Remove cut (discards take)" : "✕ Remove cut"}
+                  </SubmitButton>
+                </form>
               </div>
               {dd.synopsis && <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>{dd.synopsis}</p>}
 
               {(() => null)()}
               <div style={{ display: "flex", gap: 18, marginTop: 12, flexWrap: "wrap" }}>
                 <div>
-                  <p className="mono muted" style={{ fontSize: 10, marginBottom: 6 }}>START FRAMES</p>
+                  <p className="mono muted" style={{ fontSize: 10, marginBottom: 6 }}>START FRAME · candidates, pick 1 — only the selected frame is sent to the video model</p>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {cands.frames.map((f) => (
                       <div key={f.id} style={{ display: "grid", gap: 4, justifyItems: "start" }}>
@@ -266,7 +275,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                           <p className="mono muted" style={{ fontSize: 10 }}>IMAGE SCRIPT {s.imagePrompt ? "· custom" : "· auto"}</p>
                           {castRefs.map((rid) => (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img key={rid} src={`/api/assets/${rid}`} alt="ref" title="reference image attached" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
+                            <ZoomImage key={rid} src={`/api/assets/${rid}`} alt="reference image" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
                           ))}
                         </div>
                         <textarea name="imagePrompt" rows={3} defaultValue={s.imagePrompt ?? ""} placeholder={autoImage}
@@ -277,11 +286,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                           <p className="mono muted" style={{ fontSize: 10 }}>VIDEO SCRIPT {s.videoPrompt ? "· custom" : "· auto"}</p>
                           {selFrame && (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={`/api/assets/${selFrame.imageAssetId}`} alt="start frame" title="start frame conditions the video" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--accent)" }} />
+                            <ZoomImage src={`/api/assets/${selFrame.imageAssetId}`} alt="start frame" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--accent)" }} />
                           )}
                           {castRefs.map((rid) => (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img key={rid} src={`/api/assets/${rid}`} alt="ref" title="reference image attached" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
+                            <ZoomImage key={rid} src={`/api/assets/${rid}`} alt="reference image" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
                           ))}
                         </div>
                         <textarea name="videoPrompt" rows={3} defaultValue={s.videoPrompt ?? ""} placeholder={autoVideo}

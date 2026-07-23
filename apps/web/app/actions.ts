@@ -295,6 +295,17 @@ export async function removeCandidateAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/** REQ-STB-019: remove a shot (cut) from the storyboard; paid takes need explicit confirm. */
+export async function removeShotAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { removeShot } = await import("@avd/stb");
+  await removeShot(db(), {
+    shotId: String(formData.get("shotId")),
+    confirmPaid: formData.get("confirmPaid") === "1", // INV-STB-007
+  });
+  revalidatePath(`/p/${projectId}`);
+}
+
 /** REQ-STB-012: the project's video prompt (brief.idea) — drives script, plan, music, and styling. */
 export async function updateBriefAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));
