@@ -124,6 +124,17 @@ export async function requestFrame(
   });
 }
 
+/** REQ-GEN-008 / BR-GEN-002: one gesture yields n start-frame candidates (default from config, clamped to max). */
+export async function requestFrameBatch(
+  db: Db,
+  input: Parameters<typeof requestFrame>[1] & { count?: number }
+): Promise<string[]> {
+  const n = Math.max(1, Math.min(input.count ?? config.frame.candidatesDefault, config.frame.candidatesMax));
+  const ids: string[] = [];
+  for (let i = 0; i < n; i++) ids.push(await requestFrame(db, input));
+  return ids;
+}
+
 export async function requestTake(
   db: Db,
   input: { shotId: string; principal: string; aspectRatio: "16:9" | "9:16" }

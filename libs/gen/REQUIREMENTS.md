@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 15 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -12,7 +12,7 @@ Totals: 0 DONE · 15 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 | REQ-GEN-005 | Retry of terminal failures (retry_of provenance) | P2 | IN_REVIEW | INV-GEN-005 | tests/retry.int.spec.ts (browser: UI wired, click-through pending) | src/retry.ts |
 | REQ-GEN-006 | Content-policy terminal failure mapping | P2 | IN_REVIEW | INV-GEN-006 | tests/provider-path.int.spec.ts | src/provider.ts, src/executor.ts |
 | REQ-GEN-007 | Model routing from versioned config | P1 | IN_REVIEW | BR-GEN-001 | tests/cost-routing.spec.ts | src/routing.ts |
-| REQ-GEN-008 | Frame requests produce n candidates | P2 | PROPOSED | BR-GEN-002 | — | — |
+| REQ-GEN-008 | Frame requests produce n candidates | P2 | IN_REVIEW | BR-GEN-002 | libs/stb/tests/frame-batch.int.spec.ts + browser E2E | stb service requestFrameBatch, generateFrameAction, lane button label |
 | REQ-GEN-009 | Frame-conditioned takes (start-frame attachment) | P4 | IN_REVIEW | BR-GEN-003 (frame arm) | tests/frame-conditioned.int.spec.ts + real ring + browser | src/service.ts, src/executor.ts, ../stb/src/service.ts |
 | REQ-GEN-010 | Provider abstraction: real path → storage → ready | P1 | IN_REVIEW | BR-GEN-004 | tests/provider-path.int.spec.ts | src/provider.ts, src/executor.ts |
 | REQ-GEN-011 | Per-org video concurrency cap | P2 | IN_REVIEW | BR-GEN-005 | tests/concurrency.int.spec.ts | src/executor.ts |

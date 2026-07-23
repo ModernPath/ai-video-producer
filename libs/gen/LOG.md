@@ -1,5 +1,13 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-23 — REQ-GEN-008 n frame candidates per gesture (PROPOSED → IN_REVIEW)
+**Done:** requestFrameBatch in STB (count from config.frame.candidatesDefault, clamped to candidatesMax); per-shot frame click now yields 2 candidates; button label shows the true price ("＋ 2 frames ≈ $0.13"). Browser-verified with real generations: one click on "The wake" → two distinct Nano Banana candidates (~$0.13).
+**Decisions:** batch flows (plan-apply first frames, Missing frames) stay at 1/shot — explicit clicks get choice, bulk operations stay cheap.
+**Deferred:** —
+**Discovered:** —
+**Follow-ups:** —
+**Gate:** full suite green (94 passed).
+
 ## 2026-07-23 — dedicated integration-test database (infra)
 **Done:** vitest globalSetup (scripts/test-setup.ts) creates+migrates avd_test on the shared Postgres container; vitest env pins DATABASE_URL to it (scripts/test-db-url.ts single source). Dev DB verified untouched across a full run (org count 1 → 1); worker pg-boss suite passed 3/3 consecutive runs — the live queue worker (on avd) can no longer steal test jobs (root cause of the flake). Real-API ring inherits the test DB too.
 **Decisions:** same container, separate database — cheapest isolation that fixes both failure modes; TEST_DATABASE_URL env escape hatch kept.

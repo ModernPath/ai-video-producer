@@ -231,7 +231,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     <form action={generateFrameAction}>
                       <input type="hidden" name="projectId" value={id} />
                       <input type="hidden" name="shotId" value={s.id} />
-                      <SubmitButton disabled={(activeByShot.get(s.id)?.frame ?? 0) > 0} pendingLabel="Framing…">＋ Frame ≈ ${priceTable.imagePerImageUsd.standard.toFixed(2)}</SubmitButton>
+                      <SubmitButton disabled={(activeByShot.get(s.id)?.frame ?? 0) > 0} pendingLabel="Framing…">＋ {config.frame.candidatesDefault} frames ≈ ${(config.frame.candidatesDefault * priceTable.imagePerImageUsd.standard).toFixed(2)}</SubmitButton>
                     </form>
                   </div>
                 </div>

@@ -84,13 +84,15 @@ export async function generateFrameAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));
   const [p] = await db().select().from(project).where(eq(project.id, projectId));
   if (!p) return;
-  const genId = await requestFrame(db(), {
+  // REQ-GEN-008 / BR-GEN-002: the per-shot gesture yields candidatesDefault alternatives to pick from.
+  const { requestFrameBatch } = await import("@avd/stb");
+  const genIds = await requestFrameBatch(db(), {
     shotId: String(formData.get("shotId")),
     slot: "start",
     principal: PRINCIPAL,
     aspectRatio: p.aspectRatio,
   });
-  await drainQueueAndMaterialize([genId]);
+  await drainQueueAndMaterialize(genIds);
   revalidatePath(`/p/${projectId}`);
 }
 
