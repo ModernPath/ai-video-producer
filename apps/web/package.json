@@ -19,7 +19,8 @@
     "@avd/stb": "workspace:*",
     "@avd/ast": "workspace:*",
     "drizzle-orm": "^0.44.0",
-    "uuid": "^11.0.0"
+    "uuid": "^11.0.0",
+    "@avd/asm": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "20.17.6",

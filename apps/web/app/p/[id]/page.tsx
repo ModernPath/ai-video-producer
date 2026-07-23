@@ -4,9 +4,10 @@ import { desc, eq, inArray, sql } from "drizzle-orm";
 import { config } from "@avd/shared/config";
 import { project } from "@avd/prj/schema";
 import { generation } from "@avd/gen/schema";
+import { exportJob } from "@avd/asm/schema";
 import { listCandidates, listShots } from "@avd/stb";
 import {
-  createShotAction, generateFrameAction, generateTakeAction, selectFrameAction, selectTakeAction,
+  createShotAction, exportAction, generateFrameAction, generateTakeAction, selectFrameAction, selectTakeAction,
 } from "../../actions";
 import { db } from "../../../lib/db";
 
@@ -66,6 +67,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     .limit(5);
 
   const generated = shots.filter((s) => s.selectedTakeId).length;
+  const exports_ = await d
+    .select()
+    .from(exportJob)
+    .where(eq(exportJob.projectId, id))
+    .orderBy(desc(exportJob.createdAt))
+    .limit(5);
 
   return (
     <main style={{ maxWidth: 1080, margin: "0 auto", padding: "36px 24px" }}>
@@ -79,6 +86,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <span className="mono" style={{ fontSize: 12, marginLeft: "auto" }}>
           spend <b>${Number(cost).toFixed(2)}</b>
         </span>
+        <form action={exportAction}>
+          <input type="hidden" name="projectId" value={id} />
+          <button
+            type="submit"
+            disabled={shots.length === 0 || generated < shots.length}
+            style={{ ...btnPrimary, opacity: shots.length === 0 || generated < shots.length ? 0.45 : 1 }}
+            title={generated < shots.length ? "Every shot needs a selected take" : "Assemble and export"}
+          >
+            Export cut
+          </button>
+        </form>
       </div>
 
       <section style={{ display: "grid", gap: 14, marginTop: 24 }}>
@@ -162,6 +180,26 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <button type="submit" style={btn}>Add shot</button>
         </form>
       </section>
+
+      {exports_.length > 0 && (
+        <section style={{ ...card, marginTop: 18 }}>
+          <p className="mono muted" style={{ fontSize: 10, marginBottom: 8 }}>EXPORTS</p>
+          {exports_.map((e) => (
+            <div key={e.id} style={{ display: "flex", gap: 12, alignItems: "center", padding: "5px 0", fontSize: 12 }}>
+              <span className="mono muted">#{e.id.slice(-6)}</span>
+              <span className="mono" style={{ color: e.status === "succeeded" ? "var(--ok)" : e.status === "failed" ? "#e0763a" : "var(--accent)" }}>
+                {e.status}{e.progressStage && e.status === "running" ? ` · ${e.progressStage}` : ""}
+              </span>
+              {e.status === "succeeded" && e.outputAssetId && (
+                <a href={`/api/assets/${e.outputAssetId}`} download="final.mp4" className="mono" style={{ color: "var(--accent)" }}>
+                  ⇓ download final.mp4
+                </a>
+              )}
+              {e.status === "failed" && <span className="muted">{e.errorDetail?.slice(0, 80)}</span>}
+            </div>
+          ))}
+        </section>
+      )}
 
       {recentGens.length > 0 && (
         <section style={{ marginTop: 18 }}>

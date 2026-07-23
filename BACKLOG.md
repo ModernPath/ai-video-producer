@@ -59,3 +59,9 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 ## 2026-07-23 — Build loop iteration 5
 **Done:** AST ledger seeded + slice 1 (storage adapter, real fixture bytes, asset serving) — red-first honored; browser-verified image + playable video. Executor org-scoping fixes parallel-test race.
 **Next:** ASM slice — storyboard snapshot + ffmpeg concat in dockerized step → downloadable export; then PROGRESS.md refresh + review queue (13 REQs IN_REVIEW).
+
+## 2026-07-23 — Build loop iteration 6
+**Done:** ASM ledger + slice 1 — full idea-to-file golden thread now works in browser: shot → frame → take → select → Export cut → download final.mp4 (validated ISO MP4). Test-hygiene bug found & fixed (unscoped afterAll wiped shared dev DB).
+**Learning:** shared dev DB + parallel int tests keep biting — consider per-suite schema or testcontainers (inbox item).
+**Inbox additions:** per-suite DB isolation for integration tests; export needs multi-shot browser validation next round (concat of ≥2 clips verified in tests only so far).
+**Next:** PROGRESS.md rollup + review queue (16 REQs IN_REVIEW); then either apps/worker extraction or script studio (gemini-3.6-flash draft → shot plan) to make the product feel AI-native.

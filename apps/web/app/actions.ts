@@ -109,3 +109,14 @@ export async function selectTakeAction(formData: FormData) {
   });
   revalidatePath(`/p/${String(formData.get("projectId"))}`);
 }
+
+export async function exportAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { createSnapshot, queueExport, runNextExport } = await import("@avd/asm");
+  const [p] = await db().select().from(project).where(eq(project.id, projectId));
+  if (!p) return;
+  const snapshotId = await createSnapshot(db(), { projectId, principal: PRINCIPAL });
+  await queueExport(db(), { projectId, snapshotId, principal: PRINCIPAL });
+  await runNextExport(db(), { organizationId: p.organizationId }); // dev-inline worker
+  revalidatePath(`/p/${projectId}`);
+}

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb } from "@avd/shared/db";
@@ -33,7 +33,12 @@ describe("STB golden-thread slice (REQ-STB-001..004)", () => {
     });
   });
   afterAll(async () => {
-    for (const t of [take, frameCandidate]) await db.delete(t);
+    // scope cleanup to this suite's rows — an unscoped delete wipes the shared dev DB (learned 2026-07-23)
+    const shotIds = (await db.select().from(shot).where(eq(shot.projectId, projectId))).map((s) => s.id);
+    if (shotIds.length) {
+      await db.delete(take).where(inArray(take.shotId, shotIds));
+      await db.delete(frameCandidate).where(inArray(frameCandidate.shotId, shotIds));
+    }
     await db.delete(shot).where(eq(shot.projectId, projectId));
     await db.delete(asset).where(eq(asset.organizationId, orgId));
     await db.delete(generation).where(eq(generation.organizationId, orgId));
