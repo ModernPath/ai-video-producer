@@ -1,5 +1,7 @@
 # Feature — Script Studio
 
+> **USER-canonical flow (2026-07-23):** description in → shots out, each with authored image script, video script, duration, reference images. Breaking into shots must deliver ready-to-fire scripts, not just direction fields.
+
 **Context:** STB (+GEN) · **Phase:** 2
 
 ## User outcomes
@@ -27,4 +29,3 @@
 ## Rules
 
 BR-STB-005, INV-STB-007, OQ-109.
-\n> **USER-canonical flow (2026-07-23):** description in → shots out, each with authored image script, video script, duration, reference images. Breaking into shots must deliver ready-to-fire scripts, not just direction fields.\n

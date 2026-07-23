@@ -1,5 +1,7 @@
 # Feature — Storyboard
 
+> **First images immediately (USER 2026-07-23):** applying a shot plan should offer generating the first set of frames from the authored image scripts in one step (REQ-STB-017).
+
 **Context:** STB · **Phase:** 2 · **The primary surface** (`/p/:id`)
 
 ## User outcomes
@@ -30,4 +32,3 @@
 ## Rules
 
 INV-STB-002/003, BR-STB-004, BR-ASM-005.
-\n> **First images immediately (USER 2026-07-23):** applying a shot plan should offer generating the first set of frames from the authored image scripts in one step (REQ-STB-017).\n
