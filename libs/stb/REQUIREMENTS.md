@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 30 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -19,6 +19,7 @@ Totals: 30 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-027 | Archetype defaults (audio mode) | P7 | DONE | docs/87 | E2E (product-launch → mix) | archetypes defaults, setProjectArchetype |
 | REQ-STB-028 | Music-led planning (transcript in plan prompt) | P7 | DONE | docs/87 | prompt.spec REQ-STB-028 + snapshot E2E | prompt transcript block, proposeShotPlan wiring |
 | REQ-STB-029 | Route-aware shot durations (omni unlocks 4–10s) | P7 | DONE | REQ-GEN-023 follow-up | tests/duration-policy.spec.ts (7) | shared shotDurationPolicy; plan-normalize, music-sync, assertDuration, plan prompt schema |
+| REQ-STB-031 | Storyboard players audible (no forced mute) | P7 | IN_REVIEW | USER BUG 2026-07-24 "Kaiju video has no sound" | server-rendered markup + browser (mute icon gone) | page.tsx tile <video> unmuted |
 | REQ-STB-030 | Route-aware UI (route badge + honest take estimates) | P7 | DONE | BACKLOG 2026-07-24 (10s omni shot showed veo-snapped $0.80) | libs/gen/tests/omni-video.spec.ts REQ-STB-030 block + browser | gen estimateTake, storyboard header badge, take-button estimate + effective-duration hint |
 | REQ-STB-025 | Lyric-synced cut suggestions (♪ MUSIC SYNC) | P6 | DONE | USER Lyria epic ("time the change of scene according to song timing") | tests/music-sync.spec.ts + update-duration.int + browser E2E | src/music-sync.ts, updateShotDuration, applySyncAction, SYNC panel |
 | REQ-STB-024 | Plan-authored animation shots (free, no frame spend) | P6 | DONE | USER Remotion epic ("purely remotion animations (prompt)") | plan-normalize spec + real E2E frame | migration 0020, normalize/apply, plan prompt, applyPlanAction branch, badge+prefill UI |
@@ -348,3 +349,14 @@ Totals: 30 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN either route THEN the header badge names it, with switch instructions in the tooltip.
 - **Tests:** `libs/gen/tests/omni-video.spec.ts` (REQ-STB-030 block) + browser E2E · **Code:** `libs/gen/src/cost.ts` estimateTake, `apps/web/app/p/[id]/page.tsx` (badge + button) · **Log:** LOG 2026-07-24
 - **Deferred / notes:** route stays env-level (no per-project route picker yet — needs a product decision on mixed-route projects).
+
+### REQ-STB-031 — Storyboard players audible
+- **Status:** IN_REVIEW  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
+- **Raised-by:** USER BUG 2026-07-24: "Kaiju video has no sound"
+- **Source:** docs/06 (players surface real output); takes carry native Veo/Omni audio, exports carry the mix
+- **Statement:** Storyboard tile players are audible by default — diagnosis showed the media was never silent (take aac −, export mp3 mean −15.8 dB); a hard-coded `muted` on the tile <video> made the whole product seem soundless.
+- **Acceptance criteria:**
+  - GIVEN the storyboard WHEN served THEN tile <video> elements carry no muted attribute (verified in rendered HTML).
+  - GIVEN a take tile WHEN played THEN its native audio is heard (user re-test).
+- **Tests:** rendered-markup check + browser · **Code:** `apps/web/app/p/[id]/page.tsx` tile player · **Log:** LOG 2026-07-24
+- **Deferred / notes:** share page and A/B compare were already unmuted; animatic supplies its own music track.

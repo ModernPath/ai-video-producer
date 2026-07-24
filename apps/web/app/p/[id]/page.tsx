@@ -38,8 +38,10 @@ function Tile({ label, selected, assetId, video }: { label: string; selected: bo
         border: selected ? "2px solid var(--accent)" : "1px solid var(--line)",
       }}
     >
+      {/* REQ-STB-031: audible by default — takes carry real Veo/Omni audio and the export carries the mix;
+          a hard-coded `muted` here made the whole product seem silent (USER bug 2026-07-24). Click-to-play, so no autoplay noise. */}
       {video ? (
-        <video src={`/api/assets/${assetId}`} muted playsInline preload="metadata" controls style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <video src={`/api/assets/${assetId}`} playsInline preload="metadata" controls style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       ) : (
         <ZoomImage src={`/api/assets/${assetId}?thumb=1`} alt={label} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       )}

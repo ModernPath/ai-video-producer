@@ -307,3 +307,9 @@
 **Decisions:** estimates always describe what the ACTIVE route would do — no phantom omni prices on a veo server.
 **Deferred:** per-project route picker (mixed-route projects need a product decision).
 **Discovered:** none. **Follow-ups:** none. **Gate:** 156 passed, tsc clean.
+
+## 2026-07-24 — REQ-STB-031 USER BUG: "Kaiju video has no sound" (→ IN_REVIEW)
+**Done:** Diagnosis proved the media was fine — the hero take has aac audio and the export's Lyria mix measures mean −15.8 dB / max −2.3 dB — but the storyboard tile `<video>` was hard-coded `muted`, so every preview started silent and the product *seemed* soundless. Attribute removed (click-to-play with controls — no autoplay-noise concern); rendered HTML verified attribute-free and the tile mute icon is gone. Share page and ABCompare were already correct.
+**Decisions:** players default audible everywhere; the animatic keeps its own music-track audio path.
+**Deferred:** — **Discovered:** shots 1–4 of KAIJU still carry plan-era "claw logo" wording in their scripts (only the hero was re-scripted) — harmless unless reshot; offer cleanup.
+**Follow-ups:** user re-test with sound. **Gate:** tsc clean; page 200.
