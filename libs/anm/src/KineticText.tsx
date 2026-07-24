@@ -33,7 +33,9 @@ export const KineticText: React.FC<KineticTextProps> = ({
 
   return (
     <AbsoluteFill style={{ background, alignItems: "center", justifyContent: "center", fontFamily: "Helvetica, Arial, sans-serif" }}>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6em", justifyContent: "center", padding: "0 7%", opacity: fadeOut }}>
+      {/* fontSize lives on the container so gap's em unit tracks the glyphs — a 16px-default
+          container made 0.6em ≈ 10px and words visually fused ("WAKETHECITY", 2026-07-24 run) */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35em", justifyContent: "center", padding: "0 7%", opacity: fadeOut, fontSize }}>
         {words.map((w, i) => {
           const start = i * perWord;
           const pop = spring({ frame: frame - start, fps, config: { damping: 12, stiffness: 160 } });
@@ -46,7 +48,7 @@ export const KineticText: React.FC<KineticTextProps> = ({
             <span key={i} style={{
               display: "inline-block", transform, opacity: pop,
               color: i % 3 === 2 ? accent : "#f2ede3",
-              fontSize, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em",
+              fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em",
             }}>
               {w}
             </span>

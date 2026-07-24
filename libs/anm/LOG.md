@@ -1,5 +1,10 @@
 # ANM — Build Log
 
+## 2026-07-24 — KineticText word-gap fix (production finding)
+**Done:** "KAIJU Neon Nights" full production showed kinetic words fused ("WAKETHECITY"): the flex container's `gap: 0.6em` resolved against the container's default 16px font while glyphs were 130px. fontSize moved to the container (spans inherit) so the em gap tracks glyph size; 0.35em reads right at all scales. Verified by $0 re-render ("WAKE THE CITY" correct) + RUN_RENDER ring 4/4.
+**Decisions:** gap tightened 0.6→0.35em at the new (correct) scale — 0.6em of a 130px font was too airy.
+**Deferred / Discovered / Follow-ups:** none. **Gate:** render ring green.
+
 ## 2026-07-23 — ANM-004 slice 2: KineticText (transforms) + template selection
 **Done:** KineticText template — sequential word pops via @remotion/animation-utils makeTransform (translateY+scale+alternating rotate) with spring physics, every third word accent-colored, effects composed; registered + render map; template choice plumbed STB→executor→UI (title/kinetic select beside ✦ Animate). Gated renders 4/4; frame proof (word spacing polished after review). Covers the transforms + animation-math docs; html-in-canvas remains the last deferred primitive.
 **Decisions:** template select defaults to title; kinetic reserved for explicit choice (and future archetype recipes per docs/87).

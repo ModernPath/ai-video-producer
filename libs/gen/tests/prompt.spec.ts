@@ -156,6 +156,25 @@ describe("label fidelity guidance (evals #2/#5 finding)", () => {
   });
 });
 
+describe("brand safety guidance (KAIJU Neon Nights production finding 2026-07-24)", () => {
+  // Real full-scale run: the PLAN authored "can with a black claw logo" and the frame model
+  // drew a Monster Energy mark — third-party brand drift is a trademark landmine.
+  const base = { aspectRatio: "16:9" as const, direction: { synopsis: "s", subject: "x", action: "y" } };
+  it("frame prompts with a product/company entity forbid third-party brand marks", () => {
+    const p = assembleFramePrompt({ ...base, entities: [{ kind: "product", name: "KAIJU Can", description: "green can" }] });
+    expect(p).toMatch(/never.*(real-world|third-party).*(brand|logo)/i);
+  });
+  it("take prompts with a product/company entity forbid third-party brand marks", () => {
+    const p = assembleTakePrompt({ ...base, durationSeconds: 4, entities: [{ kind: "company", name: "KAIJU", description: "drinks co" }] });
+    expect(p).toMatch(/never.*(real-world|third-party).*(brand|logo)/i);
+  });
+  it("shot-plan prompt always carries the brand-invention rule (drift starts at planning)", () => {
+    const p = assembleShotPlanPrompt({ projectTitle: "T", brief: {}, targetDurationSeconds: 20, scriptText: "s" });
+    expect(p).toMatch(/invent.*original.*(brand|mark|logo)/i);
+    expect(p).toMatch(/never.*(real-world|third-party|existing).*(brand|logo)/i);
+  });
+});
+
 describe("entity prose dedup", () => {
   it("skips the description when it merely repeats the name", () => {
     const p = assembleFramePrompt({

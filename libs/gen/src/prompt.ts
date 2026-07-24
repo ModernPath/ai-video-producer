@@ -40,6 +40,10 @@ function sentence(text: string): string {
   return /[.!?]$/.test(t) ? t : `${t}.`;
 }
 
+// KAIJU Neon Nights production finding (2026-07-24): the plan authored "black claw logo" and the
+// frame model drew a real competitor's mark. Branding must always be original — trademark safety.
+const BRAND_SAFETY = `Use only this project's own named brands; never depict real-world third-party brand logos, marks, or trade dress.`;
+
 /** Natural-prose video prompt (template v2). Custom text is verbatim + a minimal format tail. */
 export function assembleTakePrompt(i: TakePromptInput): string {
   if (i.customPrompt?.trim()) {
@@ -55,6 +59,7 @@ export function assembleTakePrompt(i: TakePromptInput): string {
     const desc = e.description.trim().toLowerCase() === e.name.trim().toLowerCase() ? "" : `, ${e.description}`;
     parts.push(sentence(`Featuring ${e.name}${desc}`)); // skip echo descriptions ("Pasi, Pasi")
   }
+  if (i.entities.some((e) => e.kind === "product" || e.kind === "company")) parts.push(BRAND_SAFETY);
   if (i.stylePrompt) parts.push(sentence(i.stylePrompt));
   // v3 guideline: our takes are single shots — pin it so the model doesn't invent cuts.
   parts.push(`A single continuous shot, no scene cuts. No on-screen text, timestamps, or interface graphics.`);
@@ -106,6 +111,7 @@ export function assembleShotPlanPrompt(i: TextPromptInput): string {
     `Return ONLY a JSON object exactly shaped: {"shots":[{"title":string,"durationS":4|6|8,"direction":{"synopsis":string,"subject":string,"action":string,"camera":string,"mood":string},"imagePrompt":string,"videoPrompt":string,"animation":{"template":"title"|"kinetic","text":string,"subtext":string}|null}]} — no markdown fences, no commentary.`,
     `Set "animation" ONLY for pure graphic shots: template "title" for held cards (end-cards, quiet titles — optional subtext) or "kinetic" for punchy word-by-word type (countdown digits, lyric lines, interstitial statements). Filmed/generated shots get animation:null.`,
     `imagePrompt = a complete production-ready still-image prompt; videoPrompt = a complete video prompt (motion, camera, mood). Reference cast members by name.`,
+    `Branding: invent original brand marks and packaging only — never describe or reference real-world / existing third-party brands, their logos, or recognizable trade dress.`,
     `BRIEF: ${JSON.stringify(i.brief)}`,
     ...castBlock(i.entities),
     i.entities?.length ? `Reference cast members by name in directions where they appear.` : "",
@@ -165,6 +171,7 @@ export function assembleFramePrompt(i: Omit<TakePromptInput, "durationSeconds">)
   if (i.entities.some((e) => e.kind === "product" || e.kind === "company")) {
     // evals #2/#5: generated printed micro-text garbles — keep labels legible or de-emphasized.
     parts.push(`Any label or printed text on products must be either clearly legible exactly as named, or naturally de-emphasized (angle, focus) — avoid extreme close-ups of printed text.`);
+    parts.push(BRAND_SAFETY);
   }
   parts.push(`A cinematic still image, ${i.aspectRatio}, high detail.`);
   return parts.join(" ");

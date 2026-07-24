@@ -2,13 +2,14 @@
 
 Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: route to a context `REQUIREMENTS.md`, `docs/08-open-questions.md`, `docs/gap-register.md`, an epic under `epics/`, or drop with reason.
 
-> **Inbox status:** 3 items
+> **Inbox status:** 4 items
 
 ## Inbox
 
 | Discovery | Tracked as |
 |---|---|
 | Image-gen price table: `standard`/`hero` rates are placeholders in `libs/shared/src/config/models.ts` — verify against Google pricing page before enabling real-API cost caps | — (route to REQ-GEN-* when GEN ledger is seeded) |
+| Production driver (`apps/web/scripts/production-run.ts`) runs music AFTER takes, so MUSIC SYNC suggestions can't shape durations — reorder stages music-first (per lyric-video recipe) and auto-apply exact-hit suggestions before buying takes | — (tooling; route to REQ-STB-* if productized) |
 | Entity "Pasi" ref asset id `019f9001-3d7e-…` dangles — asset row missing (mock-purge casualty?); entity UI should tolerate + offer re-upload; sweep other entities for dangling refs | — (route to REQ-AST-*) |
 | BR-PRJ-003 also blocks *exports* for archived projects — enqueue-side guard shipped for generations (REQ-PRJ-003) but ASM export path has no archive check; also: integrator should wire `apps/web/app/p/[id]/page.tsx` cost header to `costMeterUsd` (REQ-PRJ-004) — inline SQL there sums all statuses | — (route to REQ-ASM-* / integrator) |
 
