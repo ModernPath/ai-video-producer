@@ -2,16 +2,13 @@
 
 Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: route to a context `REQUIREMENTS.md`, `docs/08-open-questions.md`, `docs/gap-register.md`, an epic under `epics/`, or drop with reason.
 
-> **Inbox status:** 4 items
+> **Inbox status:** 1 item
 
 ## Inbox
 
 | Discovery | Tracked as |
 |---|---|
-| Image-gen price table: `standard`/`hero` rates are placeholders in `libs/shared/src/config/models.ts` — verify against Google pricing page before enabling real-API cost caps | — (route to REQ-GEN-* when GEN ledger is seeded) |
-| UI is not video-route-aware: take cost estimates assume the Veo palette (a 10s omni shot showed "≈ $0.80"), and the active route (GEN_VIDEO_ROUTE) is invisible — surface route + route-aware pricing in the storyboard header; also the dev server and driver can run different routes (env split-brain) | — (route to REQ-STB-* UI slice) |
-| Entity "Pasi" ref asset id `019f9001-3d7e-…` dangles — asset row missing (mock-purge casualty?); entity UI should tolerate + offer re-upload; sweep other entities for dangling refs | — (route to REQ-AST-*) |
-| BR-PRJ-003 also blocks *exports* for archived projects — enqueue-side guard shipped for generations (REQ-PRJ-003) but ASM export path has no archive check; also: integrator should wire `apps/web/app/p/[id]/page.tsx` cost header to `costMeterUsd` (REQ-PRJ-004) — inline SQL there sums all statuses | — (route to REQ-ASM-* / integrator) |
+| Entity "Pasi" ref asset id `019f9001-3d7e-…` dangles — asset row missing (mock-purge casualty?); entity UI should tolerate + offer re-upload; sweep other entities for dangling refs | — (route to REQ-AST-*; ref replacement is the user's call) |
 
 ---
 
@@ -200,3 +197,11 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 ## 2026-07-24 — Music-first driver + omni production #2
 **Routed:** driver reordered music-first with new `draft`/`plan`/`sync`/`retry` stages (backlog item CLOSED — sync applied a 5s→10s stretch BEFORE takes were bought). "First Light, Helsinki Harbor" (cinematic-mood, omni route end-to-end): 5 shots incl. 5s and 10s durations, cut landing on the 0:16 section change, 35.02s export, $3.96. One transient Interactions 504 recovered via the retry path (retry_of provenance, $0 for the failure).
 **New inbox:** UI route-awareness (cost estimate + active route indicator).
+
+## 2026-07-24 — Triage sweep: stale-row verification
+**Routed:**
+- Image-gen price placeholders → DROPPED as stale (closed in iteration 12: per-image rates verified/fixed; priceTable.imagePerImageUsd current).
+- Route-aware UI → CLOSED, shipped as REQ-STB-030 (route badge + estimateTake, browser-verified).
+- BR-PRJ-003 export guard + costMeterUsd header → DROPPED as stale, both verified shipped: `asm/service.ts:39` throws `project_archived` on export snapshot; `page.tsx:68` uses `costMeterUsd` (succeeded+running only).
+**Remaining:** 1 item (Pasi dangling ref — user-data decision).
+**Notes:** ledger has 0 READY / 4 deliberately-parked PROPOSED; loop enters steady state pending user sign-off or new direction.
