@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 21 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 21 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -123,7 +123,8 @@ Totals: 21 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 - **Tests:** `tests/cost-routing.spec.ts` · **Code:** `src/routing.ts` · **Log:** LOG 2026-07-23 (slice 1)
 
 ### REQ-GEN-008 — Frame requests produce n candidates
-- **Status:** PROPOSED · **Stage:** P2 · **Source:** BR-GEN-002 — default `config.frame.candidatesDefault`, max `candidatesMax`.
+- **Status:** DONE · **Stage:** P2 · **Source:** BR-GEN-002 — default `config.frame.candidatesDefault`, max `candidatesMax`.
+- **Tests:** `libs/stb/tests/frame-batch.int.spec.ts` + browser E2E · **Code:** stb requestFrameBatch, generateFrameAction · **Log:** LOG 2026-07-23 (stale stub reconciled 2026-07-24 — block predated the build and skipped the IN_REVIEW sweep)
 
 ### REQ-GEN-009 — Frame-conditioned takes (start-frame attachment)
 - **Status:** DONE · **Stage:** P4 · **Priority:** must
