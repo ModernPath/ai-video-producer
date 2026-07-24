@@ -18,6 +18,9 @@ export const config = {
   entity: { maxRefs: providerLimits.image.entityConsistencyRefs }, // INV-AST-004
   gen: {
     maxConcurrentVideoPerOrg: 3, // BR-GEN-005
+    // REQ-GEN-023: take/retake provider route — "omni" switches to the Interactions adapter
+    // (refs + free durations); env-tunable for taste iteration without a deploy.
+    videoRoute: (process.env.GEN_VIDEO_ROUTE === "omni" ? "omni" : "veo") as "veo" | "omni",
     retryAttempts: 3,
     staleRunningMinutes: 30, // REQ-GEN-022: running longer than this = orphaned (crash mid-run)
     // INV-GEN-004: daily per-org spend cap; env-overridable for ops without a deploy

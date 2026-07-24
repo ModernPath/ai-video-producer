@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb } from "@avd/shared/db";
-import { modelRoutes, priceTable } from "@avd/shared/config";
+import { config, modelRoutes, omniVideoModel, priceTable } from "@avd/shared/config";
 import { organization } from "@avd/plt/schema";
 import { project } from "@avd/prj/schema";
 import { asset } from "@avd/ast/schema";
@@ -170,5 +170,71 @@ describe.skipIf(!videoEnabled)("REAL API e2e: omni take (≈$0.40/run, 4s)", () 
     const snap = g!.promptSnapshot as { refAssetIds?: string[] };
     expect(snap.refAssetIds?.length).toBe(1); // frame ref recorded (REQ-GEN-009)
     console.log(`[spike] real frame-conditioned take: ${obj.bytes.byteLength} bytes, cost $${g!.costUsd}`);
+  }, 360_000);
+});
+
+// REQ-GEN-023 — the omni Interactions route, extra gate: RUN_REAL_OMNI=1 (≈$0.54/run at 5s + draft frame).
+const omniEnabled = enabled && process.env.RUN_REAL_OMNI === "1";
+
+describe.skipIf(!omniEnabled)("REAL API e2e: omni Interactions take (≈$0.54/run, 5s free-form)", () => {
+  const { db, client } = createDb();
+  const orgId = uuidv7();
+  const projectId = uuidv7();
+  const originalRoute = config.gen.videoRoute;
+
+  beforeAll(async () => {
+    await migrate();
+    config.gen.videoRoute = "omni";
+    await db.insert(organization).values({ id: orgId, name: "Real Omni Org" });
+    await db.insert(project).values({
+      id: projectId, organizationId: orgId, title: "Real Omni E2E", aspectRatio: "16:9", targetDurationS: "10",
+    });
+  }, 30_000);
+  afterAll(async () => {
+    config.gen.videoRoute = originalRoute;
+    await db.delete(asset).where(eq(asset.organizationId, orgId));
+    await db.delete(generation).where(eq(generation.organizationId, orgId));
+    await db.delete(project).where(eq(project.id, projectId));
+    await db.delete(organization).where(eq(organization.id, orgId));
+    await client.end();
+  });
+
+  it("real chain: draft frame -> omni <FIRST_FRAME> take at 5s (impossible on Veo) with token-derived cost", async () => {
+    const frameGenId = await enqueueGeneration(db, {
+      organizationId: orgId, projectId, principal: "user:e2e", kind: "frame",
+      commandId: uuidv7(), target: { shotId: uuidv7() }, quality: "draft",
+      promptInput: {
+        aspectRatio: "16:9", durationSeconds: 4, entities: [],
+        direction: { synopsis: "a paper boat on a rain puddle", subject: "paper boat", action: "still" },
+      },
+    });
+    await runNextGeneration(db, { organizationId: orgId, provider: createGeminiProvider() });
+    const [fg] = await db.select().from(generation).where(eq(generation.id, frameGenId));
+    const frameAssetId = fg!.outputAssetIds![0]!;
+
+    const genId = await enqueueGeneration(db, {
+      organizationId: orgId, projectId, principal: "user:e2e", kind: "take",
+      commandId: uuidv7(), target: { shotId: uuidv7() },
+      refs: { startFrameAssetId: frameAssetId },
+      promptInput: {
+        aspectRatio: "16:9", durationSeconds: 5, entities: [],
+        direction: {
+          synopsis: "a paper boat drifting on a rain puddle",
+          subject: "paper boat", action: "drifts slowly, ripples spreading", mood: "soft overcast light",
+        },
+      },
+    });
+    const result = await runNextGeneration(db, { organizationId: orgId, provider: createGeminiProvider() });
+    const [g] = await db.select().from(generation).where(eq(generation.id, genId));
+    if (result?.status !== "succeeded") throw new Error(`omni take failed: ${g?.errorCode} ${g?.errorDetail}`);
+    expect(g!.modelId).toBe(omniVideoModel); // route honored
+    const expected = (5 * priceTable.omniVideoTokensPerSecond * priceTable.omniVideoUsdPerMTokens) / 1_000_000;
+    expect(Number(g!.costUsd)).toBeCloseTo(expected, 3); // token-derived rate
+    const [a] = await db.select().from(asset).where(eq(asset.id, g!.outputAssetIds![0]!));
+    expect(a?.status).toBe("ready");
+    expect(Number(a?.durationS)).toBe(5); // free-form duration survived, no {4,6,8} snap
+    const obj = await getObject(a!.storageKey);
+    expect(Buffer.from(obj.bytes.slice(4, 8)).toString("ascii")).toBe("ftyp");
+    console.log(`[omni] real 5s take: ${obj.bytes.byteLength} bytes, cost $${g!.costUsd}`);
   }, 360_000);
 });

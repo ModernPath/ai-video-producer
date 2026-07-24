@@ -1,5 +1,5 @@
 // REQ-GEN-010 — GenProvider port. Implementations: mock (fixtures), gemini (real), test stubs.
-import { config, providerLimits } from "@avd/shared/config";
+import { config, omniVideoModel, providerLimits } from "@avd/shared/config";
 import { fixtureMp4, fixtureMusicBrief, fixtureScript, fixtureShotPlan, fixtureSvg } from "./fixtures";
 
 export type ProviderErrorCode = "content_policy" | "provider_unavailable" | "invalid_reference" | "output_unusable";
@@ -31,6 +31,37 @@ export interface VideoRequest {
   durationSeconds: number;
   aspectRatio: "16:9" | "9:16";
   startFrame?: { bytes: Uint8Array; mime: string };
+  /** REQ-GEN-023: entity refs — used by the omni route as <IMAGE_REF_N> subject conditioning. */
+  refImages?: { bytes: Uint8Array; mime: string }[];
+}
+
+/**
+ * REQ-GEN-023 — pure request builder for the Omni Interactions video call (unit-tested).
+ * Tags live in the prompt TEXT and bind to image blocks by 1-based position (spike 2026-07-24):
+ * start frame first as <FIRST_FRAME>, entity refs after as <IMAGE_REF_N>. Duration is prompt-
+ * driven and free-form ("Duration: 10 seconds." honored — no {4,6,8} snap on this route).
+ */
+export function buildOmniVideoRequest(r: VideoRequest): { model: string; input: string | unknown[]; response_format: { type: "video" } } {
+  const images = [...(r.startFrame ? [r.startFrame] : []), ...(r.refImages ?? [])];
+  const parts: string[] = [];
+  if (r.startFrame) parts.push(`<FIRST_FRAME> is the exact first frame of this video.`);
+  if (r.refImages?.length) {
+    const offset = r.startFrame ? 2 : 1;
+    const tags = r.refImages.map((_, i) => `<IMAGE_REF_${offset + i}>`).join(", ");
+    parts.push(`Preserve the exact appearance and design of the subjects shown in ${tags}.`);
+  }
+  parts.push(r.prompt);
+  parts.push(`Duration: ${r.durationSeconds} seconds. ${r.aspectRatio} video.`);
+  const text = parts.join(" ");
+  if (!images.length) return { model: r.model, input: text, response_format: { type: "video" } };
+  return {
+    model: r.model,
+    input: [
+      ...images.map((img) => ({ type: "image", data: Buffer.from(img.bytes).toString("base64"), mime_type: img.mime })),
+      { type: "text", text },
+    ],
+    response_format: { type: "video" },
+  };
 }
 
 export interface GenProvider {
@@ -143,6 +174,25 @@ export function createGeminiProvider(): GenProvider {
       }
     },
     async generateVideo(r) {
+      // REQ-GEN-023: the omni route is synchronous Interactions REST (~22–31s), not the Veo op loop.
+      if (r.model === omniVideoModel) {
+        try {
+          const res = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
+            method: "POST",
+            headers: { "x-goog-api-key": apiKey, "Content-Type": "application/json" },
+            body: JSON.stringify(buildOmniVideoRequest(r)),
+          });
+          if (!res.ok) throw new ProviderError(res.status >= 500 ? "provider_unavailable" : "output_unusable", `interactions ${res.status}: ${(await res.text()).slice(0, 200)}`);
+          const body = (await res.json()) as { steps?: Array<{ type: string; content?: Array<{ type: string; data?: string }> }> };
+          const vid = body.steps?.flatMap((st) => (st.type === "model_output" ? st.content ?? [] : [])).find((c) => c.type === "video")?.data;
+          if (!vid) throw new ProviderError("output_unusable", "no video block in interactions response");
+          // Free-form durations honored via the prompt (10s verified 2026-07-24) — no snap here.
+          return { bytes: new Uint8Array(Buffer.from(vid, "base64")), mime: "video/mp4", durationS: r.durationSeconds };
+        } catch (e) {
+          if (e instanceof ProviderError) throw e;
+          throw mapGeminiError(e);
+        }
+      }
       // OQ-101/102/104 resolved 2026-07-23: SDK GenerateVideosConfig supports durationSeconds,
       // resolution, lastFrame + referenceImages, generateAudio. Long-running op + polling.
       const { GoogleGenAI } = await import("@google/genai");

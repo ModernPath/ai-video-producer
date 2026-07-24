@@ -1,5 +1,13 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-24 — REQ-GEN-023 Omni video take route (PROPOSED → IN_REVIEW)
+**Done:** The Interactions video adapter is a first-class take route. Red-first (7 unit tests): `resolveModel` honors `config.gen.videoRoute` at call time (env `GEN_VIDEO_ROUTE=omni`; veo default); pure `buildOmniVideoRequest` puts the start frame as image 1 + `<FIRST_FRAME>` and entity refs as `<IMAGE_REF_2..>` binding by position, duration prompt-pinned free-form; cost = tokens×rate from the new priceTable primitives (5792 tok/s, $17.50/M). Executor passes entity refs to video on the omni route and the model id into cost. Real E2E (RUN_REAL_OMNI): draft frame → **5s** omni take through the full pipeline — a duration Veo rejects — asset durationS=5, cost $0.5068 exactly per the token math.
+**Decisions:** no UI switch — route is config/env (Tips #5); mock provider untouched (already duration-honest).
+**Deferred:** STB plan-level duration snap {4,6,8} still applies — 9–10s shots need an STB slice; conversational retake untested.
+**Discovered:** none.
+**Follow-ups:** consider omni as the retake route (its edit/conversation strengths) once multi-turn is spiked.
+**Gate:** 147 passed, tsc clean. Spend today ≈ $7.9 / $100.
+
 ## 2026-07-24 — Brand-safety rail hardened to UNCONDITIONAL after reshoot still drew the Monster mark
 **Done:** Validation reshoot of the hero shot FAILED — Monster claw again, plus the ref's burned timecode and color bars leaking into the scene. Prompt snapshot proved two guard gaps: (1) the shot's plan-authored image script is a `customPrompt`, which returned early and bypassed ALL v3 guidance; (2) the entity kind is `character`, so the product/company guard never fired. Fix (red-first, 21/21): BRAND_SAFETY appends unconditionally in `assembleFramePrompt`/`assembleTakePrompt` — custom prompts keep their verbatim body and gain only the safety rail. Also replaced the tainted hero scripts (claw-logo wording → original kaiju-dragon emblem, matching shot 1) via `updateShotScripts`, reshot ($0.67), verified clean (original dragon emblem, no timecode, no ref leakage), re-exported — final 30.02s cut's hero beat is now the best frame in the film. Driver gained a `reshoot <projectId> <shotTitle>` stage.
 **Decisions:** safety rails may append to custom prompts; creative scaffolding may not (user verbatim control preserved — docs/85 §10 updated).

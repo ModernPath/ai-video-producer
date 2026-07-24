@@ -1,10 +1,12 @@
 // REQ-GEN-003 / INV-GEN-003 — cost derives from the shared price table, never inline rates.
-import { priceTable, type FrameQuality, type GenerationKind } from "@avd/shared/config";
+import { omniVideoModel, priceTable, type FrameQuality, type GenerationKind } from "@avd/shared/config";
 
 export interface CostOpts {
   durationSeconds?: number;
   quality?: FrameQuality;
   mock?: boolean;
+  /** REQ-GEN-023: routes with different billing (omni = per video token) pass the model id. */
+  model?: string;
 }
 
 export function computeCostUsd(kind: GenerationKind, opts: CostOpts = {}): number {
@@ -12,6 +14,9 @@ export function computeCostUsd(kind: GenerationKind, opts: CostOpts = {}): numbe
   switch (kind) {
     case "take":
     case "retake":
+      if (opts.model === omniVideoModel) {
+        return ((opts.durationSeconds ?? 0) * priceTable.omniVideoTokensPerSecond * priceTable.omniVideoUsdPerMTokens) / 1_000_000;
+      }
       return (opts.durationSeconds ?? 0) * priceTable.videoPerSecondUsd;
     case "frame":
     case "image_edit":

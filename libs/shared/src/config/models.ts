@@ -47,9 +47,20 @@ export const modelRoutes: Record<Exclude<GenerationKind, "frame" | "image_edit">
   retake: "veo-3.1-fast-generate-preview",
 };
 
+/**
+ * REQ-GEN-023 / OQ-112 (resolved 2026-07-24): the Omni Interactions video route.
+ * Alternative to Veo for takes — reference conditioning via <IMAGE_REF_N>, first-frame lock
+ * via <FIRST_FRAME>, free-form durations (10s verified). Selected via config.gen.videoRoute.
+ */
+export const omniVideoModel = "gemini-omni-flash-preview";
+
 /** Provider price table (USD) — INV-GEN-003 cost recording derives from these. */
 export const priceTable = {
   musicPerTrackUsd: 0.08, // lyria-3-pro-preview per song
+  // Omni video billing is token-based and deterministic (spike 2026-07-24):
+  // 5,792 video tokens per output second × $17.50/M ≈ $0.101/s — Veo-fast parity.
+  omniVideoTokensPerSecond: 5792,
+  omniVideoUsdPerMTokens: 17.5,
   // Veo 3.1 Fast (current take route): $0.15/s verified 2026-07-23 (was $0.10 Omni placeholder
   // — a 50% under-record on real takes, caught by triage). Per-model price map when routes multiply.
   videoPerSecondUsd: 0.1, // 720p rate per pricing page 2026-07-23 (was 0.15 — overestimated)
@@ -61,8 +72,9 @@ export const priceTable = {
 
 /** Provider capability facts the domain depends on (docs/00 §3 — re-verify per phase). */
 export const providerLimits = {
-  // Veo 3.1 (current take route): durations 4–8s, even values (spike 2026-07-23).
-  // Omni restores 10s when its Interactions adapter lands (OQ-112).
+  // Veo 3.1 (default take route): durations 4–8s, even values (spike 2026-07-23).
   video: { maxClipSeconds: 8, allowedDurationsS: [4, 6, 8] as const, aspectRatios: ["16:9", "9:16"] as const, maxReferenceImages: 3 },
+  // Omni Interactions route (REQ-GEN-023): free-form durations, 10s verified 2026-07-24.
+  omniVideo: { maxClipSeconds: 10 },
   image: { maxReferenceImages: 14, entityConsistencyRefs: 5 },
 } as const;

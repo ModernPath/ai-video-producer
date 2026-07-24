@@ -3,7 +3,7 @@
 import { and, asc, count, eq, inArray, lt } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
-import { config, providerLimits } from "@avd/shared/config";
+import { config, omniVideoModel, providerLimits } from "@avd/shared/config";
 import { asset } from "@avd/ast/schema";
 import { assetKey, getObject, putObject } from "@avd/ast/storage";
 import { makeAssetThumb } from "@avd/ast";
@@ -250,6 +250,8 @@ async function processGenerationRow(
           durationSeconds: params.durationSeconds ?? 0,
           aspectRatio,
           ...(startFrame ? { startFrame } : {}),
+          // REQ-GEN-023: omni consumes entity refs as <IMAGE_REF_N>; Veo's SDK path ignores them.
+          ...(next.modelId === omniVideoModel ? await fetchRefImages(db, snapshot.refs?.entityRefAssetIds) : {}),
         })
       : await provider.generateImage({
           model: next.modelId,
@@ -293,6 +295,7 @@ async function processGenerationRow(
           ...(isVideo ? { durationSeconds: (media as unknown as { durationS: number }).durationS } : {}),
           ...(params.quality ? { quality: params.quality } : {}),
           mock: !provider.billsCost,
+          model: next.modelId, // REQ-GEN-023: omni bills per video token
         }).toFixed(4), // INV-GEN-003
         outputAssetIds: [assetId],
         finishedAt: new Date(),
