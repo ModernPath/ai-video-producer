@@ -1,5 +1,10 @@
 # Build Log — STB
 
+## 2026-07-24 — BATCH SIGN-OFF: all IN_REVIEW → DONE (human-approved)
+**Done:** USER approved the review queue verbatim: "approve all for now" (evidence: sign-off artifact + per-REQ tests/browser/real-API links in the ledger). All IN_REVIEW rows in this ledger moved to DONE atomically (dashboard row + detail block + Totals).
+**Decisions:** approval is provisional ("for now") — regressions reopen the specific REQ, not the batch.
+**Deferred / Discovered / Follow-ups:** none. **Gate:** ledger parse verified via scripts/progress.ts.
+
 ## 2026-07-24 — REQ-STB-029 route-aware shot durations (→ IN_REVIEW)
 **Done:** `shotDurationPolicy()` in shared config resolves the duration palette from `config.gen.videoRoute` at call time: Veo {4,6,8} cap 8 (unchanged), omni integers 4–10 cap 10. Wired into plan normalization (5s/10s survive, 12→10), `assertDuration` (INV-STB-001 cap follows the route), music-sync suggestions (a 7s boundary hit is now suggestible), and the shot-plan prompt schema (`durationS:4|5|…|10` on omni). Red-first 7 tests; veo-route regression pinned by tests + browser check (sync panel still suggests 6→8 on the production project).
 **Decisions:** palette floor stays `shot.minSeconds` (4s) — sub-4s omni clips unverified; revisit for hype-countdown rapid cuts.

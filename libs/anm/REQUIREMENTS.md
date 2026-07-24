@@ -1,17 +1,17 @@
 # ANM — Requirements Ledger
 
 ## Dashboard — ANM (Animations)
-Totals: 0 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 3 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
-| REQ-ANM-001 | Title-card animation takes (pure Remotion scenes) | P6 | IN_REVIEW | USER Remotion epic 2026-07-23 | tests/render.int.spec.ts (RUN_RENDER) + real chain + browser | src/*, gen executor branch, migration 0018, ✦ Animate UI |
-| REQ-ANM-002 | Animation overlays on generated shots | P6 | IN_REVIEW | USER Remotion epic | anm render test (alpha webm) + stb overlay.int + real composite frame | LowerThird.tsx, composite.ts, executor overlay path, ✦ per-take UI |
-| REQ-ANM-004 | Effects library (noise, light leaks, text highlights, …) | P6 | IN_REVIEW | USER 2026-07-23 | render test + frame proof | src/effects.tsx, TitleCard composition, render prop passthrough |
+| REQ-ANM-001 | Title-card animation takes (pure Remotion scenes) | P6 | DONE | USER Remotion epic 2026-07-23 | tests/render.int.spec.ts (RUN_RENDER) + real chain + browser | src/*, gen executor branch, migration 0018, ✦ Animate UI |
+| REQ-ANM-002 | Animation overlays on generated shots | P6 | DONE | USER Remotion epic | anm render test (alpha webm) + stb overlay.int + real composite frame | LowerThird.tsx, composite.ts, executor overlay path, ✦ per-take UI |
+| REQ-ANM-004 | Effects library (noise, light leaks, text highlights, …) | P6 | DONE | USER 2026-07-23 | render test + frame proof | src/effects.tsx, TitleCard composition, render prop passthrough |
 | REQ-ANM-003 | Caption/lyric overlays from MM:SS transcripts | P6 | PROPOSED | USER Remotion epic + REQ-GEN-020 | — | — |
 
 ### REQ-ANM-001 — Title-card animation takes
-- **Status:** IN_REVIEW · **Stage:** P6 · **Priority:** should · **Owner:** —
+- **Status:** DONE · **Stage:** P6 · **Priority:** should · **Owner:** —
 - **Raised-by:** USER 2026-07-23 ("generate separate scenes with purely remotion animations")
 - **Source:** remotion.dev/docs/ssr-node; BACKLOG epic
 - **Statement:** A shot can get a free animation take: the TitleCard template (brand-dark, spring-animated text + accent underline, fade-out) renders server-side at the shot's duration/aspect via Remotion and lands as a normal take (selectable, exportable, retake-able, A/B-comparable); kind `animation`, engine `remotion-local`, cost $0.
@@ -23,7 +23,7 @@ Totals: 0 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
 - **Deferred / notes:** more templates (kinetic text, lower-third) + AI template/props selection from prompt → follow-ups under this epic; UI submit verified wired (persistent extension click-drop documented in memory — chain verified server-side + result visible in browser).
 
 ### REQ-ANM-002 — Animation overlays on generated shots
-- **Status:** IN_REVIEW · **Stage:** P6 · **Priority:** should · **Owner:** —
+- **Status:** DONE · **Stage:** P6 · **Priority:** should · **Owner:** —
 - **Raised-by:** USER Remotion epic ("add an animation overlay to generated video scenes")
 - **Source:** remotion.dev/docs/videos/transparency + layers
 - **Statement:** Any take can receive a transparent Remotion overlay (LowerThird template: sliding accent-bar text, alpha VP8 webm) composited via ffmpeg (libvpx alpha decode, scale2ref) into a NEW take lineage-linked (`retake_of`) to its source — free and local; original take untouched.
@@ -37,7 +37,7 @@ Totals: 0 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
 *(003 elaborates when promoted — caption overlays driven by REQ-GEN-020 transcripts; SRT-burned captions shipped as ASM-009 MVP.)*
 
 ### REQ-ANM-004 — Effects library
-- **Status:** IN_REVIEW · **Stage:** P6 · **Priority:** should · **Owner:** —
+- **Status:** DONE · **Stage:** P6 · **Priority:** should · **Owner:** —
 - **Raised-by:** USER 2026-07-23 (remotion.dev effect docs: transforms, effects, animation-math, noise-visualization, light-leaks, text-highlights, html-in-canvas)
 - **Source:** the linked docs; props-not-code rule (docs/features/animations.md)
 - **Statement:** Effect primitives compose into templates as parameterized props: noise-driven drifting LightLeaks (screen-blended, @remotion/noise), FilmGrain (SVG turbulence with per-frame seed shimmer), Highlight (animated sweep behind a chosen word). TitleCard defaults to leak+grain (subtle film look pairing with the Golden Hour style); `highlightWord` opts into the sweep; render passes arbitrary effect props through inputProps.

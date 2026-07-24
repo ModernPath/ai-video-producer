@@ -1,26 +1,26 @@
 # Requirements Ledger — ASM (Assembly & Export)
 
 ## Dashboard — ASM (Assembly & Export)
-Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 11 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
-| REQ-ASM-001 | Snapshot requires ready takes; immutable | P1 | IN_REVIEW | INV-ASM-001/002 | tests/export.int.spec.ts | src/service.ts |
-| REQ-ASM-002 | Export concatenates takes, no generation | P1 | IN_REVIEW | INV-ASM-003 | tests/export.int.spec.ts | src/service.ts |
-| REQ-ASM-003 | Export output downloadable as ready asset | P1 | IN_REVIEW | `docs/15` §5 | tests/export.int.spec.ts + browser E2E | src/service.ts, apps/web (exports UI) |
-| REQ-ASM-004 | Audio mix modes (native/music/mix) at export | P3 | IN_REVIEW | BR-ASM-001/002 | tests/audio-mix.int.spec.ts + browser/ffprobe | src/service.ts (snapshot audio + mix pass) |
-| REQ-ASM-005 | Take normalization at assembly (res/fps/trim) | P3 | IN_REVIEW | BR-ASM-003, OQ-104 trim policy | tests/normalize.int.spec.ts + browser/ffprobe | src/service.ts (normalize pass), config asm.normalize |
-| REQ-ASM-006 | Failed exports retain error, retryable | P2 | IN_REVIEW | INV-ASM-004 | tests/retry.int.spec.ts | src/service.ts (retryExport), UI ↻ |
-| REQ-ASM-007 | Share links (token, revocable) | P5 | IN_REVIEW | INV-ASM-005 | tests/share.int.spec.ts | src/share.ts, migration 0014, apps/web /s/[token] |
-| REQ-ASM-009 | Burned lyric/section captions on export | P6 | IN_REVIEW | USER Lyria/Remotion epics; REQ-GEN-020 | tests/captions.spec.ts + real E2E frame check | src/captions.ts, snapshot flag, subtitles pass, captions checkbox |
-| REQ-ASM-008 | Archived projects cannot export | P5 | IN_REVIEW | BR-PRJ-003 (workflow-merge follow-up) | tests/archive-guard.int.spec.ts + browser E2E | src/service.ts createSnapshot guard, archive UI apps/web/app/page.tsx |
-| REQ-ASM-008 | Explicit exclusion of takeless shots | P2 | IN_REVIEW | INV-ASM-002 (exclusion arm) | tests/exclusions.int.spec.ts + browser | src/service.ts, migration 0010, partial-export UI |
-| REQ-ASM-009 | Animatic preview (client-side, zero render cost) | P2 | IN_REVIEW | BR-ASM-005 | tests/animatic.spec.ts + browser E2E | src/animatic.ts, apps/web/components/AnimaticPlayer.tsx |
+| REQ-ASM-001 | Snapshot requires ready takes; immutable | P1 | DONE | INV-ASM-001/002 | tests/export.int.spec.ts | src/service.ts |
+| REQ-ASM-002 | Export concatenates takes, no generation | P1 | DONE | INV-ASM-003 | tests/export.int.spec.ts | src/service.ts |
+| REQ-ASM-003 | Export output downloadable as ready asset | P1 | DONE | `docs/15` §5 | tests/export.int.spec.ts + browser E2E | src/service.ts, apps/web (exports UI) |
+| REQ-ASM-004 | Audio mix modes (native/music/mix) at export | P3 | DONE | BR-ASM-001/002 | tests/audio-mix.int.spec.ts + browser/ffprobe | src/service.ts (snapshot audio + mix pass) |
+| REQ-ASM-005 | Take normalization at assembly (res/fps/trim) | P3 | DONE | BR-ASM-003, OQ-104 trim policy | tests/normalize.int.spec.ts + browser/ffprobe | src/service.ts (normalize pass), config asm.normalize |
+| REQ-ASM-006 | Failed exports retain error, retryable | P2 | DONE | INV-ASM-004 | tests/retry.int.spec.ts | src/service.ts (retryExport), UI ↻ |
+| REQ-ASM-007 | Share links (token, revocable) | P5 | DONE | INV-ASM-005 | tests/share.int.spec.ts | src/share.ts, migration 0014, apps/web /s/[token] |
+| REQ-ASM-009 | Burned lyric/section captions on export | P6 | DONE | USER Lyria/Remotion epics; REQ-GEN-020 | tests/captions.spec.ts + real E2E frame check | src/captions.ts, snapshot flag, subtitles pass, captions checkbox |
+| REQ-ASM-008 | Archived projects cannot export | P5 | DONE | BR-PRJ-003 (workflow-merge follow-up) | tests/archive-guard.int.spec.ts + browser E2E | src/service.ts createSnapshot guard, archive UI apps/web/app/page.tsx |
+| REQ-ASM-008 | Explicit exclusion of takeless shots | P2 | DONE | INV-ASM-002 (exclusion arm) | tests/exclusions.int.spec.ts + browser | src/service.ts, migration 0010, partial-export UI |
+| REQ-ASM-009 | Animatic preview (client-side, zero render cost) | P2 | DONE | BR-ASM-005 | tests/animatic.spec.ts + browser E2E | src/animatic.ts, apps/web/components/AnimaticPlayer.tsx |
 
 ---
 
 ### REQ-ASM-001 — Snapshot requires ready takes; immutable
-- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Status:** DONE · **Stage:** P1 · **Priority:** must
 - **Source:** INV-ASM-001, INV-ASM-002
 - **Statement:** CreateSnapshot captures ordered (shot, selected take, duration) rows; it fails listing offenders if any non-deleted shot lacks a selected ready take (MVP: no exclusions — REQ-ASM-008). Later storyboard edits never mutate a snapshot.
 - **Acceptance criteria:**
@@ -30,7 +30,7 @@ Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Tests:** `tests/export.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 1)
 
 ### REQ-ASM-002 — Export concatenates takes, no generation
-- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Status:** DONE · **Stage:** P1 · **Priority:** must
 - **Source:** INV-ASM-003
 - **Statement:** Export runs ffmpeg concat over the snapshot's take assets in order; it never calls GEN.
 - **Acceptance criteria:**
@@ -38,7 +38,7 @@ Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Tests:** `tests/export.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 1)
 
 ### REQ-ASM-003 — Export output downloadable as ready asset
-- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Status:** DONE · **Stage:** P1 · **Priority:** must
 - **Source:** `docs/15` §5
 - **Statement:** The export job's output is stored under the exports key layout as a ready video asset, downloadable via the asset route.
 - **Acceptance criteria:**
@@ -46,7 +46,7 @@ Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Tests:** `tests/export.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 1)
 
 ### REQ-ASM-009 — Animatic preview (client-side, zero render cost)
-- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must
+- **Status:** DONE · **Stage:** P2 · **Priority:** must
 - **Source:** BR-ASM-005, `docs/06` §4 ("cheap before expensive")
 - **Statement:** The storyboard offers an Animatic: each shot's selected start frame (fallback: first candidate) is shown for the shot's duration, in order, with a per-shot progress indication — no server render, no generation calls.
 - **Acceptance criteria:**
@@ -55,7 +55,7 @@ Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Tests:** `tests/animatic.spec.ts` + browser E2E · **Code:** `src/animatic.ts`, `apps/web/components/AnimaticPlayer.tsx` · **Log:** LOG 2026-07-23 (slice 2)
 
 ### REQ-ASM-004 — Audio mix modes (native/music/mix) at export
-- **Status:** IN_REVIEW · **Stage:** P3 · **Priority:** must
+- **Status:** DONE · **Stage:** P3 · **Priority:** must
 - **Source:** BR-ASM-001/002, `docs/17` §1 (completes the Suno round-trip)
 - **Statement:** Snapshots capture the project's audio config (mix mode + attached music track). Export honors it: `native` = take audio concat (current); `music` = takes' audio replaced by the music track (trimmed to cut length, fade-out); `mix` = music bed under native audio at the configured duck level. No generative calls (INV-ASM-003).
 - **Acceptance criteria:**
@@ -65,7 +65,7 @@ Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Tests:** `tests/audio-mix.int.spec.ts` (ffprobe codec/duration assertions) + browser E2E · **Code:** `src/service.ts`, migration 0009, audio selector UI · **Log:** LOG 2026-07-23 (slice 3)
 
 ### REQ-ASM-005 — Take normalization at assembly (res/fps/trim)
-- **Status:** IN_REVIEW · **Stage:** P3 · **Priority:** must
+- **Status:** DONE · **Stage:** P3 · **Priority:** must
 - **Source:** BR-ASM-003, OQ-104 (assembly-side trim policy)
 - **Statement:** Before concat, every take is normalized to the configured output profile (resolution by aspect ratio, fps, aac audio) and trimmed to its snapshot durationS. Heterogeneous sources (real Veo 720p + mock 360p, any length) concat into one clean stream; cut length = sum of shot durations.
 - **Acceptance criteria:**
@@ -75,7 +75,7 @@ Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Tests:** `tests/normalize.int.spec.ts` (mixed 360p/720p → uniform, trim) + browser/ffprobe (28.0s exact) · **Code:** `src/service.ts` normalize pass, `config.asm.normalize` · **Log:** LOG 2026-07-23 (slice 4)
 
 ### REQ-ASM-008 — Explicit exclusion of takeless shots
-- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must
+- **Status:** DONE · **Stage:** P2 · **Priority:** must
 - **Source:** INV-ASM-002 exclusion arm, `docs/features/assembly-export.md`
 - **Statement:** CreateSnapshot accepts an explicit exclusion list; only listed takeless shots may be skipped (silent drops stay impossible). Exclusions are recorded on the snapshot for provenance; the UI offers "Export N ready · skip M" when the storyboard is partial.
 - **Acceptance criteria:**
@@ -85,7 +85,7 @@ Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Tests:** `tests/exclusions.int.spec.ts` + browser E2E · **Code:** `src/service.ts` (excludeShotIds + provenance), migration 0010, 'Export N ready · skip M' UI · **Log:** LOG 2026-07-23 (slice 5)
 
 ### REQ-ASM-006 — Failed exports retain error, retryable
-- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must
+- **Status:** DONE · **Stage:** P2 · **Priority:** must
 - **Source:** INV-ASM-004
 - **Statement:** A failed export keeps its error detail; retry creates a NEW job against the same immutable snapshot. Retrying non-failed jobs is rejected.
 - **Acceptance criteria:**
@@ -94,7 +94,7 @@ Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - Browser: failed exports show ↻ retry.
 
 ### REQ-ASM-009 — Burned lyric/section captions on export
-- **Status:** IN_REVIEW · **Stage:** P6 · **Priority:** should · **Owner:** —
+- **Status:** DONE · **Stage:** P6 · **Priority:** should · **Owner:** —
 - **Raised-by:** USER epics (lyric-synced timing); first consumer of REQ-GEN-020 transcripts
 - **Source:** docs/85 §Music; REQ-GEN-020
 - **Statement:** An export can burn the track transcript's [MM:SS] lines as styled captions: transcript → SRT (per-line timing to the next stamp, capped at cut length; leading section tags stripped from lyric lines), applied via ffmpeg subtitles/libass with a host-mounted font; the choice and transcript are captured immutably in the snapshot.
@@ -106,7 +106,7 @@ Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Deferred / notes:** karaoke-style word timing + Remotion-rendered caption overlays (ANM-003 full) later; font path env-overridable (CAPTION_FONT_FILE) for the prod container.
 
 ### REQ-ASM-008 — Archived projects cannot export
-- **Status:** IN_REVIEW · **Stage:** MVP · **Priority:** must · **Owner:** —
+- **Status:** DONE · **Stage:** MVP · **Priority:** must · **Owner:** —
 - **Raised-by:** BACKLOG (prj-backfill agent noted BR-PRJ-003 covered generation but not export)
 - **Source:** BR-PRJ-003 (`docs/11`)
 - **Statement:** Export snapshot creation shall reject archived projects with `project_archived`; unarchiving restores the ability. Archive/unarchive is operable from the projects list.
@@ -118,7 +118,7 @@ Totals: 0 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Deferred / notes:** guard placed at snapshot creation (single entry to export pipeline); queueExport inherits it since snapshots are prerequisite.
 
 ### REQ-ASM-007 — Share links (token, revocable)
-- **Status:** IN_REVIEW · **Stage:** P5 · **Priority:** should
+- **Status:** DONE · **Stage:** P5 · **Priority:** should
 - **Raised-by:** seeded from `docs/15-assembly-export.md` (Prompt 1)
 - **Source:** INV-ASM-005 (`docs/15` §3)
 - **Statement:** A share link grants access ONLY to its linked export's output: it can be created only for a `succeeded` export job, carries a crypto-random url-safe token (32+ chars), supports optional expiry, and is revocable. Resolving a revoked, expired, or unknown token yields nothing.

@@ -1,5 +1,10 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-24 — BATCH SIGN-OFF: all IN_REVIEW → DONE (human-approved)
+**Done:** USER approved the review queue verbatim: "approve all for now" (evidence: sign-off artifact + per-REQ tests/browser/real-API links in the ledger). All IN_REVIEW rows in this ledger moved to DONE atomically (dashboard row + detail block + Totals).
+**Decisions:** approval is provisional ("for now") — regressions reopen the specific REQ, not the batch.
+**Deferred / Discovered / Follow-ups:** none. **Gate:** ledger parse verified via scripts/progress.ts.
+
 ## 2026-07-24 — Production #2 "First Light, Helsinki Harbor" — omni route + music-first driver, end to end
 **Done:** Driver restructured music-first (`draft`/`music`/`plan`/`sync`/`takes` + new `retry` stage) closing the BACKLOG ordering item. Full cinematic-mood production on `GEN_VIDEO_ROUTE=omni`: the plan authored 5s shots (REQ-STB-029 palette live on a real model), the `sync` stage stretched The Sleeping Icebreaker 5s→10s so its cut lands exactly on the track's 0:16 section change BEFORE takes were bought, and all 5 omni takes (6/10/6/5/8s) generated with token-exact costs ($0.6082/$1.0136/$0.6082/$0.5068/$0.8109). One transient Interactions 504 recovered via `retryGeneration` (retry_of provenance, failure uncharged). 35.02s export verified; beat review passed all six principles; the tram carries an invented "SUOMI LINJAT" livery — the brand-safety rail visibly steering real output.
 **Decisions:** driver keeps env-based route selection (matches config philosophy).

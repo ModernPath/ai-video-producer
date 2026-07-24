@@ -1,5 +1,10 @@
 # Build Log — ASM (Assembly & Export)
 
+## 2026-07-24 — BATCH SIGN-OFF: all IN_REVIEW → DONE (human-approved)
+**Done:** USER approved the review queue verbatim: "approve all for now" (evidence: sign-off artifact + per-REQ tests/browser/real-API links in the ledger). All IN_REVIEW rows in this ledger moved to DONE atomically (dashboard row + detail block + Totals).
+**Decisions:** approval is provisional ("for now") — regressions reopen the specific REQ, not the batch.
+**Deferred / Discovered / Follow-ups:** none. **Gate:** ledger parse verified via scripts/progress.ts.
+
 ## 2026-07-23 — REQ-ASM-009 burned captions from MM:SS transcripts (→ IN_REVIEW)
 **Done:** red-first transcriptToSrt (stamp→next-stamp cues, duration cap, section-tag stripping; 4 unit cases); snapshot captures burnCaptions+transcript immutably; export pipeline gained a "captions" pass (ffmpeg subtitles/libass, host font mounted into the alpine container, styling from config.asm.captions); captions checkbox on both export forms. Real E2E: Aurora export with the Lyria track's transcript — extracted frame at 2s shows "[Intro]" burned with white/outline styling.
 **Decisions:** section tags are structure, not screen text — stripped from lyric lines, kept for label-only cues (instrumental structure display); caption choice is per-export, not a project setting.

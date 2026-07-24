@@ -1,24 +1,24 @@
 # Requirements Ledger — AST (Asset Library)
 
 ## Dashboard — AST (Asset Library)
-Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 8 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
-| REQ-AST-001 | Object storage put/get round-trip | P1 | IN_REVIEW | INV-AST-002 | tests/storage.int.spec.ts | src/storage.ts |
-| REQ-AST-002 | Generated assets carry real validated bytes | P1 | IN_REVIEW | INV-AST-002 | tests/generated-bytes.int.spec.ts | ../gen/src/executor.ts, ../gen/src/fixtures.ts |
-| REQ-AST-003 | Assets served to UI via streaming route | P1 | IN_REVIEW | `docs/12` §5 | browser E2E (LOG 2026-07-23) | apps/web/app/api/assets/[id]/route.ts |
-| REQ-AST-004 | Uploads (presigned + direct) with validation | P3 | IN_REVIEW | INV-AST-005 | tests/uploads.int.spec.ts + browser E2E | src/uploads.ts |
-| REQ-AST-009 | Client-side image shrink + previews + any format | P1 | IN_REVIEW | USER BUG 2026-07-23 (1MB action limit) | browser E2E pending (extension dropped; user to retry) | components/ImagePicker.tsx, next.config, config.clientResize |
-| REQ-AST-005 | Derivatives (thumb/poster) on ready | P2 | IN_REVIEW | BR-AST-002 | tests/derivatives.int.spec.ts + browser E2E | migration 0016, src/derivatives.ts, executor+uploads hooks, ?thumb=1 route, UI |
-| REQ-AST-006 | Entity library: org entities, refs, project cast | P4 | IN_REVIEW | INV-AST-004/006, BR-AST-001/003 | tests/entities.int.spec.ts, ../stb/tests/cast.int.spec.ts + browser | src/entities.ts, apps/web (library, cast) |
-| REQ-AST-007 | Style kits org-scoped + project attachment | P4 | IN_REVIEW | INV-AST-006, BR-AST-001 | tests/style-kits.int.spec.ts + stb/tests/style-in-prompts + browser E2E | migration 0015, entities.ts, prj setProjectStyleKit, library + storyboard UI |
+| REQ-AST-001 | Object storage put/get round-trip | P1 | DONE | INV-AST-002 | tests/storage.int.spec.ts | src/storage.ts |
+| REQ-AST-002 | Generated assets carry real validated bytes | P1 | DONE | INV-AST-002 | tests/generated-bytes.int.spec.ts | ../gen/src/executor.ts, ../gen/src/fixtures.ts |
+| REQ-AST-003 | Assets served to UI via streaming route | P1 | DONE | `docs/12` §5 | browser E2E (LOG 2026-07-23) | apps/web/app/api/assets/[id]/route.ts |
+| REQ-AST-004 | Uploads (presigned + direct) with validation | P3 | DONE | INV-AST-005 | tests/uploads.int.spec.ts + browser E2E | src/uploads.ts |
+| REQ-AST-009 | Client-side image shrink + previews + any format | P1 | DONE | USER BUG 2026-07-23 (1MB action limit) | browser E2E pending (extension dropped; user to retry) | components/ImagePicker.tsx, next.config, config.clientResize |
+| REQ-AST-005 | Derivatives (thumb/poster) on ready | P2 | DONE | BR-AST-002 | tests/derivatives.int.spec.ts + browser E2E | migration 0016, src/derivatives.ts, executor+uploads hooks, ?thumb=1 route, UI |
+| REQ-AST-006 | Entity library: org entities, refs, project cast | P4 | DONE | INV-AST-004/006, BR-AST-001/003 | tests/entities.int.spec.ts, ../stb/tests/cast.int.spec.ts + browser | src/entities.ts, apps/web (library, cast) |
+| REQ-AST-007 | Style kits org-scoped + project attachment | P4 | DONE | INV-AST-006, BR-AST-001 | tests/style-kits.int.spec.ts + stb/tests/style-in-prompts + browser E2E | migration 0015, entities.ts, prj setProjectStyleKit, library + storyboard UI |
 | REQ-AST-008 | Soft-delete protection for referenced assets | P2 | PROPOSED | INV-AST-003 | — | — |
 
 ---
 
 ### REQ-AST-001 — Object storage put/get round-trip
-- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Status:** DONE · **Stage:** P1 · **Priority:** must
 - **Source:** INV-AST-002
 - **Statement:** The storage adapter writes bytes to S3-compatible storage under the documented key layout and reads them back intact (bucket auto-ensured in dev).
 - **Acceptance criteria:**
@@ -26,7 +26,7 @@ Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
 - **Tests:** see dashboard row · **Code:** see dashboard row · **Log:** LOG 2026-07-23 (slice 1)
 
 ### REQ-AST-002 — Generated assets carry real validated bytes
-- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Status:** DONE · **Stage:** P1 · **Priority:** must
 - **Source:** INV-AST-002
 - **Statement:** Mock (and later real) generations store actual media bytes; the asset row records storage key, mime, and byte size — no fixture:// placeholders.
 - **Acceptance criteria:**
@@ -35,7 +35,7 @@ Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
 - **Tests:** see dashboard row · **Code:** see dashboard row · **Log:** LOG 2026-07-23 (slice 1)
 
 ### REQ-AST-003 — Assets served to UI via streaming route
-- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Status:** DONE · **Stage:** P1 · **Priority:** must
 - **Source:** `docs/12` §5 (signed URLs later; dev streams via API)
 - **Statement:** `GET /api/assets/{id}` streams the asset's bytes with correct content-type for ready, non-deleted assets.
 - **Acceptance criteria:**
@@ -43,7 +43,7 @@ Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
 - **Tests:** see dashboard row · **Code:** see dashboard row · **Log:** LOG 2026-07-23 (slice 1)
 
 ### REQ-AST-009 — Client-side image shrink + previews + any format
-- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Status:** DONE · **Stage:** P1 · **Priority:** must
 - **Raised-by:** USER BUG 2026-07-23 — large ref upload hit Next server-action 1MB body limit ("cant load large images, please shrink them on the browser client… Support all image formats and show previews")
 - **Statement:** Image pickers downscale client-side before upload (canvas, max edge from config, JPEG re-encode), accept any browser-decodable format (converted to JPEG), and show previews with sizes before submit. Server action body limit raised as backstop; server allowlist unchanged (client normalizes).
 - **Acceptance criteria:**
@@ -52,7 +52,7 @@ Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
 - **Tests:** browser E2E (large generated image) · **Code:** — · **Log:** —
 
 ### REQ-AST-004 — Uploads (presigned + direct) with validation
-- **Status:** IN_REVIEW · **Stage:** P3 · **Priority:** must
+- **Status:** DONE · **Stage:** P3 · **Priority:** must
 - **Source:** INV-AST-005, `docs/12` §2/§4
 - **Statement:** Uploads validate mime allowlist + size caps from config before any asset becomes `ready`. Two paths share one core: presigned PUT sessions (browser→storage, prod path) and direct server-side bytes (dev/simple path). Media probe (duration/dimensions) deferred to derivatives slice (REQ-AST-005).
 - **Acceptance criteria:**
@@ -62,7 +62,7 @@ Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
 - **Tests:** `tests/uploads.int.spec.ts` + browser E2E (track attach) · **Code:** `src/uploads.ts`, migration 0007 · **Log:** LOG 2026-07-23 (slice 2)
 
 ### REQ-AST-006 — Entity library: org entities, refs, project cast
-- **Status:** IN_REVIEW · **Stage:** P4 · **Priority:** must
+- **Status:** DONE · **Stage:** P4 · **Priority:** must
 - **Source:** INV-AST-004 (1–5 refs), INV-AST-006 (org-scoped, project attachment), BR-AST-001/003
 - **Statement:** Entities (company/product/person/character) live at org level with name, description, and 1–5 ready image refs; projects attach a cast; attached entities feed generation (text blocks for all kinds; ref images for frames). MVP: whole-project cast applies to every shot (per-shot selection follows — deviation logged).
 - **Acceptance criteria:**
@@ -72,7 +72,7 @@ Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
 - **Tests:** `tests/entities.int.spec.ts`, `../stb/tests/cast.int.spec.ts` + browser E2E · **Code:** `src/entities.ts`, migration 0008, `apps/web/app/library`, cast UI · **Log:** LOG 2026-07-23 (slice 3)
 
 ### REQ-AST-007 — Style kits: styles retained across videos
-- **Status:** IN_REVIEW · **Stage:** P4 · **Priority:** must · **Owner:** —
+- **Status:** DONE · **Stage:** P4 · **Priority:** must · **Owner:** —
 - **Raised-by:** USER original requirement #3 (styles retained across videos, selectable at start); promoted this slice
 - **Source:** INV-AST-006, BR-AST-001 (`docs/12`)
 - **Statement:** Style kits (name + style prompt) are org-level and reusable; a project selects at most one; the selected kit's prompt is appended to every auto-assembled frame and take prompt of that project.
@@ -84,7 +84,7 @@ Totals: 0 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
 - **Deferred / notes:** style reference images (kit refs feeding image gen) deferred until needed; custom user scripts intentionally NOT styled (verbatim rule).
 
 ### REQ-AST-005 — Derivatives (thumb/poster) on ready
-- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** should · **Owner:** —
+- **Status:** DONE · **Stage:** P2 · **Priority:** should · **Owner:** —
 - **Raised-by:** promoted this slice — storyboard shipped ~1MB originals into 128px tiles
 - **Source:** BR-AST-002 (`docs/12`)
 - **Statement:** Every ready image/video asset gets a small JPEG derivative (downscaled thumb / first-frame poster) generated failure-tolerantly; the asset API serves it via `?thumb=1` with original fallback; UI thumbnails request derivatives while the lightbox loads originals.

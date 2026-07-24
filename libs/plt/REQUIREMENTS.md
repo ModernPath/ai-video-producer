@@ -1,14 +1,14 @@
 # Requirements Ledger — PLT (Platform & Identity)
 
 ## Dashboard — PLT (Platform & Identity)
-Totals: 0 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 1 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
-| REQ-PLT-001 | Deterministic dev-org resolution (by configured name) | MVP | IN_REVIEW | USER BUG 2026-07-23 (entities landed in test orgs) | browser E2E (library + cast bar) | apps/web devOrgId, config.platform.devOrgName |
+| REQ-PLT-001 | Deterministic dev-org resolution (by configured name) | MVP | DONE | USER BUG 2026-07-23 (entities landed in test orgs) | browser E2E (library + cast bar) | apps/web devOrgId, config.platform.devOrgName |
 
 ### REQ-PLT-001 — Deterministic dev-org resolution
-- **Status:** IN_REVIEW · **Stage:** MVP · **Priority:** must · **Owner:** —
+- **Status:** DONE · **Stage:** MVP · **Priority:** must · **Owner:** —
 - **Raised-by:** USER BUG 2026-07-23: "Why can I only select characters, not persons or products?" — `select … limit 1` with no order returned an arbitrary org once test orgs existed, so new entities landed in a test org invisible to the user's projects.
 - **Source:** `docs/10-platform-identity.md` (single-tenant dev mode)
 - **Statement:** All web-app organization resolution shall go through one helper that resolves by the configured dev-org name (`config.platform.devOrgName`), creating it if missing; no `limit 1` without a deterministic predicate.

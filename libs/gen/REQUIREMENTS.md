@@ -1,35 +1,35 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 21 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
-| REQ-GEN-001 | Provenance recorded before execution | P1 | IN_REVIEW | INV-GEN-001 | tests/pipeline.int.spec.ts | src/service.ts |
-| REQ-GEN-002 | Outputs are new immutable assets | P1 | IN_REVIEW | INV-GEN-002 | tests/pipeline.int.spec.ts | src/executor.ts |
-| REQ-GEN-003 | Cost recorded on completion | P1 | IN_REVIEW | INV-GEN-003 | tests/cost-routing.spec.ts, tests/pipeline.int.spec.ts | src/cost.ts |
-| REQ-GEN-004 | Daily per-org spend cap at enqueue | P5 | IN_REVIEW | INV-GEN-004 | tests/quota.int.spec.ts + browser E2E | src/service.ts enqueueGeneration, config.gen.quota |
-| REQ-GEN-005 | Retry of terminal failures (retry_of provenance) | P2 | IN_REVIEW | INV-GEN-005 | tests/retry.int.spec.ts (browser: UI wired, click-through pending) | src/retry.ts |
-| REQ-GEN-006 | Content-policy terminal failure mapping | P2 | IN_REVIEW | INV-GEN-006 | tests/provider-path.int.spec.ts | src/provider.ts, src/executor.ts |
-| REQ-GEN-007 | Model routing from versioned config | P1 | IN_REVIEW | BR-GEN-001 | tests/cost-routing.spec.ts | src/routing.ts |
-| REQ-GEN-008 | Frame requests produce n candidates | P2 | IN_REVIEW | BR-GEN-002 | libs/stb/tests/frame-batch.int.spec.ts + browser E2E | stb service requestFrameBatch, generateFrameAction, lane button label |
-| REQ-GEN-009 | Frame-conditioned takes (start-frame attachment) | P4 | IN_REVIEW | BR-GEN-003 (frame arm) | tests/frame-conditioned.int.spec.ts + real ring + browser | src/service.ts, src/executor.ts, ../stb/src/service.ts |
-| REQ-GEN-010 | Provider abstraction: real path → storage → ready | P1 | IN_REVIEW | BR-GEN-004 | tests/provider-path.int.spec.ts | src/provider.ts, src/executor.ts |
-| REQ-GEN-011 | Per-org video concurrency cap | P2 | IN_REVIEW | BR-GEN-005 | tests/concurrency.int.spec.ts | src/executor.ts |
-| REQ-GEN-012 | image_edit: instruction + source → new asset with lineage | P4 | IN_REVIEW | BR-GEN-006, BR-AST-005, INV-AST-001 | tests/image-edit.int.spec.ts + real ring + browser | src/prompt.ts, src/service.ts, src/executor.ts, ../ast/src/entities.ts |
-| REQ-GEN-013 | Deterministic prompt assembly, snapshotted | P1 | IN_REVIEW | `docs/14` §5 | tests/prompt.spec.ts | src/prompt.ts |
-| REQ-GEN-015 | Mock executor (MOCK_GEN) returns fixture media | P1 | IN_REVIEW | `docs/82` §5 (enabler) | tests/pipeline.int.spec.ts | src/executor.ts, src/service.ts |
-| REQ-GEN-017 | Live progress reaches the UI (SSE) | P2 | IN_REVIEW | `docs/07` §1, ADR-006 (enabler) | libs/prj/tests/activity.int.spec.ts + browser E2E | libs/prj/src/activity.ts, apps/web (events route, LiveRefresh) |
-| REQ-GEN-016 | Jobs execute via queue worker (pg-boss) | P2 | IN_REVIEW | `docs/03` §1–2 (enabler) | apps/worker/tests/handlers.int.spec.ts + browser E2E | apps/worker/src/*, libs/shared/src/queue.ts |
-| REQ-GEN-019 | Lyria music generation (brief → real track) | P5 | IN_REVIEW | USER 2026-07-23; docs/85 §Music | libs/stb/tests/music-track.int.spec.ts + real E2E ($0.08) | migration 0017, provider generateMusic (Interactions REST), executor music branch, requestMusicTrack, ♫ UI |
-| REQ-GEN-020 | Audio transcription MM:SS (sync) | P5 | IN_REVIEW | USER 2026-07-23; docs/85 §Music | libs/stb/tests/transcript.int.spec.ts + real E2E | migration 0019, provider audio parts, executor ref fetch, requestTranscript, ⏱ UI |
-| REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | IN_REVIEW | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
-| REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | IN_REVIEW | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
-| REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | IN_REVIEW | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
+| REQ-GEN-001 | Provenance recorded before execution | P1 | DONE | INV-GEN-001 | tests/pipeline.int.spec.ts | src/service.ts |
+| REQ-GEN-002 | Outputs are new immutable assets | P1 | DONE | INV-GEN-002 | tests/pipeline.int.spec.ts | src/executor.ts |
+| REQ-GEN-003 | Cost recorded on completion | P1 | DONE | INV-GEN-003 | tests/cost-routing.spec.ts, tests/pipeline.int.spec.ts | src/cost.ts |
+| REQ-GEN-004 | Daily per-org spend cap at enqueue | P5 | DONE | INV-GEN-004 | tests/quota.int.spec.ts + browser E2E | src/service.ts enqueueGeneration, config.gen.quota |
+| REQ-GEN-005 | Retry of terminal failures (retry_of provenance) | P2 | DONE | INV-GEN-005 | tests/retry.int.spec.ts (browser: UI wired, click-through pending) | src/retry.ts |
+| REQ-GEN-006 | Content-policy terminal failure mapping | P2 | DONE | INV-GEN-006 | tests/provider-path.int.spec.ts | src/provider.ts, src/executor.ts |
+| REQ-GEN-007 | Model routing from versioned config | P1 | DONE | BR-GEN-001 | tests/cost-routing.spec.ts | src/routing.ts |
+| REQ-GEN-008 | Frame requests produce n candidates | P2 | DONE | BR-GEN-002 | libs/stb/tests/frame-batch.int.spec.ts + browser E2E | stb service requestFrameBatch, generateFrameAction, lane button label |
+| REQ-GEN-009 | Frame-conditioned takes (start-frame attachment) | P4 | DONE | BR-GEN-003 (frame arm) | tests/frame-conditioned.int.spec.ts + real ring + browser | src/service.ts, src/executor.ts, ../stb/src/service.ts |
+| REQ-GEN-010 | Provider abstraction: real path → storage → ready | P1 | DONE | BR-GEN-004 | tests/provider-path.int.spec.ts | src/provider.ts, src/executor.ts |
+| REQ-GEN-011 | Per-org video concurrency cap | P2 | DONE | BR-GEN-005 | tests/concurrency.int.spec.ts | src/executor.ts |
+| REQ-GEN-012 | image_edit: instruction + source → new asset with lineage | P4 | DONE | BR-GEN-006, BR-AST-005, INV-AST-001 | tests/image-edit.int.spec.ts + real ring + browser | src/prompt.ts, src/service.ts, src/executor.ts, ../ast/src/entities.ts |
+| REQ-GEN-013 | Deterministic prompt assembly, snapshotted | P1 | DONE | `docs/14` §5 | tests/prompt.spec.ts | src/prompt.ts |
+| REQ-GEN-015 | Mock executor (MOCK_GEN) returns fixture media | P1 | DONE | `docs/82` §5 (enabler) | tests/pipeline.int.spec.ts | src/executor.ts, src/service.ts |
+| REQ-GEN-017 | Live progress reaches the UI (SSE) | P2 | DONE | `docs/07` §1, ADR-006 (enabler) | libs/prj/tests/activity.int.spec.ts + browser E2E | libs/prj/src/activity.ts, apps/web (events route, LiveRefresh) |
+| REQ-GEN-016 | Jobs execute via queue worker (pg-boss) | P2 | DONE | `docs/03` §1–2 (enabler) | apps/worker/tests/handlers.int.spec.ts + browser E2E | apps/worker/src/*, libs/shared/src/queue.ts |
+| REQ-GEN-019 | Lyria music generation (brief → real track) | P5 | DONE | USER 2026-07-23; docs/85 §Music | libs/stb/tests/music-track.int.spec.ts + real E2E ($0.08) | migration 0017, provider generateMusic (Interactions REST), executor music branch, requestMusicTrack, ♫ UI |
+| REQ-GEN-020 | Audio transcription MM:SS (sync) | P5 | DONE | USER 2026-07-23; docs/85 §Music | libs/stb/tests/transcript.int.spec.ts + real E2E | migration 0019, provider audio parts, executor ref fetch, requestTranscript, ⏱ UI |
+| REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | DONE | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
+| REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | DONE | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
+| REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
 | REQ-GEN-018 | Race-safe claim across parallel workers | P5 | PROPOSED | `docs/03` §2 (enabler) | — | — |
 
 ### REQ-GEN-016 — Jobs execute via queue worker (pg-boss)
-- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must (enabler)
+- **Status:** DONE · **Stage:** P2 · **Priority:** must (enabler)
 - **Source:** `docs/03` §1–2, ADR-002
 - **Statement:** Generations and exports run in `apps/worker` via pg-boss jobs (`gen-execute`, `asm-export`) addressed by row id; the web tier enqueues and never blocks on model/ffmpeg work. Dev fallback: `WORKER_MODE=inline` keeps single-process ergonomics.
 - **Acceptance criteria:**
@@ -38,7 +38,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Tests:** `apps/worker/tests/handlers.int.spec.ts` + browser E2E · **Code:** `apps/worker/src/*`, `libs/shared/src/queue.ts` · **Log:** LOG 2026-07-23 (slice 3)
 
 ### REQ-GEN-017 — Live progress reaches the UI (SSE)
-- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must (enabler)
+- **Status:** DONE · **Stage:** P2 · **Priority:** must (enabler)
 - **Source:** `docs/07` §1 realtime, `docs/41` §3, ADR-006
 - **Statement:** `GET /api/projects/{id}/events` streams SSE; the client refreshes project views on events, so worker results appear without manual reload. MVP transport: DB activity-fingerprint poll-bridge behind the SSE contract; outbox push replaces the bridge later (deferral logged).
 - **Acceptance criteria:**
@@ -54,7 +54,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 ---
 
 ### REQ-GEN-001 — Provenance recorded before execution
-- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must · **Owner:** —
+- **Status:** DONE · **Stage:** P1 · **Priority:** must · **Owner:** —
 - **Raised-by:** seeded from `docs/14-generation.md` (Prompt 1)
 - **Source:** INV-GEN-001
 - **Statement:** Before any model call executes, the generation row persists model id, assembled prompt snapshot, params, reference asset ids, requesting principal, and target.
@@ -64,7 +64,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Tests:** `tests/pipeline.int.spec.ts` · **Code:** `src/service.ts` · **Log:** LOG 2026-07-23 (slice 1)
 
 ### REQ-GEN-002 — Outputs are new immutable assets
-- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Status:** DONE · **Stage:** P1 · **Priority:** must
 - **Source:** INV-GEN-002
 - **Statement:** A completed generation writes its output as a new `ast.asset` row (+ storage object) and never mutates an existing asset.
 - **Acceptance criteria:**
@@ -73,7 +73,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Tests:** `tests/pipeline.int.spec.ts` · **Code:** `src/executor.ts` · **Log:** LOG 2026-07-23 (slice 1)
 
 ### REQ-GEN-003 — Cost recorded on completion
-- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Status:** DONE · **Stage:** P1 · **Priority:** must
 - **Source:** INV-GEN-003
 - **Statement:** On completion the generation row records actual cost in USD (video: duration × per-second rate; image: per-image rate from the price table).
 - **Acceptance criteria:**
@@ -82,7 +82,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Tests:** `tests/cost-routing.spec.ts, tests/pipeline.int.spec.ts` · **Code:** `src/cost.ts` · **Log:** LOG 2026-07-23 (slice 1)
 
 ### REQ-GEN-004 — Daily per-org spend cap at enqueue
-- **Status:** IN_REVIEW · **Stage:** P5 · **Priority:** must · **Owner:** —
+- **Status:** DONE · **Stage:** P5 · **Priority:** must · **Owner:** —
 - **Raised-by:** BACKLOG priority raise once real mode went live (every take bills real money)
 - **Source:** INV-GEN-004
 - **Statement:** Enqueue shall reject new generations once the organization's billed spend today (succeeded+running, UTC day) reaches `config.gen.quota.dailyUsdPerOrg` (env-overridable via GEN_DAILY_USD_CAP); rejections are recorded as failed generations with `quota_exceeded` and never reach a provider.
@@ -93,7 +93,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Deferred / notes:** decided against a separate PLT quota aggregate — the generation table is the billing source of truth (INV-PRJ-004 precedent). Browser-verified with GEN_DAILY_USD_CAP=0.01: UI shows failed · quota_exceeded, $—.
 
 ### REQ-GEN-005 — Retry of terminal failures (retry_of provenance)
-- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must
+- **Status:** DONE · **Stage:** P2 · **Priority:** must
 - **Source:** INV-GEN-005
 - **Statement:** A terminally failed generation can be retried: a NEW generation row is created copying kind/target/snapshot/params/refs with `retry_of` = source; the failed row is never mutated. Retrying non-failed generations is rejected.
 - **Acceptance criteria:**
@@ -102,13 +102,13 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
   - Browser: a failed row in RECENT GENERATIONS offers ↻ retry and the retried work lands.
 
 ### REQ-GEN-006 — Content-policy terminal failure mapping
-- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must
+- **Status:** DONE · **Stage:** P2 · **Priority:** must
 - **Source:** INV-GEN-006, `docs/14` §6
 - **Acceptance criteria:**
   - GIVEN the provider raises a content-policy rejection WHEN executing THEN the generation is terminal `failed` with `error_code = content_policy`, no asset is created, and it is never auto-retried.
 
 ### REQ-GEN-007 — Model routing from versioned config
-- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Status:** DONE · **Stage:** P1 · **Priority:** must
 - **Source:** BR-GEN-001
 - **Statement:** Kind → model resolution comes exclusively from `@avd/shared/config` model routes; no model id literals elsewhere.
 - **Acceptance criteria:**
@@ -120,7 +120,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Status:** PROPOSED · **Stage:** P2 · **Source:** BR-GEN-002 — default `config.frame.candidatesDefault`, max `candidatesMax`.
 
 ### REQ-GEN-009 — Frame-conditioned takes (start-frame attachment)
-- **Status:** IN_REVIEW · **Stage:** P4 · **Priority:** must
+- **Status:** DONE · **Stage:** P4 · **Priority:** must
 - **Source:** BR-GEN-003 (frame arm; entity/style ref arms follow with the entity library), BR-STB-002
 - **Statement:** When a shot has a selected start frame, RequestTake records the frame's asset id in the generation's provenance refs and the executor fetches its bytes and passes them to the provider (`image` param — verified by OQ-101 spike). Without a selection, takes remain text-to-video.
 - **Acceptance criteria:**
@@ -129,7 +129,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
   - Real ring: image → frame-conditioned take chain passes (RUN_REAL_VIDEO).
 
 ### REQ-GEN-010 — Provider abstraction: real path → storage → ready
-- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Status:** DONE · **Stage:** P1 · **Priority:** must
 - **Source:** BR-GEN-004
 - **Statement:** The executor calls a `GenProvider` port (mock, stub, or Gemini); provider media bytes land in object storage as ready assets with billed cost from the price table. The concrete Omni video adapter ships after the OQ-101/102 paid spike; Gemini text+image adapters ship now.
 - **Acceptance criteria:**
@@ -138,7 +138,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
   - GIVEN no provider override THEN MOCK_GEN=1 selects the mock provider; otherwise the Gemini adapter (requires GEMINI_API_KEY).
 
 ### REQ-GEN-011 — Per-org video concurrency cap
-- **Status:** IN_REVIEW · **Stage:** P2 · **Priority:** must · **Owner:** —
+- **Status:** DONE · **Stage:** P2 · **Priority:** must · **Owner:** —
 - **Raised-by:** seeded from `docs/14-generation.md` (Prompt 1)
 - **Source:** BR-GEN-005 (`docs/14` §4: per-org video concurrency capped at `config.gen.maxConcurrentVideoPerOrg`, default 3; excess queues FIFO)
 - **Statement:** The executor shall not start a `take`/`retake` generation for an org that already has `config.gen.maxConcurrentVideoPerOrg` video generations in status `running`; capped video jobs stay `queued` (FIFO) and are claimed on a later dispatch once a slot frees. Non-video kinds are never blocked by the video cap.
@@ -152,7 +152,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Deferred / notes:** cap value exclusively from `@avd/shared/config` (`config.gen.maxConcurrentVideoPerOrg`), never a literal.
 
 ### REQ-GEN-012 — image_edit: instruction + source → new asset with lineage
-- **Status:** IN_REVIEW · **Stage:** P4 · **Priority:** must
+- **Status:** DONE · **Stage:** P4 · **Priority:** must
 - **Source:** BR-GEN-006, BR-AST-005, INV-AST-001
 - **Statement:** An image_edit generation carries an instruction and a source asset; the provider receives the instruction prompt plus the source bytes; the output is a NEW ready asset with `edit_of` = source. The source is never mutated. Entity refs can be replaced with the edited result (count/validation preserved).
 - **Acceptance criteria:**
@@ -162,7 +162,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
   - Real ring: draft frame → edited variant with lineage (RUN_REAL_API).
 
 ### REQ-GEN-013 — Deterministic prompt assembly, snapshotted
-- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must
+- **Status:** DONE · **Stage:** P1 · **Priority:** must
 - **Source:** `docs/14-generation.md` §5
 - **Statement:** Prompt assembly per kind is a pure function of (project, shot, style kit, entities); the assembled prompt is stored verbatim on the generation row with `prompt_template_version`.
 - **Acceptance criteria:**
@@ -171,7 +171,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Tests:** `tests/prompt.spec.ts` · **Code:** `src/prompt.ts` · **Log:** LOG 2026-07-23 (slice 1)
 
 ### REQ-GEN-015 — Mock executor (MOCK_GEN) returns fixture media
-- **Status:** IN_REVIEW · **Stage:** P1 · **Priority:** must (enabler)
+- **Status:** DONE · **Stage:** P1 · **Priority:** must (enabler)
 - **Source:** `docs/82-tech-stack.md` §5, `docs/03` §5
 - **Statement:** With `MOCK_GEN=1`, the executor completes generations with fixture assets (image/video/audio/text) at zero provider cost, exercising the full queue → execute → asset → complete path.
 - **Acceptance criteria:**
@@ -180,7 +180,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Tests:** `tests/pipeline.int.spec.ts` · **Code:** `src/executor.ts, src/service.ts` · **Log:** LOG 2026-07-23 (slice 1)
 
 ### REQ-GEN-019 — Lyria music generation
-- **Status:** IN_REVIEW · **Stage:** P5 · **Priority:** must · **Owner:** —
+- **Status:** DONE · **Stage:** P5 · **Priority:** must · **Owner:** —
 - **Raised-by:** USER 2026-07-23 (Lyria epic)
 - **Source:** docs/85 §Music; OQ-114 RESOLVED: clip $0.04/song, pro $0.08/song (pricing page)
 - **Statement:** One click runs the music brief (incl. lyrics) verbatim against `lyria-3-pro-preview` via the Interactions REST API; the returned MP3 becomes a ready audio asset attached as the project's active track (alternative to the manual Suno round-trip); cost $0.08/track from the price table.
@@ -192,7 +192,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Deferred / notes:** ALSO this slice — Veo price corrected to $0.10/s (720p, pricing page 2026-07-23; was $0.15 overestimate; tests cascaded). Lyria clip model unused for now (pro covers the need).
 
 ### REQ-GEN-020 — Audio transcription with timestamps
-- **Status:** IN_REVIEW · **Stage:** P5 · **Priority:** should · **Owner:** —
+- **Status:** DONE · **Stage:** P5 · **Priority:** should · **Owner:** —
 - **Raised-by:** USER 2026-07-23 (Lyria epic — "time the change of scene according to song timing lyrics")
 - **Source:** docs/85 §Music (gemini-3.6-flash audio understanding, inline ≤20MB)
 - **Statement:** The attached music track can be transcribed into [MM:SS]-timestamped lines — lyrics per line for vocal tracks, labeled sections ([Verse]/[Chorus]) for instrumentals — stored on the music brief and shown on the script page; audio travels as a generation ref (audioAssetId) with full provenance.
@@ -203,7 +203,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Deferred / notes:** consuming the timestamps (lyric-synced cut suggestions, ANM-003 caption overlays) is the next epic slice; diarization prompt-ready but unexercised (no multi-voice tracks yet).
 
 ### REQ-GEN-021 — Dialogue captions
-- **Status:** IN_REVIEW · **Stage:** P7 · **Priority:** should · **Owner:** —
+- **Status:** DONE · **Stage:** P7 · **Priority:** should · **Owner:** —
 - **Raised-by:** eval #6 — the character-story recipe's "captions for dialogue" was unimplementable with music-transcript captions
 - **Source:** docs/85 §Music (audio understanding); docs/87 character-story recipe
 - **Statement:** Exports may burn DIALOGUE captions: the pipeline extracts the assembled cut's own audio, transcribes spoken lines to [MM:SS] (speakers noted, music/SFX ignored, NO_SPEECH → skip), and burns them via the existing SRT path; caption source (off/lyrics/dialogue) chosen per export and captured immutably in the snapshot.
@@ -215,7 +215,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Deferred / notes:** speaker-colored captions and singing-character lip-timing later; asm→gen dependency added (GEN is the provider gateway — architecturally clean).
 
 ### REQ-GEN-022 — Stale-running reaper
-- **Status:** IN_REVIEW · **Stage:** P5 · **Priority:** must · **Owner:** —
+- **Status:** DONE · **Stage:** P5 · **Priority:** must · **Owner:** —
 - **Raised-by:** health-sweep finding — a take stuck `running` 5h on the user's project (executor died in a dev-server restart), occupying a video-concurrency slot and spinning in the UI forever
 - **Source:** BR-GEN-005 (slots must free), operational hardening
 - **Statement:** Rows in `running` longer than `config.gen.staleRunningMinutes` (30) are failed with `orphaned` + a retry-suggesting message; the reaper runs at claim time (runNextGeneration) so recovery needs no separate scheduler; fresh running and queued rows are untouched.
@@ -226,7 +226,7 @@ Totals: 0 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Deferred / notes:** provider-side cancel (Veo operation abort) not attempted — the operation may still complete server-side and bill; acceptable at current scale.
 
 ### REQ-GEN-023 — Omni video take route (references + free durations)
-- **Status:** IN_REVIEW  ·  **Stage:** P6  ·  **Priority:** should  ·  **Owner:** —
+- **Status:** DONE  ·  **Stage:** P6  ·  **Priority:** should  ·  **Owner:** —
 - **Raised-by:** OQ-112 paid spike 2026-07-24 (user-approved budget)
 - **Source:** docs/08 OQ-112 resolution; docs/85 §tags (<FIRST_FRAME>/<IMAGE_REF_N>)
 - **Statement:** Takes may route to `gemini-omni-flash-preview` via the Interactions API as an alternative to Veo: entity refs as `<IMAGE_REF_N>` (subject consistency), start frame as `<FIRST_FRAME>`, free-form durations beyond {4,6,8}s, cost billed from video output tokens (5,792 tok/s × $17.50/M ≈ $0.101/s — parity with Veo fast). Route selected by `config.gen.videoRoute` (env `GEN_VIDEO_ROUTE=omni`), read at call time.

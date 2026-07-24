@@ -1,5 +1,10 @@
 # ANM — Build Log
 
+## 2026-07-24 — BATCH SIGN-OFF: all IN_REVIEW → DONE (human-approved)
+**Done:** USER approved the review queue verbatim: "approve all for now" (evidence: sign-off artifact + per-REQ tests/browser/real-API links in the ledger). All IN_REVIEW rows in this ledger moved to DONE atomically (dashboard row + detail block + Totals).
+**Decisions:** approval is provisional ("for now") — regressions reopen the specific REQ, not the batch.
+**Deferred / Discovered / Follow-ups:** none. **Gate:** ledger parse verified via scripts/progress.ts.
+
 ## 2026-07-24 — KineticText word-gap fix (production finding)
 **Done:** "KAIJU Neon Nights" full production showed kinetic words fused ("WAKETHECITY"): the flex container's `gap: 0.6em` resolved against the container's default 16px font while glyphs were 130px. fontSize moved to the container (spans inherit) so the em gap tracks glyph size; 0.35em reads right at all scales. Verified by $0 re-render ("WAKE THE CITY" correct) + RUN_RENDER ring 4/4.
 **Decisions:** gap tightened 0.6→0.35em at the new (correct) scale — 0.6em of a 130px font was too airy.
