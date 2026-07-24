@@ -40,3 +40,21 @@ describe.skipIf(!enabled)("REQ-ANM-004: kinetic text template (transforms)", () 
     expect(out.bytes.length).toBeGreaterThan(10_000);
   }, 300_000);
 });
+
+// REQ-ANM-003 slice 1 — animated caption overlay template: cue-timed, transparent.
+it.skipIf(!process.env.RUN_RENDER)("REQ-ANM-003: captions template renders cue-timed alpha webm", async () => {
+  const { renderAnimation } = await import("../src/render");
+  const out = await renderAnimation({
+    template: "captions",
+    text: "", // captions take cues, not text
+    cues: [
+      { startS: 0.5, endS: 2.5, text: "First light over the harbor" },
+      { startS: 3, endS: 5.5, text: "the city wakes up slow" },
+    ],
+    durationS: 6,
+    aspectRatio: "16:9",
+  });
+  expect(out.mime).toBe("video/webm"); // alpha for compositing (REQ-ANM-002 recipe)
+  expect(out.bytes.byteLength).toBeGreaterThan(10_000);
+  expect(out.durationS).toBe(6);
+}, 120_000);

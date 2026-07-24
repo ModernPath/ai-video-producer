@@ -1,7 +1,7 @@
 # Requirements Ledger — AST (Asset Library)
 
 ## Dashboard — AST (Asset Library)
-Totals: 8 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 8 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED · 1 OBSOLETE
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -15,7 +15,7 @@ Totals: 8 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
 | REQ-AST-005 | Derivatives (thumb/poster) on ready | P2 | DONE | BR-AST-002 | tests/derivatives.int.spec.ts + browser E2E | migration 0016, src/derivatives.ts, executor+uploads hooks, ?thumb=1 route, UI |
 | REQ-AST-006 | Entity library: org entities, refs, project cast | P4 | DONE | INV-AST-004/006, BR-AST-001/003 | tests/entities.int.spec.ts, ../stb/tests/cast.int.spec.ts + browser | src/entities.ts, apps/web (library, cast) |
 | REQ-AST-007 | Style kits org-scoped + project attachment | P4 | DONE | INV-AST-006, BR-AST-001 | tests/style-kits.int.spec.ts + stb/tests/style-in-prompts + browser E2E | migration 0015, entities.ts, prj setProjectStyleKit, library + storyboard UI |
-| REQ-AST-008 | Soft-delete protection for referenced assets | P2 | PROPOSED | INV-AST-003 | — | — |
+| REQ-AST-008 | Soft-delete protection for referenced assets | P2 | OBSOLETE | INV-AST-003 · superseded: REQ-AST-010 (no hard-delete path exists) | — | — |
 
 ---
 
@@ -122,3 +122,8 @@ Totals: 8 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
   - GIVEN the library page THEN cards below the cap render the upload control (browser-verified on the ref-less Pasi card).
 - **Tests:** `tests/entities.int.spec.ts` REQ-AST-011 block + browser · **Code:** `src/entities.ts` addEntityRefs, `apps/web/app/actions.ts` addEntityRefsAction, `apps/web/app/library/page.tsx` · **Log:** LOG 2026-07-24
 - **Deferred / notes:** actual Pasi photo upload is the user's move (their likeness, their file).
+
+### REQ-AST-008 — Soft-delete protection for referenced assets
+- **Status:** OBSOLETE · **Stage:** P2 · **Superseded by:** REQ-AST-010 / REQ-STB-009 design (2026-07-24 triage)
+- **Statement (original):** Prevent deleting assets still referenced by entities/candidates/exports.
+- **Why obsolete:** the product has NO asset hard-delete path to protect — every "deletion" is reference removal or soft archive (INV-AST-003 originals-immortal, enforced in REQ-AST-010's removeEntityRef/archiveEntity and REQ-STB-009's soft candidate removal). A protection guard would guard nothing.

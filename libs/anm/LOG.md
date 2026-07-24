@@ -41,3 +41,9 @@
 **Discovered:** Next tried to bundle @remotion platform binaries → serverExternalPackages fix; browser-extension submit-drop hit repeatedly this session (documented in memory) — server-side verification + UI-visible result used as evidence.
 **Follow-ups:** more templates; AI prompt → template+props selection.
 **Gate:** full suite green (114 passed, RUN_RENDER gated test 1/1); real chain verified.
+
+## 2026-07-24 — REQ-ANM-003 slice 1: Captions template (PROPOSED → IN_REVIEW)
+**Done:** ledger-execution tick promoted the last USER-epic PROPOSED. `Captions` template: cue-timed Sequences ({startS,endS,text}[]), spring pop-in + fade-out bottom pill, accent-bordered, rendered TRANSPARENT (joins lower-third in the alpha-webm set). Red-first RUN_RENDER test (mime webm, duration honored) 5/5 ring; $0 visual proof: composited onto the real KAIJU alley take — cue renders in-window over the footage.
+**Decisions:** cue timing is line-level (word-level karaoke needs word timestamps we don't have); template stays pure props — transcript parsing belongs to the caller (slice 2, asm-side).
+**Deferred:** slice 2 wiring (transcript→cues, export option, per-take UI) — recorded in the ledger row.
+**Discovered:** — **Follow-ups:** — **Gate:** full suite + render ring + tsc green.

@@ -80,3 +80,7 @@
 **Decisions:** cap validates the COMBINED set; upload path reuses uploadBytesDirect (client-shrunk like entity creation).
 **Deferred:** — **Discovered:** — **Follow-ups:** Pasi's actual photo upload is the user's move.
 **Gate:** full suite green, tsc clean.
+
+## 2026-07-24 — Triage: REQ-AST-008 → OBSOLETE
+**Done:** delete-protection marked OBSOLETE — there is no hard-delete path to protect; INV-AST-003 is enforced structurally (reference removal + soft archive only, REQ-AST-010/STB-009). Superseding refs recorded in all 3 ledger places.
+**Decisions/Deferred/Discovered/Follow-ups:** none. **Gate:** ledger parse via progress.ts (below).

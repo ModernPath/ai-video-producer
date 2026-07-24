@@ -1,14 +1,14 @@
 # ANM — Requirements Ledger
 
 ## Dashboard — ANM (Animations)
-Totals: 3 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 3 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-ANM-001 | Title-card animation takes (pure Remotion scenes) | P6 | DONE | USER Remotion epic 2026-07-23 | tests/render.int.spec.ts (RUN_RENDER) + real chain + browser | src/*, gen executor branch, migration 0018, ✦ Animate UI |
 | REQ-ANM-002 | Animation overlays on generated shots | P6 | DONE | USER Remotion epic | anm render test (alpha webm) + stb overlay.int + real composite frame | LowerThird.tsx, composite.ts, executor overlay path, ✦ per-take UI |
 | REQ-ANM-004 | Effects library (noise, light leaks, text highlights, …) | P6 | DONE | USER 2026-07-23 | render test + frame proof | src/effects.tsx, TitleCard composition, render prop passthrough |
-| REQ-ANM-003 | Caption/lyric overlays from MM:SS transcripts | P6 | PROPOSED | USER Remotion epic + REQ-GEN-020 | — | — |
+| REQ-ANM-003 | Caption/lyric overlays from MM:SS transcripts (slice 1: template) | P6 | IN_REVIEW | USER Remotion epic + REQ-GEN-020 | tests/render.int.spec.ts REQ-ANM-003 + composite frame proof | src/Captions.tsx, Root/render wiring (transparent) |
 
 ### REQ-ANM-001 — Title-card animation takes
 - **Status:** DONE · **Stage:** P6 · **Priority:** should · **Owner:** —
@@ -46,3 +46,14 @@ Totals: 3 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
   - GIVEN effect props off THEN a clean render (defaults overridable).
 - **Tests:** `tests/render.int.spec.ts` (effects case) + frame extraction proof · **Code:** `src/effects.tsx`, TitleCard composition, `src/render.ts` prop passthrough, dep @remotion/noise · **Log:** LOG 2026-07-23
 - **Deferred / notes:** remaining primitives — transforms suite, html-in-canvas compositions, effects on LowerThird — follow-up slices under this REQ before DONE.
+
+### REQ-ANM-003 — Caption/lyric overlays from MM:SS transcripts
+- **Status:** IN_REVIEW  ·  **Stage:** P6  ·  **Priority:** should  ·  **Owner:** —
+- **Raised-by:** USER Remotion epic 2026-07-23 (captions pair with REQ-GEN-020 transcripts)
+- **Source:** docs/features/animations.md; REQ-ANM-002 alpha-composite recipe
+- **Statement (slice 1):** A `captions` Remotion template renders cue-timed animated caption lines ({startS,endS,text}[] props — spring pop-in, fade-out, bottom pill) as a transparent alpha webm, composable onto any take/export via the existing compositeOverlay.
+- **Acceptance criteria (slice 1):**
+  - GIVEN cues over a 6s duration THEN renderAnimation(template:"captions") returns an alpha webm of that duration (RUN_RENDER test).
+  - GIVEN a real take THEN the composite shows the cue rendered at its window (frame-proofed on the KAIJU alley shot).
+- **Tests:** `tests/render.int.spec.ts` REQ-ANM-003 block + composite frame proof · **Code:** `src/Captions.tsx`, `src/Root.tsx`, `src/render.ts` (template union + transparent set) · **Log:** LOG 2026-07-24
+- **Deferred / notes:** slice 2 = wiring: transcript→cues parser (asm-side, near transcriptToSrt), export-time "captions: animated" option beside the burned path, and per-take overlay UI. Word-level karaoke timing out of scope until word timestamps exist.
