@@ -30,13 +30,16 @@
    clearly legible exactly as named OR naturally de-emphasized; never extreme close-ups of
    printed text. Also: state exact label wording in the entity description.
 
-10. **Brand safety** (KAIJU Neon Nights full production, 2026-07-24) — the shot PLAN authored
-    "can with a black claw logo" and the frame model drew a real competitor's mark (Monster).
-    Drift starts at planning, so the rule ships in three places: the shot-plan prompt always
-    demands invented-original branding, and frame/take prompts with product/company entities
-    append: "Use only this project's own named brands; never depict real-world third-party
-    brand logos, marks, or trade dress." Mitigation for existing footage: retake or edit.
-    A real (non-placeholder) entity ref image remains the strongest design anchor.
+10. **Brand safety — unconditional rail** (KAIJU Neon Nights full production, 2026-07-24) —
+    the shot PLAN authored "can with a black claw logo" and the frame model drew a real
+    competitor's mark (Monster). First fix guarded on product/company cast and missed twice:
+    the entity's kind was `character`, and plan-authored scripts are CUSTOM prompts, which
+    used to bypass all guidance. The rule is therefore unconditional: every frame/take prompt —
+    custom prompts included — appends "Use only this project's own named brands; never depict
+    real-world third-party brand logos, marks, or trade dress," and the shot-plan prompt always
+    demands invented-original branding. Verified on a real reshoot: original dragon emblem,
+    no third-party mark. A real (non-placeholder) entity ref image remains the strongest
+    design anchor; custom creative text stays verbatim — only safety rails are appended.
 
 ## Image edits (image_edit)
 

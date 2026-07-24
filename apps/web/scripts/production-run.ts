@@ -7,6 +7,7 @@
  *   npx tsx scripts/production-run.ts takes  <projectId>          (select frame -> take -> select, per filmed shot)
  *   npx tsx scripts/production-run.ts music  <projectId>          (brief -> Lyria track -> transcript)
  *   npx tsx scripts/production-run.ts export <projectId>          (snapshot + ffmpeg export, music mix)
+ *   npx tsx scripts/production-run.ts reshoot <projectId> <shotTitle>  (fresh frame + take under current prompts)
  * Uses the same service calls as apps/web/app/actions.ts; inline queue; real providers.
  */
 import { readFileSync } from "node:fs";
@@ -124,6 +125,23 @@ async function main() {
     await drain([await stb.requestMusicTrack(db, { projectId: p.id, principal: PRINCIPAL })]);
     console.log("transcript…");
     await drain([await stb.requestTranscript(db, { projectId: p.id, principal: PRINCIPAL })]);
+  } else if (stage === "reshoot") {
+    const p = await proj(args[0]!);
+    const title = args[1];
+    const shots = await stb.listShots(db, p.id);
+    const s = shots.find((x) => x.title === title);
+    if (!s) throw new Error(`shot "${title}" not found (have: ${shots.map((x) => x.title).join(", ")})`);
+    console.log(`reshooting "${s.title}": fresh frame under current prompt guidelines…`);
+    await drain([await stb.requestFrame(db, { shotId: s.id, slot: "start", principal: PRINCIPAL, aspectRatio: p.aspectRatio })]);
+    const { frames } = await stb.listCandidates(db, s.id);
+    const newest = frames[frames.length - 1]!; // listCandidates orders by creation
+    await stb.selectFrame(db, { shotId: s.id, frameCandidateId: newest.id });
+    console.log(`new frame ${newest.imageAssetId} selected; requesting ${s.durationS}s take…`);
+    await drain([await stb.requestTake(db, { shotId: s.id, principal: PRINCIPAL, aspectRatio: p.aspectRatio })]);
+    const { takes } = await stb.listCandidates(db, s.id);
+    const newTake = takes[takes.length - 1]!;
+    await stb.selectTake(db, { shotId: s.id, takeId: newTake.id });
+    console.log(`new take ${newTake.videoAssetId} selected — re-export to pick it up`);
   } else if (stage === "export") {
     const p = await proj(args[0]!);
     const { createSnapshot, queueExport, runNextExport } = await import("@avd/asm");

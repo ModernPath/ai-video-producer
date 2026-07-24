@@ -156,17 +156,29 @@ describe("label fidelity guidance (evals #2/#5 finding)", () => {
   });
 });
 
-describe("brand safety guidance (KAIJU Neon Nights production finding 2026-07-24)", () => {
-  // Real full-scale run: the PLAN authored "can with a black claw logo" and the frame model
-  // drew a Monster Energy mark — third-party brand drift is a trademark landmine.
+describe("brand safety guidance (KAIJU Neon Nights production findings 2026-07-24)", () => {
+  // Real full-scale run: the PLAN authored "can with a black claw logo" and the frame model drew a
+  // Monster Energy mark. Reshoot STILL drew it: the shot's plan-authored script is a customPrompt,
+  // which bypassed all guidance, and the entity kind was "character" so the product guard never fired.
+  // → brand safety is an UNCONDITIONAL rail on every frame/take prompt, custom prompts included.
   const base = { aspectRatio: "16:9" as const, direction: { synopsis: "s", subject: "x", action: "y" } };
-  it("frame prompts with a product/company entity forbid third-party brand marks", () => {
-    const p = assembleFramePrompt({ ...base, entities: [{ kind: "product", name: "KAIJU Can", description: "green can" }] });
+  it("frame prompts always forbid third-party brand marks (any entity kind, or none)", () => {
+    for (const entities of [[], [{ kind: "character" as const, name: "KAIJU Can", description: "green can" }]]) {
+      const p = assembleFramePrompt({ ...base, entities });
+      expect(p).toMatch(/never.*(real-world|third-party).*(brand|logo)/i);
+    }
+  });
+  it("take prompts always forbid third-party brand marks", () => {
+    const p = assembleTakePrompt({ ...base, durationSeconds: 4, entities: [] });
     expect(p).toMatch(/never.*(real-world|third-party).*(brand|logo)/i);
   });
-  it("take prompts with a product/company entity forbid third-party brand marks", () => {
-    const p = assembleTakePrompt({ ...base, durationSeconds: 4, entities: [{ kind: "company", name: "KAIJU", description: "drinks co" }] });
-    expect(p).toMatch(/never.*(real-world|third-party).*(brand|logo)/i);
+  it("CUSTOM frame/take prompts keep the verbatim body but gain the safety rail", () => {
+    const f = assembleFramePrompt({ ...base, entities: [], customPrompt: "my exact vision" });
+    expect(f).toContain("my exact vision");
+    expect(f).toMatch(/never.*(real-world|third-party).*(brand|logo)/i);
+    const t = assembleTakePrompt({ ...base, durationSeconds: 4, entities: [], customPrompt: "my exact vision" });
+    expect(t).toContain("my exact vision");
+    expect(t).toMatch(/never.*(real-world|third-party).*(brand|logo)/i);
   });
   it("shot-plan prompt always carries the brand-invention rule (drift starts at planning)", () => {
     const p = assembleShotPlanPrompt({ projectTitle: "T", brief: {}, targetDurationSeconds: 20, scriptText: "s" });
