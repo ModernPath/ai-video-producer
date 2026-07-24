@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -19,6 +19,7 @@ Totals: 30 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-027 | Archetype defaults (audio mode) | P7 | DONE | docs/87 | E2E (product-launch → mix) | archetypes defaults, setProjectArchetype |
 | REQ-STB-028 | Music-led planning (transcript in plan prompt) | P7 | DONE | docs/87 | prompt.spec REQ-STB-028 + snapshot E2E | prompt transcript block, proposeShotPlan wiring |
 | REQ-STB-029 | Route-aware shot durations (omni unlocks 4–10s) | P7 | DONE | REQ-GEN-023 follow-up | tests/duration-policy.spec.ts (7) | shared shotDurationPolicy; plan-normalize, music-sync, assertDuration, plan prompt schema |
+| REQ-STB-034 | First take auto-selects (export never silently empty) | P8 | IN_REVIEW | USER 2026-07-24 "why can't I export" (5 takes bought, 0 selected → Export 0 ready) | tests/take-binding.int.spec.ts REQ-STB-034 + browser (5/5 generated) | materializeGenerationOutput take branch |
 | REQ-STB-033 | Cast visibility everywhere (bar with refs + profile badges; library from home) | P8 | IN_REVIEW | USER 2026-07-24 usability screenshots | browser E2E ×3 views | components/CastBar.tsx, script page wiring, home library link |
 | REQ-STB-032 | Lyric-shot alignment (text appears when the line is sung) | P8 | BLOCKED | Neon Rivers 2026-07-24 · blocked on OQ-115 (strategy: fill-to-timestamp vs track offset vs both) | — | — |
 | REQ-STB-031 | Storyboard players audible (no forced mute) | P7 | IN_REVIEW | USER BUG 2026-07-24 "Kaiju video has no sound" | server-rendered markup + browser (mute icon gone) | page.tsx tile <video> unmuted |
@@ -378,3 +379,15 @@ Totals: 30 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN the projects view THEN "library — cast & brand →" is in the header (browser-verified).
 - **Tests:** browser E2E across the three views · **Code:** `apps/web/components/CastBar.tsx`, storyboard + script pages, `app/page.tsx` · **Log:** LOG 2026-07-24
 - **Deferred / notes:** per-shot cast overrides UI (direction.entityIds) still storyboard-only.
+
+### REQ-STB-034 — First take auto-selects
+- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Raised-by:** USER 2026-07-24: "why can't I export / generate the video from here?" — all 5 takes existed but none selected; export honestly reported "0 ready · skip 5", which reads as broken
+- **Source:** INV-STB-003/004 (single selection, ready-only) — selection stays user-owned; this only fills the empty state
+- **Statement:** When a take materializes onto a shot with NO selected take, it auto-selects (one candidate = no creative choice yet). An existing selection is never overridden; users can reselect/deselect as before.
+- **Acceptance criteria:**
+  - GIVEN an unselected shot WHEN its take materializes THEN selectedTakeId points at it (int test).
+  - GIVEN a shot with a selected take WHEN a second take materializes THEN the selection is unchanged (int test).
+  - GIVEN ModernPath launch THEN the header reads 5/5 generated and Export is available (browser-verified after backfilling the 5 stranded takes).
+- **Tests:** `tests/take-binding.int.spec.ts` REQ-STB-034 block + browser · **Code:** `src/service.ts` materializeGenerationOutput take branch · **Log:** LOG 2026-07-24
+- **Deferred / notes:** refines slice-38's "never auto-select on the user's behalf": that decision covered AGENT-initiated repair takes; user-initiated takes filling an empty slot are the user's own action. Frames keep explicit selection (2 candidates arrive by design).

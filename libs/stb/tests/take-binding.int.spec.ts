@@ -5,8 +5,9 @@ import { createDb } from "@avd/shared/db";
 import { organization } from "@avd/plt/schema";
 import { project } from "@avd/prj/schema";
 import { generation } from "@avd/gen/schema";
+import { runNextGeneration } from "@avd/gen";
 import { asset } from "@avd/ast/schema";
-import { createShot, selectTake } from "../src/service";
+import { createShot, materializeGenerationOutput, requestTake, selectTake } from "../src/service";
 import { shot, take } from "../src/schema";
 
 const { db } = createDb();
@@ -57,5 +58,28 @@ describe("REQ-STB-005: a take belongs to its shot and can never be moved (INV-ST
     const service = await import("../src/service");
     const moveLike = Object.keys(service).filter((k) => /^move|reassign|transfer/i.test(k)); // "remove*" is deletion, not relocation
     expect(moveLike).toEqual([]);
+  });
+});
+
+// REQ-STB-034 (USER 2026-07-24 "why can't I export"): a bought take that lands on a shot with
+// NO selection auto-selects — one take means no creative choice to make, and unselected takes
+// silently zero out the export ("Export 0 ready · skip 5").
+describe("REQ-STB-034: first take auto-selects", () => {
+  it("materializing onto an unselected shot selects it; a second take never steals the selection", async () => {
+    process.env.MOCK_GEN = "1";
+    const shotId = await createShot(db, {
+      organizationId: orgId, projectId, title: "auto-select", durationS: 6,
+      direction: { synopsis: "s", subject: "x", action: "y" },
+    });
+    const g1 = await requestTake(db, { shotId, principal: "user:test", aspectRatio: "16:9" });
+    await runNextGeneration(db, { organizationId: orgId });
+    const t1 = await materializeGenerationOutput(db, g1);
+    let [s] = await db.select().from(shot).where(eq(shot.id, shotId));
+    expect(s!.selectedTakeId).toBe(t1!.id); // auto-selected — export sees the shot as ready
+    const g2 = await requestTake(db, { shotId, principal: "user:test", aspectRatio: "16:9" });
+    await runNextGeneration(db, { organizationId: orgId });
+    await materializeGenerationOutput(db, g2);
+    [s] = await db.select().from(shot).where(eq(shot.id, shotId));
+    expect(s!.selectedTakeId).toBe(t1!.id); // the user's standing choice is never overridden
   });
 });

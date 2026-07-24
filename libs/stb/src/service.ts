@@ -576,6 +576,13 @@ export async function materializeGenerationOutput(db: Db, generationId: string) 
       retakeOf: (target as { retakeOfTakeId?: string }).retakeOfTakeId ?? null, // REQ-STB-020 lineage
       durationActualS: params.durationSeconds != null ? String(params.durationSeconds) : null,
     });
+    // REQ-STB-034 (USER: "why can't I export"): a take landing on a shot with NO selection
+    // auto-selects — one candidate means no creative choice yet, and unselected takes silently
+    // zero the export. An existing selection is never overridden (INV-STB-003 stays user-owned).
+    const [sh] = await db.select().from(shot).where(eq(shot.id, target.shotId));
+    if (sh && !sh.selectedTakeId) {
+      await db.update(shot).set({ selectedTakeId: id }).where(eq(shot.id, target.shotId));
+    }
     return { kind: "take" as const, id };
   }
   return null;

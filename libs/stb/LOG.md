@@ -338,3 +338,9 @@
 **Discovered:** user uploaded a Pasi photo — the ref-less card era is over.
 **Follow-ups:** user may want to check ModernPath's cast boxes + redraft for company-aware scripts.
 **Gate:** 172 passed, tsc clean, browser ×3.
+
+## 2026-07-24 — REQ-STB-034 first take auto-selects (→ IN_REVIEW) — USER: "why can't I export?"
+**Done:** Diagnosis: ModernPath launch had all 5 takes bought and finished but ZERO selected — export requires selectedTakeId, so the button honestly said "Export 0 ready · skip 5" and read as broken. Fix red-first (2 int tests): materializeGenerationOutput auto-selects a take landing on a selection-less shot; an existing selection is never overridden. Backfilled the 5 stranded ModernPath takes via the driver's takes stage; browser-verified: 5/5 generated, clean "Export cut" button.
+**Decisions:** refines slice-38's no-auto-select rule — that covered agent-initiated repairs; a user's own take filling an empty slot is their action. Frames keep explicit pick (2 candidates by design).
+**Deferred:** — **Discovered:** — **Follow-ups:** user hits Export cut.
+**Gate:** 173 passed, tsc clean, browser verified.
