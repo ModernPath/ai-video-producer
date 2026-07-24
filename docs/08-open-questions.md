@@ -4,6 +4,7 @@ Design ambiguities that block or shape requirements. Mark affected `REQ-*` as `B
 
 | ID | Source | Question | Owner | Blocking | Status |
 |----|--------|----------|-------|----------|--------|
+| OQ-115 | Neon Rivers production | **Lyric-shot alignment strategy:** lyric-carrying shots appear by storyboard order, not when their line is SUNG (verse text at ~8s vs vocals at 0:23 on a long-intro track). (a) *Fill-to-timestamp planning* — plan prompt budgets non-lyric shots so each lyric shot STARTS at its [MM:SS] stamp; prompt+sync only, keeps the whole track, but long intros force filler footage (cost). (b) *Track start-offset at export* — export trims the track to start near the first lyric; one schema field + one ffmpeg `-ss`, cheap, but discards the musical intro. (c) Both, archetype-chosen (lyric-video → (a); short-form → (b)). Recommendation: (c) with (b) built first (smallest honest step). | — | REQ-STB-032 | OPEN |
 | OQ-103 | `15` | **Mix mode defaults:** ducking depth, music gain, per-shot native-audio overrides (e.g. keep dialogue in 2 shots, music elsewhere)? | — | REQ-ASM-* (mix) | OPEN |
 | OQ-105 | `14`/`06` | **Content-policy UX:** wording and remediation guidance when Google rejects a generation; do we pre-screen directions with `gemini-3.6-flash` before spending? | — | REQ-GEN-* (errors) | OPEN |
 | OQ-106 | `03` | **Worker heartbeat/resume:** on worker crash mid-video-generation, do we re-poll the provider operation or restart the generation (double cost)? | — | REQ-GEN-* (reliability) | OPEN |

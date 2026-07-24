@@ -325,3 +325,8 @@
 **Decisions:** recipe-pure export (captions off — kinetic text IS the visual); animated-captions double-export skipped as redundant with the gated int test.
 **Discovered:** sync-then-rerender for animation shots should be automatic (driver does apply→sync; resized animation takes need a free re-render pass) — folded into REQ-STB-032's design space.
 **Follow-ups:** user look at /p/019f9324-… **Gate:** export verified; spend today ≈ $8.8/$100.
+
+## 2026-07-24 — REQ-STB-032 → BLOCKED on OQ-115 (design call drafted)
+**Done:** the lyric-alignment ambiguity is now a proper open question (docs/08 OQ-115) with three concrete strategies, trade-offs, and a recommendation ((c): archetype-chosen, track-offset first). REQ-STB-032 flipped PROPOSED → BLOCKED with the OQ id in all 3 ledger places — per §6 SPECIFY, ambiguous requirements don't get guessed at.
+**Decisions:** none taken — that's the point; the call is the user's.
+**Deferred/Discovered/Follow-ups:** none. **Gate:** ledger parse via progress.ts.
