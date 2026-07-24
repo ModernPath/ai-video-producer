@@ -1,13 +1,14 @@
 # ANM — Requirements Ledger
 
 ## Dashboard — ANM (Animations)
-Totals: 3 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 3 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-ANM-001 | Title-card animation takes (pure Remotion scenes) | P6 | DONE | USER Remotion epic 2026-07-23 | tests/render.int.spec.ts (RUN_RENDER) + real chain + browser | src/*, gen executor branch, migration 0018, ✦ Animate UI |
 | REQ-ANM-002 | Animation overlays on generated shots | P6 | DONE | USER Remotion epic | anm render test (alpha webm) + stb overlay.int + real composite frame | LowerThird.tsx, composite.ts, executor overlay path, ✦ per-take UI |
 | REQ-ANM-004 | Effects library (noise, light leaks, text highlights, …) | P6 | DONE | USER 2026-07-23 | render test + frame proof | src/effects.tsx, TitleCard composition, render prop passthrough |
+| REQ-ANM-005 | Plan/style-driven animation palette (accent + background props through the chain) | P8 | PROPOSED | Neon Rivers 2026-07-24: plan authored "cyan"/"magenta" type, templates rendered default gold | — | — |
 | REQ-ANM-003 | Caption/lyric overlays from MM:SS transcripts (slices 1+2) | P6 | IN_REVIEW | USER Remotion epic + REQ-GEN-020 | render.int + asm/tests/animated-captions.int.spec.ts (full export) + captions.spec cues | Captions.tsx + asm transcriptToCues/captionStyle path + UI option |
 
 ### REQ-ANM-001 — Title-card animation takes
@@ -58,3 +59,7 @@ Totals: 3 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 - **Tests:** `tests/render.int.spec.ts` REQ-ANM-003 block + composite frame proof · **Code:** `src/Captions.tsx`, `src/Root.tsx`, `src/render.ts` (template union + transparent set) · **Log:** LOG 2026-07-24
 - **Slice 2 (same day):** `transcriptToCues` is the single timing source (SRT derives from it — timings can't drift); `createSnapshot` accepts `captionStyle:"animated"`; the export's caption pass renders the Captions overlay and composites it over the cut instead of the libass burn; UI gained "captions: lyrics · animated"; driver export stage takes a captions arg. Evidence: gated full-export int test (mock take + early lyric line → composited final) + real harbor export exercising the honest empty-cues fallthrough (its transcript is section-labels only).
 - **Deferred / notes:** per-take overlay UI; word-level karaoke timing (needs word timestamps).
+
+### REQ-ANM-005 — Plan/style-driven animation palette
+- **Status:** PROPOSED · **Stage:** P8 · **Source:** Neon Rivers production — templates accept accent/background props but nothing feeds them: plan-authored color intent ("cyan kinetic", "magenta typography") and project style kits are both dropped, so every animation ships the default gold-on-charcoal.
+- **Sketch:** extend PlannedAnimation with optional accent/background (validated hex), thread through requestAnimationTake → executor → renderAnimation; fall back to a style-kit-derived palette. Config-not-code: archetype recipes may set palette defaults.

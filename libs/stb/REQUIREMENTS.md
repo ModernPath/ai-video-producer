@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 30 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -19,6 +19,7 @@ Totals: 30 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-027 | Archetype defaults (audio mode) | P7 | DONE | docs/87 | E2E (product-launch → mix) | archetypes defaults, setProjectArchetype |
 | REQ-STB-028 | Music-led planning (transcript in plan prompt) | P7 | DONE | docs/87 | prompt.spec REQ-STB-028 + snapshot E2E | prompt transcript block, proposeShotPlan wiring |
 | REQ-STB-029 | Route-aware shot durations (omni unlocks 4–10s) | P7 | DONE | REQ-GEN-023 follow-up | tests/duration-policy.spec.ts (7) | shared shotDurationPolicy; plan-normalize, music-sync, assertDuration, plan prompt schema |
+| REQ-STB-032 | Lyric-shot alignment (text appears when the line is sung) | P8 | PROPOSED | Neon Rivers production 2026-07-24: verse text on screen at ~8s, sung at 0:23 | — | — |
 | REQ-STB-031 | Storyboard players audible (no forced mute) | P7 | IN_REVIEW | USER BUG 2026-07-24 "Kaiju video has no sound" | server-rendered markup + browser (mute icon gone) | page.tsx tile <video> unmuted |
 | REQ-STB-030 | Route-aware UI (route badge + honest take estimates) | P7 | DONE | BACKLOG 2026-07-24 (10s omni shot showed veo-snapped $0.80) | libs/gen/tests/omni-video.spec.ts REQ-STB-030 block + browser | gen estimateTake, storyboard header badge, take-button estimate + effective-duration hint |
 | REQ-STB-025 | Lyric-synced cut suggestions (♪ MUSIC SYNC) | P6 | DONE | USER Lyria epic ("time the change of scene according to song timing") | tests/music-sync.spec.ts + update-duration.int + browser E2E | src/music-sync.ts, updateShotDuration, applySyncAction, SYNC panel |
@@ -360,3 +361,7 @@ Totals: 30 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a take tile WHEN played THEN its native audio is heard (user re-test).
 - **Tests:** rendered-markup check + browser · **Code:** `apps/web/app/p/[id]/page.tsx` tile player · **Log:** LOG 2026-07-24
 - **Deferred / notes:** share page and A/B compare were already unmuted; animatic supplies its own music track.
+
+### REQ-STB-032 — Lyric-shot alignment
+- **Status:** PROPOSED · **Stage:** P8 · **Source:** Neon Rivers full lyric-video production (2026-07-24) — the plan carries lyric text into animation shots but places them by storyboard order, not by the lyric's timestamp; on tracks with long intros the words appear far ahead of the vocals.
+- **Sketch:** the plan prompt already has the MM:SS transcript; planning should (a) budget non-lyric shots to fill until each lyric's timestamp, or (b) support a per-shot music offset at export. Needs a design decision (OQ candidate) before READY.

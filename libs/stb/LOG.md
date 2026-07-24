@@ -318,3 +318,10 @@
 **Done:** Quiet Alley Spark's plan-era scripts still said "KAIJU Can with a black claw logo" (the phrase that summoned the Monster mark). Targeted replace → "original black kaiju-dragon emblem", matching the canonical ref/description. Zero claw references remain in live shot scripts; a future reshoot of any KAIJU shot now inherits clean wording.
 **Decisions:** minimal phrase-level edit only — the rest of the machine-authored creative text untouched.
 **Deferred/Discovered/Follow-ups:** none. **Gate:** health green.
+
+## 2026-07-24 — FULL LYRIC-VIDEO production "Neon Rivers" ($0.65) — the last archetype at full length
+**Done:** music-first golden path on the omni route: vocal Lyria track with real timestamped lyrics → transcript → plan FROM transcript (4 of 5 shots are FREE lyric-carrying animations — the recipe's typography-first structure emerged unaided; verbatim-lyrics rule held) → 1 filmed intro take (5s omni $0.5068) → sync landed two cuts on lyric boundaries (5s/4s odd durations — omni palette) → free re-render of the two resized animations → 27.02s aac export. Beat review: structure ✓ · one-idea ✓ · contrast ✓ (filmed/kinetic/title alternation) · end-held ✓ (underlined title card).
+**Defects found → PROPOSED:** (1) REQ-ANM-005 — plan-authored palette intent (cyan/magenta synthwave) dropped; templates rendered default gold. (2) REQ-STB-032 — lyric shots placed by storyboard order, not sung-at timestamps (verse text at ~8s vs vocals at 0:23; long-intro tracks expose it).
+**Decisions:** recipe-pure export (captions off — kinetic text IS the visual); animated-captions double-export skipped as redundant with the gated int test.
+**Discovered:** sync-then-rerender for animation shots should be automatic (driver does apply→sync; resized animation takes need a free re-render pass) — folded into REQ-STB-032's design space.
+**Follow-ups:** user look at /p/019f9324-… **Gate:** export verified; spend today ≈ $8.8/$100.
