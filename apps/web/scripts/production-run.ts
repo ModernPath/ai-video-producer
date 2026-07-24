@@ -1,13 +1,20 @@
 /**
  * Golden-path production driver — runs a REAL full production server-side, staged so a
  * human (or the loop) can review between paid steps. Run from apps/web:
- *   npx tsx scripts/production-run.ts setup "Title" "idea text" brand-pulse entityName
- *   npx tsx scripts/production-run.ts script <projectId>
- *   npx tsx scripts/production-run.ts apply  <projectId>          (frames + free animation takes)
- *   npx tsx scripts/production-run.ts takes  <projectId>          (select frame -> take -> select, per filmed shot)
+ * MUSIC-FIRST order (BACKLOG 2026-07-24: sync suggestions must shape durations BEFORE takes
+ * are bought; the plan prompt also aligns boundaries to the transcript when it exists):
+ *   npx tsx scripts/production-run.ts setup "Title" "idea text" [archetype] [entityName]
+ *   npx tsx scripts/production-run.ts draft  <projectId>          (script only)
  *   npx tsx scripts/production-run.ts music  <projectId>          (brief -> Lyria track -> transcript)
+ *   npx tsx scripts/production-run.ts plan   <projectId>          (propose shots FROM the transcript)
+ *   npx tsx scripts/production-run.ts apply  <projectId>          (frames + free animation takes)
+ *   npx tsx scripts/production-run.ts sync   <projectId>          (apply exact-hit duration suggestions)
+ *   npx tsx scripts/production-run.ts takes  <projectId>          (select frame -> take -> select, per filmed shot)
  *   npx tsx scripts/production-run.ts export <projectId>          (snapshot + ffmpeg export, music mix)
  *   npx tsx scripts/production-run.ts reshoot <projectId> <shotTitle>  (fresh frame + take under current prompts)
+ *   npx tsx scripts/production-run.ts retry  <projectId>          (retry newest failed generation, retry_of provenance)
+ * Route note: GEN_VIDEO_ROUTE=omni switches takes to the Interactions adapter (REQ-GEN-023)
+ * and widens the duration palette to 4-10s (REQ-STB-029) — set it on every stage's invocation.
  * Uses the same service calls as apps/web/app/actions.ts; inline queue; real providers.
  */
 import { readFileSync } from "node:fs";
@@ -69,10 +76,12 @@ async function main() {
       await attachEntities(db, { projectId: id, entityIds: [e.id] });
     }
     console.log(`projectId=${id}`);
-  } else if (stage === "script") {
+  } else if (stage === "draft") {
     const p = await proj(args[0]!);
     console.log("drafting script…");
     await drain([await stb.draftScript(db, { projectId: p.id, principal: PRINCIPAL })]);
+  } else if (stage === "plan") {
+    const p = await proj(args[0]!);
     console.log("proposing shot plan…");
     await drain([await stb.proposeShotPlan(db, { projectId: p.id, principal: PRINCIPAL })]);
     const { shotPlanProposal } = await import("@avd/stb/schema");
@@ -82,6 +91,20 @@ async function main() {
     const shots = normalizePlannedShots(prop!.changes);
     console.log(`proposalId=${prop!.id}`);
     for (const s of shots) console.log(`  ${s.durationS}s ${s.animation ? `[anim:${s.animation.template}] ` : ""}${s.title} — ${s.direction.synopsis.slice(0, 90)}`);
+  } else if (stage === "sync") {
+    const p = await proj(args[0]!);
+    const { getMusicBrief } = await import("@avd/stb");
+    const { parseSectionTimes, suggestSyncDurations } = await import("@avd/stb/music-sync");
+    const brief = await getMusicBrief(db, p.id);
+    if (!brief?.transcript) throw new Error("no transcript — run music first");
+    const sections = parseSectionTimes(brief.transcript);
+    const shots = await stb.listShots(db, p.id);
+    const { suggestions } = suggestSyncDurations(shots.map((s) => ({ id: s.id, title: s.title, durationS: Number(s.durationS) })), sections);
+    for (const sug of suggestions) {
+      await stb.updateShotDuration(db, { shotId: sug.shotId, durationS: sug.toS });
+      console.log(`  "${sug.title}": ${sug.fromS}s -> ${sug.toS}s (cut lands on ${sug.boundaryS}s)`);
+    }
+    console.log(suggestions.length ? `${suggestions.length} duration(s) synced to section boundaries` : "all cuts already land on boundaries (or no exact hits)");
   } else if (stage === "apply") {
     const p = await proj(args[0]!);
     const { shotPlanProposal, shot: shotTable } = await import("@avd/stb/schema");
@@ -125,6 +148,27 @@ async function main() {
     await drain([await stb.requestMusicTrack(db, { projectId: p.id, principal: PRINCIPAL })]);
     console.log("transcript…");
     await drain([await stb.requestTranscript(db, { projectId: p.id, principal: PRINCIPAL })]);
+  } else if (stage === "retry") {
+    const p = await proj(args[0]!);
+    const { generation } = await import("@avd/gen/schema");
+    const { and, desc } = await import("drizzle-orm");
+    const [failed] = await db.select().from(generation)
+      .where(and(eq(generation.projectId, p.id), eq(generation.status, "failed")))
+      .orderBy(desc(generation.createdAt)).limit(1);
+    if (!failed) { console.log("no failed generations"); process.exit(0); }
+    console.log(`retrying failed ${failed.kind} (${failed.errorCode})…`);
+    const { retryGeneration } = await import("@avd/gen");
+    const newId = await retryGeneration(db, { generationId: failed.id, principal: PRINCIPAL });
+    await drain([newId]);
+    // if it was a take, select it on its shot (skips shots that already have a selection)
+    const shots = await stb.listShots(db, p.id);
+    for (const s of shots) {
+      const { takes } = await stb.listCandidates(db, s.id);
+      if (takes.length > 0 && !s.selectedTakeId) {
+        await stb.selectTake(db, { shotId: s.id, takeId: takes[takes.length - 1]!.id });
+        console.log(`selected fresh take on "${s.title}"`);
+      }
+    }
   } else if (stage === "reshoot") {
     const p = await proj(args[0]!);
     const title = args[1];

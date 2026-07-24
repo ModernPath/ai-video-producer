@@ -1,5 +1,13 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-24 — Production #2 "First Light, Helsinki Harbor" — omni route + music-first driver, end to end
+**Done:** Driver restructured music-first (`draft`/`music`/`plan`/`sync`/`takes` + new `retry` stage) closing the BACKLOG ordering item. Full cinematic-mood production on `GEN_VIDEO_ROUTE=omni`: the plan authored 5s shots (REQ-STB-029 palette live on a real model), the `sync` stage stretched The Sleeping Icebreaker 5s→10s so its cut lands exactly on the track's 0:16 section change BEFORE takes were bought, and all 5 omni takes (6/10/6/5/8s) generated with token-exact costs ($0.6082/$1.0136/$0.6082/$0.5068/$0.8109). One transient Interactions 504 recovered via `retryGeneration` (retry_of provenance, failure uncharged). 35.02s export verified; beat review passed all six principles; the tram carries an invented "SUOMI LINJAT" livery — the brand-safety rail visibly steering real output.
+**Decisions:** driver keeps env-based route selection (matches config philosophy).
+**Deferred:** —.
+**Discovered:** UI is not route-aware (a 10s omni shot's take button estimated $0.80 via the veo snap; active route invisible; dev-server/driver env split-brain) → BACKLOG.
+**Follow-ups:** UI route-awareness slice.
+**Gate:** suite + tsc green (below). Spend today ≈ $11.9 / $100.
+
 ## 2026-07-24 — REQ-GEN-023 Omni video take route (PROPOSED → IN_REVIEW)
 **Done:** The Interactions video adapter is a first-class take route. Red-first (7 unit tests): `resolveModel` honors `config.gen.videoRoute` at call time (env `GEN_VIDEO_ROUTE=omni`; veo default); pure `buildOmniVideoRequest` puts the start frame as image 1 + `<FIRST_FRAME>` and entity refs as `<IMAGE_REF_2..>` binding by position, duration prompt-pinned free-form; cost = tokens×rate from the new priceTable primitives (5792 tok/s, $17.50/M). Executor passes entity refs to video on the omni route and the model id into cost. Real E2E (RUN_REAL_OMNI): draft frame → **5s** omni take through the full pipeline — a duration Veo rejects — asset durationS=5, cost $0.5068 exactly per the token math.
 **Decisions:** no UI switch — route is config/env (Tips #5); mock provider untouched (already duration-honest).

@@ -9,7 +9,7 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 | Discovery | Tracked as |
 |---|---|
 | Image-gen price table: `standard`/`hero` rates are placeholders in `libs/shared/src/config/models.ts` — verify against Google pricing page before enabling real-API cost caps | — (route to REQ-GEN-* when GEN ledger is seeded) |
-| Production driver (`apps/web/scripts/production-run.ts`) runs music AFTER takes, so MUSIC SYNC suggestions can't shape durations — reorder stages music-first (per lyric-video recipe) and auto-apply exact-hit suggestions before buying takes | — (tooling; route to REQ-STB-* if productized) |
+| UI is not video-route-aware: take cost estimates assume the Veo palette (a 10s omni shot showed "≈ $0.80"), and the active route (GEN_VIDEO_ROUTE) is invisible — surface route + route-aware pricing in the storyboard header; also the dev server and driver can run different routes (env split-brain) | — (route to REQ-STB-* UI slice) |
 | Entity "Pasi" ref asset id `019f9001-3d7e-…` dangles — asset row missing (mock-purge casualty?); entity UI should tolerate + offer re-upload; sweep other entities for dangling refs | — (route to REQ-AST-*) |
 | BR-PRJ-003 also blocks *exports* for archived projects — enqueue-side guard shipped for generations (REQ-PRJ-003) but ASM export path has no archive check; also: integrator should wire `apps/web/app/p/[id]/page.tsx` cost header to `costMeterUsd` (REQ-PRJ-004) — inline SQL there sums all statuses | — (route to REQ-ASM-* / integrator) |
 
@@ -196,3 +196,7 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 - 2026-07-23 eval#1 (hype-countdown) done, 3 taste fixes shipped. Remaining evals: brand-pulse, lyric-video, cinematic-mood, product-launch, character-story — ~$0.6-1.0 each, next day's cap. Reveal-take timecode regen optional ($0.40).
 - 2026-07-23 eval#2 findings: (a) label micro-text garbles on generated product close-ups — mitigate via entity description or image-script guidance; (b) DONE slice 39 — plan authors template choice; (c) apply music-sync during eval #3 (lyric-video, music-first).
 - 2026-07-23 label mitigation SHIPPED (frame-prompt guidance for product/company entities + docs/85 §9).
+
+## 2026-07-24 — Music-first driver + omni production #2
+**Routed:** driver reordered music-first with new `draft`/`plan`/`sync`/`retry` stages (backlog item CLOSED — sync applied a 5s→10s stretch BEFORE takes were bought). "First Light, Helsinki Harbor" (cinematic-mood, omni route end-to-end): 5 shots incl. 5s and 10s durations, cut landing on the 0:16 section change, 35.02s export, $3.96. One transient Interactions 504 recovered via the retry path (retry_of provenance, $0 for the failure).
+**New inbox:** UI route-awareness (cost estimate + active route indicator).
