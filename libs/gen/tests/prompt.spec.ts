@@ -197,3 +197,23 @@ describe("entity prose dedup", () => {
     expect(p).not.toContain("Pasi, Pasi");
   });
 });
+
+describe("REQ-AST-012: entity profile feeds TEXT prompts only (USER 2026-07-24: marketing context)", () => {
+  const co = { kind: "company" as const, name: "LastBot", description: "AI consultancy", profile: "LastBot Oy builds AI-native customer experiences for enterprises across the Nordics; founded 2023; known for pragmatic LLM deployments." };
+  it("script + plan prompts carry the profile as background", () => {
+    const base = { projectTitle: "T", brief: {}, targetDurationSeconds: 20, entities: [co] };
+    expect(assembleScriptPrompt(base)).toContain("LastBot Oy builds AI-native");
+    expect(assembleShotPlanPrompt({ ...base, scriptText: "s" })).toContain("LastBot Oy builds AI-native");
+  });
+  it("frame/take prompts use only the short description (profiles would pollute visual prompts)", () => {
+    const visual = { aspectRatio: "16:9" as const, direction: { synopsis: "s", subject: "x", action: "y" }, entities: [co] };
+    expect(assembleFramePrompt(visual)).not.toContain("LastBot Oy builds");
+    expect(assembleTakePrompt({ ...visual, durationSeconds: 4 })).not.toContain("LastBot Oy builds");
+    expect(assembleFramePrompt(visual)).toContain("AI consultancy");
+  });
+  it("profile is truncated to the configured cap in text prompts", () => {
+    const long = { ...co, profile: "x".repeat(5000) };
+    const p = assembleScriptPrompt({ projectTitle: "T", brief: {}, targetDurationSeconds: 20, entities: [long] });
+    expect(p.length).toBeLessThan(4000);
+  });
+});

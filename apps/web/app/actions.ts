@@ -584,3 +584,27 @@ export async function addEntityRefsAction(formData: FormData) {
   await addEntityRefs(db(), { entityId, assetIds });
   revalidatePath("/library");
 }
+
+/** REQ-AST-012: save the long-form brand/company profile. */
+export async function saveEntityProfileAction(formData: FormData) {
+  const { updateEntityProfile } = await import("@avd/ast");
+  await updateEntityProfile(db(), {
+    entityId: String(formData.get("entityId")),
+    profile: String(formData.get("profile") ?? ""),
+  });
+  revalidatePath("/library");
+}
+
+/** REQ-GEN-024: research the profile from the web (Google Search grounding + URL context). */
+export async function researchEntityProfileAction(formData: FormData) {
+  const { researchEntityProfile } = await import("@avd/gen");
+  const { updateEntityProfile, listEntities } = await import("@avd/ast");
+  const entityId = String(formData.get("entityId"));
+  const orgId = await devOrgId();
+  const e = (await listEntities(db(), orgId)).find((x) => x.id === entityId);
+  if (!e) return;
+  const url = String(formData.get("url") ?? "").trim();
+  const profile = await researchEntityProfile({ name: e.name, kind: e.kind, ...(url ? { url } : {}) });
+  await updateEntityProfile(db(), { entityId, profile });
+  revalidatePath("/library");
+}

@@ -84,3 +84,9 @@
 ## 2026-07-24 — Triage: REQ-AST-008 → OBSOLETE
 **Done:** delete-protection marked OBSOLETE — there is no hard-delete path to protect; INV-AST-003 is enforced structurally (reference removal + soft archive only, REQ-AST-010/STB-009). Superseding refs recorded in all 3 ledger places.
 **Decisions/Deferred/Discovered/Follow-ups:** none. **Gate:** ledger parse via progress.ts (below).
+
+## 2026-07-24 — REQ-AST-012 + REQ-GEN-024: brand profiles, web-grounded (→ IN_REVIEW)
+**Done:** USER feature shipped end-to-end: entities gain a long-form `profile` (migration 0022) that feeds script/plan/music prompts as a capped BACKGROUND block (red-first: text prompts carry it, visual prompts never do — the short description keeps that job); library company/product cards offer the textarea + "✦ Research from web" which grounds generation on Google Search + the given URL (gemini tools googleSearch/urlContext per the linked docs). Real verification on the user's own company: LastBot + lastbot.com returned an accurate profile (LastBot ONE, Switchbot, GDPR/SME positioning). Browser-verified: profile section renders on product cards, absent on person cards.
+**Decisions:** profile is text-prompt-only by design (visual prompts stay lean); research is a direct near-free helper, no generation ledger row (transcribe pattern); person/character bios deferred until a use case.
+**Deferred:** grounding citations not persisted. **Discovered:** — **Follow-ups:** user: hit ✦ Research on a company entity and review the saved profile.
+**Gate:** full suite + tsc green; real research verified.

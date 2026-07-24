@@ -44,6 +44,7 @@ export const entity = ast.table("entity", {
   kind: text("kind", { enum: ["company", "product", "person", "character"] }).notNull(),
   name: text("name").notNull(),
   description: text("description").notNull(),
+  profile: text("profile"), // REQ-AST-012: long-form background for text prompts (marketing context)
   refAssetIds: uuid("ref_asset_ids").array().notNull(), // INV-AST-004: 1–5, service-enforced
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

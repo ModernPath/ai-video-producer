@@ -1,5 +1,5 @@
 // REQ-GEN-013 — deterministic prompt assembly (docs/14-generation.md §5).
-import { shotDurationPolicy } from "@avd/shared/config"; // REQ-STB-029: plan schema follows the video route
+import { config, shotDurationPolicy } from "@avd/shared/config"; // REQ-STB-029 route palette · REQ-AST-012 profile cap
 
 export const PROMPT_TEMPLATE_VERSION = 3; // v3: model prompt guidelines (USER 2026-07-23) — single-scene pin, explicit audio intent, ref preservation, inpainting formula
 
@@ -17,6 +17,8 @@ export interface EntityBlock {
   kind: "company" | "product" | "person" | "character";
   name: string;
   description: string;
+  /** REQ-AST-012: long-form background — TEXT prompts only (script/plan/music), never visual prompts. */
+  profile?: string | undefined;
 }
 
 export interface TakePromptInput {
@@ -90,7 +92,12 @@ export interface TextPromptInput {
 
 function castBlock(entities?: EntityBlock[]): string[] {
   if (!entities?.length) return [];
-  return entities.map((e) => `CAST: [${e.kind}] ${e.name} — ${e.description}`);
+  return entities.map((e) => {
+    const profile = e.profile?.trim()
+      ? `\nBACKGROUND (${e.name}): ${e.profile.trim().slice(0, config.entity.profilePromptMaxChars)}` // REQ-AST-012
+      : "";
+    return `CAST: [${e.kind}] ${e.name} — ${e.description}${profile}`;
+  });
 }
 
 export function assembleScriptPrompt(i: TextPromptInput): string {

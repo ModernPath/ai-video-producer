@@ -102,6 +102,13 @@ export async function addEntityRefs(db: Db, input: { entityId: string; assetIds:
   await db.update(entity).set({ refAssetIds: combined }).where(eq(entity.id, input.entityId));
 }
 
+/** REQ-AST-012 — set/replace the long-form profile (text prompts consume it via resolveCast). */
+export async function updateEntityProfile(db: Db, input: { entityId: string; profile: string }): Promise<void> {
+  const [e] = await db.select().from(entity).where(eq(entity.id, input.entityId));
+  if (!e) throw new AstValidationError("not_found", "Entity not found");
+  await db.update(entity).set({ profile: input.profile.trim() || null }).where(eq(entity.id, input.entityId));
+}
+
 /** REQ-AST-010 — soft archive: hides the entity from the library and from every project cast. */
 export async function archiveEntity(db: Db, input: { entityId: string }): Promise<void> {
   const [e] = await db.select().from(entity).where(eq(entity.id, input.entityId));

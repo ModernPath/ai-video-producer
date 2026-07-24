@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 21 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 21 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -26,6 +26,7 @@ Totals: 21 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | DONE | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
 | REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | DONE | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
 | REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
+| REQ-GEN-024 | Web-grounded entity research (Google Search + URL context) | P8 | IN_REVIEW | USER 2026-07-24 (with docs links) | tests/research.spec.ts + real LastBot verification | src/research.ts (tools: googleSearch+urlContext), researchEntityProfileAction, library ✦ button |
 | REQ-GEN-018 | Race-safe claim across parallel workers | P5 | IN_REVIEW | `docs/03` §2 (enabler) | tests/claim-race.int.spec.ts (2) | executor claimGeneration (conditional update) + loser-scans-on loop |
 
 ### REQ-GEN-016 — Jobs execute via queue worker (pg-boss)
@@ -243,3 +244,14 @@ Totals: 21 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a 5s omni take through the real pipeline THEN it succeeds, keeps durationS=5 (no {4,6,8} snap), and records cost 5×5792×$17.50/M ≈ $0.5068 (real E2E, RUN_REAL_OMNI).
 - **Tests:** `tests/omni-video.spec.ts` (7) · real E2E `tests/real-api.e2e.spec.ts` RUN_REAL_OMNI ($0.5068 verified) · **Code:** `src/provider.ts` (buildOmniVideoRequest + interactions branch), `src/routing.ts`, `src/cost.ts`, `src/executor.ts` (refs + model cost), shared config (omniVideoModel, priceTable omni rates, gen.videoRoute) · **Log:** LOG 2026-07-24
 - **Deferred / notes:** STB still snaps shot durations to {4,6,8} at plan level — exposing free durations (9–10s shots) in the UI is a follow-up STB slice. Conversational multi-turn retake untested. No UI switch — route is config/env by design (taste iteration without deploy, Tips #5).
+
+### REQ-GEN-024 — Web-grounded entity research
+- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** should
+- **Raised-by:** USER 2026-07-24: "generate it based on google search and url context" (ai.google.dev docs linked)
+- **Statement:** `researchEntityProfile` calls the script model with the googleSearch + urlContext tools to produce a factual 150-250 word profile from the entity name and optional official URL; the library's "✦ Research from web" button saves it as the entity profile (REQ-AST-012). Direct helper, no ledger row (transcribe.ts pattern, near-free).
+- **Acceptance criteria:**
+  - GIVEN name+URL THEN the research prompt demands search+URL grounding, sized prose, and no speculation (unit).
+  - GIVEN mock mode THEN a usable fixture profile returns without a key (unit).
+  - GIVEN the real model THEN a grounded, accurate profile returns (verified 2026-07-24 on LastBot + lastbot.com — LastBot ONE, Switchbot, GDPR positioning all correct).
+- **Tests:** `tests/research.spec.ts` + real verification · **Code:** `src/research.ts`, `apps/web` action + UI · **Log:** LOG 2026-07-24
+- **Deferred / notes:** grounding citations not stored (profile is user-editable text); search-grounding billing has a free daily tier — revisit if usage grows.

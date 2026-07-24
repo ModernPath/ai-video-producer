@@ -15,7 +15,7 @@ export const config = {
   },
   frame: { candidatesDefault: 2, candidatesMax: 4 },
   derivative: { thumbWidth: 320, jpegQuality: 4 }, // BR-AST-002: ffmpeg -q:v scale (2 best .. 31 worst)
-  entity: { maxRefs: providerLimits.image.entityConsistencyRefs }, // INV-AST-004
+  entity: { maxRefs: providerLimits.image.entityConsistencyRefs, profilePromptMaxChars: 1500 }, // INV-AST-004 · REQ-AST-012 cap keeps text prompts lean
   gen: {
     maxConcurrentVideoPerOrg: 3, // BR-GEN-005
     // REQ-GEN-023: take/retake provider route — "omni" switches to the Interactions adapter

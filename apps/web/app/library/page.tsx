@@ -2,7 +2,7 @@ import Link from "next/link";
 import { listEntities, listStyleKits } from "@avd/ast";
 import { config } from "@avd/shared/config";
 import { createStyleKitAction, devOrgId } from "../actions";
-import { addEntityRefsAction, archiveEntityAction, createEntityAction, editEntityRefAction, removeEntityRefAction } from "../actions";
+import { addEntityRefsAction, archiveEntityAction, createEntityAction, editEntityRefAction, removeEntityRefAction, researchEntityProfileAction, saveEntityProfileAction } from "../actions";
 import { SubmitButton } from "../../components/SubmitButton";
 import { ImagePicker } from "../../components/ImagePicker";
 import { db } from "../../lib/db";
@@ -84,6 +84,25 @@ export default async function LibraryPage() {
                 <ImagePicker name="refs" multiple />
                 <SubmitButton small pendingLabel="Uploading…" title={`Add reference images (max ${config.entity.maxRefs} total)`}>＋ Add refs</SubmitButton>
               </form>
+            )}
+            {/* REQ-AST-012 (USER 2026-07-24): long-form profile for marketing context — feeds
+                script/plan/music prompts; the short description keeps feeding visual prompts. */}
+            {(e.kind === "company" || e.kind === "product") && (
+              <div style={{ marginTop: 10, borderTop: "1px solid var(--line)", paddingTop: 8 }}>
+                <p className="mono muted" style={{ fontSize: 9 }}>PROFILE · long-form background — feeds script/plan/music prompts</p>
+                <form action={saveEntityProfileAction} style={{ marginTop: 6 }}>
+                  <input type="hidden" name="entityId" value={e.id} />
+                  <textarea name="profile" rows={4} defaultValue={e.profile ?? ""} placeholder="What the company/product is, does, sells; positioning, audience, tone…"
+                    style={{ width: "100%", background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "6px 8px", color: "var(--ink)", fontSize: 11, resize: "vertical" }} />
+                  <SubmitButton small pendingLabel="Saving…">Save profile</SubmitButton>
+                </form>
+                {/* REQ-GEN-024: web-grounded generation (Google Search + URL context) */}
+                <form action={researchEntityProfileAction} style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                  <input type="hidden" name="entityId" value={e.id} />
+                  <input name="url" placeholder="https://… (optional site)" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "5px 8px", color: "var(--ink)", fontSize: 11, flex: 1 }} />
+                  <SubmitButton small pendingLabel="Researching…" title="Generate the profile from web search + the given URL (Google Search grounding + URL context)">✦ Research from web</SubmitButton>
+                </form>
+              </div>
             )}
             {e.refAssetIds.length > 0 && (
               <form action={editEntityRefAction} style={{ display: "flex", gap: 6, marginTop: 10 }}>

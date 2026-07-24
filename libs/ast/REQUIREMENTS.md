@@ -1,11 +1,12 @@
 # Requirements Ledger — AST (Asset Library)
 
 ## Dashboard — AST (Asset Library)
-Totals: 8 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED · 1 OBSOLETE
+Totals: 8 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED · 1 OBSOLETE
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-AST-001 | Object storage put/get round-trip | P1 | DONE | INV-AST-002 | tests/storage.int.spec.ts | src/storage.ts |
+| REQ-AST-012 | Long-form brand/company profile (feeds text prompts) | P8 | IN_REVIEW | USER 2026-07-24 (marketing-video context) | gen prompt.spec REQ-AST-012 block + browser | migration 0022, schema, updateEntityProfile, resolveCast+castBlock, library UI |
 | REQ-AST-011 | Add refs to an existing entity (upload, cap-guarded) | P7 | IN_REVIEW | REQ-AST-010 deferral (ref-less Pasi needs a way back) | tests/entities.int.spec.ts REQ-AST-011 block + browser (control renders) | entities.ts addEntityRefs, addEntityRefsAction, library ＋ Add refs UI |
 | REQ-AST-010 | Entity deletion: remove refs (incl. dangling) + soft archive | P7 | IN_REVIEW | USER 2026-07-24 "please allow me deleting assets" (library screenshot, broken Pasi ref) | tests/entities.int.spec.ts REQ-AST-010 block + browser (real click removed the dangling ref) | entities.ts removeEntityRef/archiveEntity + cast filter, library UI ✕ buttons, actions |
 | REQ-AST-002 | Generated assets carry real validated bytes | P1 | DONE | INV-AST-002 | tests/generated-bytes.int.spec.ts | ../gen/src/executor.ts, ../gen/src/fixtures.ts |
@@ -127,3 +128,14 @@ Totals: 8 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 - **Status:** OBSOLETE · **Stage:** P2 · **Superseded by:** REQ-AST-010 / REQ-STB-009 design (2026-07-24 triage)
 - **Statement (original):** Prevent deleting assets still referenced by entities/candidates/exports.
 - **Why obsolete:** the product has NO asset hard-delete path to protect — every "deletion" is reference removal or soft archive (INV-AST-003 originals-immortal, enforced in REQ-AST-010's removeEntityRef/archiveEntity and REQ-STB-009's soft candidate removal). A protection guard would guard nothing.
+
+### REQ-AST-012 — Long-form brand/company profile
+- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** should
+- **Raised-by:** USER 2026-07-24: "separate, long description field for a brand/company… for marketing videos"
+- **Statement:** Company/product entities carry an optional long-form `profile`; it feeds TEXT prompts (script/plan/music) as a BACKGROUND block capped at config.entity.profilePromptMaxChars — never visual prompts, where the short description continues to apply.
+- **Acceptance criteria:**
+  - GIVEN a cast company with a profile THEN script + plan prompts contain it and frame/take prompts do not (unit, red-first).
+  - GIVEN an over-long profile THEN the prompt block truncates at the config cap (unit).
+  - GIVEN the library THEN company/product cards offer the profile textarea + save (browser-verified; person cards do not).
+- **Tests:** `libs/gen/tests/prompt.spec.ts` REQ-AST-012 block + browser · **Code:** migration 0022, `src/schema.ts`, `src/entities.ts` updateEntityProfile, stb resolveCast, gen castBlock + config cap, library UI · **Log:** LOG 2026-07-24
+- **Deferred / notes:** person/character profiles (bios) excluded until a use case shows up.

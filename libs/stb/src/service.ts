@@ -84,7 +84,7 @@ async function getShotOrThrow(db: Db, shotId: string) {
 async function resolveCast(db: Db, projectId: string) {
   const cast = await listProjectEntities(db, projectId);
   return {
-    entities: cast.map((e) => ({ kind: e.kind, name: e.name, description: e.description })),
+    entities: cast.map((e) => ({ kind: e.kind, name: e.name, description: e.description, ...(e.profile ? { profile: e.profile } : {}) })), // REQ-AST-012
     entityRefAssetIds: cast.flatMap((e) => e.refAssetIds),
   };
 }
