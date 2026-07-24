@@ -1,10 +1,10 @@
 // USER BUG 2026-07-23: the real model's shot-plan JSON varies in shape/keys/durations.
 // Normalize defensively so "Break into shots" always yields usable shots (or a clear failure).
-import { config, shotDurationPolicy } from "@avd/shared/config";
+import { config, fullFrameAnimationTemplates, shotDurationPolicy, type FullFrameAnimationTemplate } from "@avd/shared/config";
 import type { DirectionJson } from "./service";
 
 export interface PlannedAnimation {
-  template: "title" | "kinetic";
+  template: FullFrameAnimationTemplate; // REQ-STB-036: the full template set, not just title/kinetic
   text: string;
   subtext?: string | undefined;
   /** REQ-ANM-005: plan-authored palette (hex only — junk dropped, defaults apply). */
@@ -76,9 +76,9 @@ export function normalizePlannedShots(raw: unknown): NormalizedPlannedShot[] {
       ...(videoPrompt ? { videoPrompt } : {}),
       ...((): { animation?: PlannedAnimation } => {
         const a = s.animation as Record<string, unknown> | undefined;
-        if (a && (a.template === "title" || a.template === "kinetic") && typeof a.text === "string" && a.text.trim()) {
+        if (a && (fullFrameAnimationTemplates as readonly unknown[]).includes(a.template) && typeof a.text === "string" && a.text.trim()) {
           return { animation: {
-            template: a.template as "title" | "kinetic",
+            template: a.template as FullFrameAnimationTemplate,
             text: a.text.trim(),
             ...(typeof a.subtext === "string" && a.subtext.trim() ? { subtext: a.subtext.trim() } : {}),
             // REQ-ANM-005: hex-only palette — real models emit names/gradients too; drop those

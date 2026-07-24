@@ -2,7 +2,7 @@ import { ZoomImage } from "../../../components/ZoomImage";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
-import { config, priceTable, providerLimits } from "@avd/shared/config";
+import { config, fullFrameAnimationTemplates, priceTable, providerLimits } from "@avd/shared/config";
 import { project } from "@avd/prj/schema";
 import { generation } from "@avd/gen/schema";
 import { exportJob } from "@avd/asm/schema";
@@ -343,11 +343,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     <form action={animationTakeAction} style={{ display: "flex", gap: 4, alignItems: "center" }}>
                       <input type="hidden" name="projectId" value={id} />
                       <input type="hidden" name="shotId" value={s.id} />
-                      <select name="template" defaultValue={((s.animation as { template?: string } | null)?.template) ?? "title"} className="mono" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 5, color: "var(--ink)", fontSize: 10, padding: "2px 4px" }}>
-                        <option value="title">title</option>
-                        <option value="kinetic">kinetic</option>
+                      {/* REQ-STB-036: every full-frame template is user-choosable */}
+                      <select name="template" defaultValue={((s.animation as { template?: string } | null)?.template) ?? "title"} className="mono" title="Animation template: title card · kinetic type · stat count-up · quote card · checklist reveal" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 5, color: "var(--ink)", fontSize: 10, padding: "2px 4px" }}>
+                        {fullFrameAnimationTemplates.map((t) => <option key={t} value={t}>{t}</option>)}
                       </select>
                       <input name="text" required defaultValue={(s.animation as { text?: string } | null)?.text ?? ""} placeholder="✦ title text…" className="mono" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 5, padding: "3px 7px", color: "var(--ink)", fontSize: 10, width: 110 }} />
+                      <input name="subtext" defaultValue={(s.animation as { subtext?: string } | null)?.subtext ?? ""} placeholder="subtext · quote author · items a|b|c" className="mono" title="Optional: subtitle (title/stat), attribution (quote), or | separated items (checklist)" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 5, padding: "3px 7px", color: "var(--ink)", fontSize: 10, width: 110 }} />
                       <SubmitButton small disabled={(activeByShot.get(s.id)?.take ?? 0) > 0} title="Free Remotion title-card animation rendered locally — lands as a take" pendingLabel="Rendering…">✦ Animate · free</SubmitButton>
                     </form>
                     <form action={generateTakeAction}>

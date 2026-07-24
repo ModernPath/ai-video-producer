@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb } from "@avd/shared/db";
@@ -23,7 +23,10 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await db.delete(take).where(eq(take.id, takeId));
+  // materialize tests create extra takes — clear ALL takes on the project's shots before the
+  // shots themselves (FK take_shot_id_fkey), not just the seeded one
+  const shots = await db.select({ id: shot.id }).from(shot).where(eq(shot.projectId, projectId));
+  if (shots.length) await db.delete(take).where(inArray(take.shotId, shots.map((s) => s.id)));
   await db.delete(shot).where(eq(shot.projectId, projectId));
   await db.delete(generation).where(eq(generation.organizationId, orgId));
   await db.delete(asset).where(eq(asset.organizationId, orgId));

@@ -1,7 +1,7 @@
 # ANM — Requirements Ledger
 
 ## Dashboard — ANM (Animations)
-Totals: 3 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 3 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -10,6 +10,7 @@ Totals: 3 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 | REQ-ANM-004 | Effects library (noise, light leaks, text highlights, …) | P6 | DONE | USER 2026-07-23 | render test + frame proof | src/effects.tsx, TitleCard composition, render prop passthrough |
 | REQ-ANM-005 | Plan-driven animation palette (accent + background through the chain) | P8 | IN_REVIEW | Neon Rivers 2026-07-24 | plan-normalize spec REQ-ANM-005 + $0 render proof | normalize hex validation, plan schema, requestAnimationTake fallback, executor forwarding |
 | REQ-ANM-003 | Caption/lyric overlays from MM:SS transcripts (slices 1+2) | P6 | IN_REVIEW | USER Remotion epic + REQ-GEN-020 | render.int + asm/tests/animated-captions.int.spec.ts (full export) + captions.spec cues | Captions.tsx + asm transcriptToCues/captionStyle path + UI option |
+| REQ-ANM-006 | Template variety: stat, quote, checklist | P8 | IN_REVIEW | USER 2026-07-24 "always repeating one" | render.int REQ-ANM-006 (3 real renders) + frame proofs | StatPunch.tsx, QuoteCard.tsx, Checklist.tsx, Root/render wiring |
 
 ### REQ-ANM-001 — Title-card animation takes
 - **Status:** DONE · **Stage:** P6 · **Priority:** should · **Owner:** —
@@ -69,3 +70,14 @@ Totals: 3 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
   - GIVEN a shot whose plan authored a palette THEN its animation render receives it without any UI input (service fallback; verified by the $0 cyan/near-black render proof).
 - **Tests:** `libs/stb/tests/plan-normalize.spec.ts` REQ-ANM-005 block + $0 render frame proof · **Code:** stb plan-normalize + requestAnimationTake, gen prompt schema + executor forwarding · **Log:** LOG 2026-07-24
 - **Deferred / notes:** style-kit-derived fallback palette + archetype palette defaults (config) — next taste pass; UI color inputs not exposed (plan/AI-first by design).
+
+### REQ-ANM-006 — Template variety: stat, quote, checklist
+- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Raised-by:** USER 2026-07-24 ("animations are really limited, always repeating one")
+- **Statement:** Three new full-frame compositions with genuinely distinct looks — `stat` (first number in text counts up eased, tabular accent digits, label + subtext), `quote` (serif italic quote, oversized quote mark, accent attribution from subtext), `checklist` (heading + subtext items split on "|"/newlines, sequential accent-check reveals). All honor accent/background palette (REQ-ANM-005), light-leak/grain effects, duration/aspect metadata, and fade-out.
+- **Acceptance criteria:**
+  - GIVEN each template WHEN rendered THEN an h264 mp4 (RUN_RENDER tests, all pass).
+  - GIVEN frame extraction THEN the three looks are visually distinct (proof frames: stat 4,200 count-up · quote card with attribution · checklist mid-reveal).
+- **Tests:** `tests/render.int.spec.ts` REQ-ANM-006 block (3 real renders) · frame proofs in session scratchpad
+- **Code:** `src/StatPunch.tsx`, `src/QuoteCard.tsx`, `src/Checklist.tsx`, `src/Root.tsx`, `src/render.ts` · **Log:** LOG 2026-07-24
+- **Deferred / notes:** more templates (split-screen versus, logo sting, bar-chart) as demand appears; REQ-STB-036 owns plan/UI wiring.

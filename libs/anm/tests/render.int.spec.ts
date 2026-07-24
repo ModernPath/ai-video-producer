@@ -58,3 +58,26 @@ it.skipIf(!process.env.RUN_RENDER)("REQ-ANM-003: captions template renders cue-t
   expect(out.bytes.byteLength).toBeGreaterThan(10_000);
   expect(out.durationS).toBe(6);
 }, 120_000);
+
+// REQ-ANM-006 (USER 2026-07-24: "animations are really limited, always repeating one") —
+// three new full-frame templates with genuinely distinct looks.
+describe.skipIf(!process.env.RUN_RENDER)("REQ-ANM-006: template variety", () => {
+  it("stat template renders a count-up metric card", async () => {
+    const { renderAnimation } = await import("../src/render");
+    const out = await renderAnimation({ template: "stat", text: "4200 deployments shipped", subtext: "and counting", durationS: 4, aspectRatio: "16:9" });
+    expect(out.mime).toBe("video/mp4");
+    expect(out.bytes.length).toBeGreaterThan(10_000);
+  }, 300_000);
+  it("quote template renders a testimonial card", async () => {
+    const { renderAnimation } = await import("../src/render");
+    const out = await renderAnimation({ template: "quote", text: "This changed how we ship software", subtext: "Pasi Vuorio — LastBot", durationS: 4, aspectRatio: "16:9" });
+    expect(out.mime).toBe("video/mp4");
+    expect(out.bytes.length).toBeGreaterThan(10_000);
+  }, 300_000);
+  it("checklist template renders sequential bullet reveals", async () => {
+    const { renderAnimation } = await import("../src/render");
+    const out = await renderAnimation({ template: "checklist", text: "Why ModernPath", subtext: "Ship faster | Zero lock-in | AI-native", durationS: 5, aspectRatio: "16:9" });
+    expect(out.mime).toBe("video/mp4");
+    expect(out.bytes.length).toBeGreaterThan(10_000);
+  }, 300_000);
+});

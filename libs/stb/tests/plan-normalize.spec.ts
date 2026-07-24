@@ -67,3 +67,16 @@ describe("REQ-ANM-005: planned animation palette", () => {
     expect(s!.animation).toEqual({ template: "title", text: "T" });
   });
 });
+
+// REQ-STB-036 (USER 2026-07-24) — the plan may author any full-frame template, not just title/kinetic.
+describe("REQ-STB-036: full template set survives plan normalization", () => {
+  const base = { title: "S", durationS: 4, direction: { synopsis: "s", subject: "x", action: "y" }, imagePrompt: "i", videoPrompt: "v" };
+  it.each(["stat", "quote", "checklist"])("template %s is accepted", (template) => {
+    const [s] = normalizePlannedShots({ shots: [{ ...base, animation: { template, text: "T", subtext: "sub" } }] });
+    expect(s!.animation).toEqual({ template, text: "T", subtext: "sub" });
+  });
+  it("unknown template drops the animation (shot stays filmed)", () => {
+    const [s] = normalizePlannedShots({ shots: [{ ...base, animation: { template: "hologram", text: "T" } }] });
+    expect(s!.animation).toBeUndefined();
+  });
+});

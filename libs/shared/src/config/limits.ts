@@ -73,3 +73,11 @@ export function shotDurationPolicy(): { minSeconds: number; maxSeconds: number; 
   }
   return { minSeconds: config.shot.minSeconds, maxSeconds: config.shot.maxSeconds, allowedS: [...providerLimits.video.allowedDurationsS] };
 }
+
+/**
+ * REQ-ANM-006 / REQ-STB-036 — the full-frame animation template set. Single source of truth
+ * for the plan schema, normalization, executor dispatch, and the UI picker; adding a template
+ * here (plus its ANM composition) makes it choosable everywhere.
+ */
+export const fullFrameAnimationTemplates = ["title", "kinetic", "stat", "quote", "checklist"] as const;
+export type FullFrameAnimationTemplate = (typeof fullFrameAnimationTemplates)[number];

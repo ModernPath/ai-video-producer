@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 export interface AnimationInput {
-  template: "title" | "lower-third" | "kinetic" | "captions";
+  template: "title" | "lower-third" | "kinetic" | "captions" | "stat" | "quote" | "checklist";
   text: string;
   subtext?: string | undefined;
   durationS: number;
@@ -32,7 +32,7 @@ export async function renderAnimation(input: AnimationInput): Promise<{ bytes: U
   const { template: _t, ...rest } = input;
   const inputProps = { ...rest };
   const transparent = input.template === "lower-third" || input.template === "captions"; // REQ-ANM-002/003: alpha webm for compositing
-  const COMPOSITION_IDS = { title: "TitleCard", "lower-third": "LowerThird", kinetic: "KineticText", captions: "Captions" } as const;
+  const COMPOSITION_IDS = { title: "TitleCard", "lower-third": "LowerThird", kinetic: "KineticText", captions: "Captions", stat: "StatPunch", quote: "QuoteCard", checklist: "Checklist" } as const;
   const composition = await selectComposition({
     serveUrl,
     id: COMPOSITION_IDS[input.template],

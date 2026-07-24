@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { eq, inArray } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
-import { config } from "@avd/shared/config";
+import { config, fullFrameAnimationTemplates, type FullFrameAnimationTemplate } from "@avd/shared/config";
 import { organization } from "@avd/plt/schema";
 import { project } from "@avd/prj/schema";
 import { runNextGeneration } from "@avd/gen";
@@ -184,7 +184,7 @@ export async function applyPlanAction(formData: FormData) {
       const animByShot = new Map(rows.map((r) => [r.id, r.animation as { text?: string } | null]));
       const genIds: string[] = [];
       for (const shotId of shotIds) {
-        const anim = animByShot.get(shotId) as { text?: string; template?: "title" | "kinetic" } | null;
+        const anim = animByShot.get(shotId) as { text?: string; template?: FullFrameAnimationTemplate } | null;
         if (anim?.text) {
           // REQ-STB-024: pure-graphic shot — render the free animation take instead of buying a frame
           genIds.push(await requestAnimationTake(db(), { shotId, text: anim.text, template: anim.template ?? "title", principal: PRINCIPAL, aspectRatio: p.aspectRatio }));
@@ -434,7 +434,11 @@ export async function animationTakeAction(formData: FormData) {
   const genId = await requestAnimationTake(db(), {
     shotId: String(formData.get("shotId")),
     text,
-    template: formData.get("template") === "kinetic" ? "kinetic" : "title",
+    // REQ-STB-036: the picker offers the full template set; unknown values fall back to title
+    template: (fullFrameAnimationTemplates as readonly string[]).includes(String(formData.get("template")))
+      ? (String(formData.get("template")) as FullFrameAnimationTemplate)
+      : "title",
+    ...(String(formData.get("subtext") ?? "").trim() ? { subtext: String(formData.get("subtext")).trim() } : {}),
     principal: PRINCIPAL,
     aspectRatio: p.aspectRatio,
   });

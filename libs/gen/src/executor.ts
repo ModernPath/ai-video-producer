@@ -3,7 +3,7 @@
 import { and, asc, count, eq, inArray, lt } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
-import { config, omniVideoModel, providerLimits } from "@avd/shared/config";
+import { config, fullFrameAnimationTemplates, omniVideoModel, providerLimits, type FullFrameAnimationTemplate } from "@avd/shared/config";
 import { asset } from "@avd/ast/schema";
 import { assetKey, getObject, putObject } from "@avd/ast/storage";
 import { makeAssetThumb } from "@avd/ast";
@@ -201,7 +201,11 @@ async function processGenerationRow(
       } else {
         const { renderAnimation } = await import("@avd/anm");
         media = await renderAnimation({
-          template: (anmInput.template === "kinetic" ? "kinetic" : "title"),
+          // REQ-ANM-006: dispatch every full-frame template (an unknown value falls back to title;
+          // previously everything except "kinetic" was silently flattened to "title")
+          template: (fullFrameAnimationTemplates as readonly string[]).includes(anmInput.template ?? "")
+            ? (anmInput.template as FullFrameAnimationTemplate)
+            : "title",
           text: anmInput.text ?? anmInput.customPrompt ?? "",
           subtext: (anmInput as { subtext?: string }).subtext,
           highlightWord: (anmInput as { highlightWord?: string }).highlightWord,

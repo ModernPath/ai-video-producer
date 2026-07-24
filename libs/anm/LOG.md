@@ -1,5 +1,13 @@
 # ANM — Build Log
 
+## 2026-07-24 — REQ-ANM-006 template variety: stat, quote, checklist (→ IN_REVIEW)
+**Done:** Three new full-frame compositions — StatPunch (eased count-up of the first number in text, tabular accent digits), QuoteCard (serif italic + oversized quote mark, accent attribution from subtext), Checklist (heading + "|"-split subtext items, sequential accent-check reveals). Registered in Root, render.ts union + COMPOSITION_IDS extended. All honor palette (REQ-ANM-005), effects, duration/aspect, fade-out.
+**Decisions:** Template ids live in shared config (`fullFrameAnimationTemplates`) — single source for schema/normalize/dispatch/UI. Subtext is the prop bus for attribution/items/sublines (no new schema).
+**Deferred:** More templates (split-screen versus, logo sting, bar chart) on demand.
+**Discovered:** Executor flattened every non-"kinetic" template to "title" — the actual "always repeating one" cause (fixed under REQ-STB-036).
+**Follow-ups:** none.
+**Gate:** RUN_RENDER REQ-ANM-006 3/3 real renders pass; frame proofs visually distinct; full suite 178 passed; tsc clean.
+
 ## 2026-07-24 — BATCH SIGN-OFF: all IN_REVIEW → DONE (human-approved)
 **Done:** USER approved the review queue verbatim: "approve all for now" (evidence: sign-off artifact + per-REQ tests/browser/real-API links in the ledger). All IN_REVIEW rows in this ledger moved to DONE atomically (dashboard row + detail block + Totals).
 **Decisions:** approval is provisional ("for now") — regressions reopen the specific REQ, not the batch.

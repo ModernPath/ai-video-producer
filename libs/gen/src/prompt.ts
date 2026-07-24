@@ -1,5 +1,5 @@
 // REQ-GEN-013 — deterministic prompt assembly (docs/14-generation.md §5).
-import { config, shotDurationPolicy } from "@avd/shared/config"; // REQ-STB-029 route palette · REQ-AST-012 profile cap
+import { config, fullFrameAnimationTemplates, shotDurationPolicy } from "@avd/shared/config"; // REQ-STB-029 route palette · REQ-AST-012 profile cap · REQ-STB-036 template set
 
 export const PROMPT_TEMPLATE_VERSION = 3; // v3: model prompt guidelines (USER 2026-07-23) — single-scene pin, explicit audio intent, ref preservation, inpainting formula
 
@@ -120,9 +120,9 @@ export function assembleShotPlanPrompt(i: TextPromptInput): string {
     i.transcript
       ? `TRANSCRIPT of the attached track (align shot boundaries to these [MM:SS] sections; where the direction calls for animation shots, put the matching lyric lines into their text):\n${i.transcript}`
       : "",
-    `Return ONLY a JSON object exactly shaped: {"shots":[{"title":string,"durationS":${shotDurationPolicy().allowedS.join("|")},"direction":{"synopsis":string,"subject":string,"action":string,"camera":string,"mood":string},"imagePrompt":string,"videoPrompt":string,"animation":{"template":"title"|"kinetic","text":string,"subtext":string,"accent":"#rrggbb","background":"#rrggbb"}|null}]} — no markdown fences, no commentary.`,
+    `Return ONLY a JSON object exactly shaped: {"shots":[{"title":string,"durationS":${shotDurationPolicy().allowedS.join("|")},"direction":{"synopsis":string,"subject":string,"action":string,"camera":string,"mood":string},"imagePrompt":string,"videoPrompt":string,"animation":{"template":${fullFrameAnimationTemplates.map((t) => `"${t}"`).join("|")},"text":string,"subtext":string,"accent":"#rrggbb","background":"#rrggbb"}|null}]} — no markdown fences, no commentary.`,
     `Animation accent/background are OPTIONAL hex colors — set them to match the video's visual palette (e.g. neon piece → cyan/magenta on near-black); omit for the default warm look. Hex only, no color names.`,
-    `Set "animation" ONLY for pure graphic shots: template "title" for held cards (end-cards, quiet titles — optional subtext) or "kinetic" for punchy word-by-word type (countdown digits, lyric lines, interstitial statements). Filmed/generated shots get animation:null.`,
+    `Set "animation" ONLY for pure graphic shots. Templates: "title" held card (end-cards, quiet titles — optional subtext) · "kinetic" punchy word-by-word type (countdown digits, lyric lines, interstitial statements) · "stat" a metric that counts up (text starts with the number, e.g. "4200 deployments shipped") · "quote" testimonial/quote card (subtext = attribution) · "checklist" heading + bullets revealed one by one (subtext = items separated by "|"). VARY templates across the video's animation shots — pick the one that fits each beat, never repeat the same template back-to-back unless the format demands it. Filmed/generated shots get animation:null.`,
     `imagePrompt = a complete production-ready still-image prompt; videoPrompt = a complete video prompt (motion, camera, mood). Reference cast members by name.`,
     `Branding: invent original brand marks and packaging only — never describe or reference real-world / existing third-party brands, their logos, or recognizable trade dress.`,
     `BRIEF: ${JSON.stringify(i.brief)}`,

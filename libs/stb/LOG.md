@@ -1,5 +1,13 @@
 # Build Log — STB
 
+## 2026-07-24 — REQ-STB-036 animation template variety: plan varies, user chooses (→ IN_REVIEW)
+**Done:** Plan prompt schema now lists all five full-frame templates with per-template usage guidance and an explicit VARY instruction (never repeat back-to-back unless the format demands it); plan-normalize accepts the full set via shared `fullFrameAnimationTemplates` (unknown → animation dropped, shot stays filmed); executor dispatch fixed (was collapsing everything but "kinetic" to "title"); requestAnimationTake forwards subtext (input or plan); storyboard picker offers all five templates + a subtext field.
+**Decisions:** Config-not-code — the template list is shared config so adding a composition makes it choosable everywhere.
+**Deferred:** Per-template prop editors (structured checklist rows etc.).
+**Discovered:** take-binding.int.spec cleanup deleted shots before takes (FK violation, file-level flake) — fixed to clear all project takes first.
+**Follow-ups:** none.
+**Gate:** RED→GREEN (4 new tests); full suite 178 passed | 14 skipped, 0 failures; tsc clean; served HTML shows all 5 options; 3 real renders + frame proofs.
+
 ## 2026-07-24 — BATCH SIGN-OFF: all IN_REVIEW → DONE (human-approved)
 **Done:** USER approved the review queue verbatim: "approve all for now" (evidence: sign-off artifact + per-REQ tests/browser/real-API links in the ledger). All IN_REVIEW rows in this ledger moved to DONE atomically (dashboard row + detail block + Totals).
 **Decisions:** approval is provisional ("for now") — regressions reopen the specific REQ, not the batch.

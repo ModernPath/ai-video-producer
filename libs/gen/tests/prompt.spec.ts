@@ -217,3 +217,15 @@ describe("REQ-AST-012: entity profile feeds TEXT prompts only (USER 2026-07-24: 
     expect(p.length).toBeLessThan(4000);
   });
 });
+
+// REQ-STB-036 (USER 2026-07-24: "always repeating one… possibility to choose") — the planner
+// must know every template and be told to VARY them across animation shots.
+describe("REQ-STB-036: plan prompt offers the full template set with variability guidance", () => {
+  it("schema line lists all five full-frame templates and guidance says to vary", () => {
+    const p = assembleShotPlanPrompt({ projectTitle: "T", brief: {}, targetDurationSeconds: 20, entities: [], scriptText: "s" });
+    for (const t of ["title", "kinetic", "stat", "quote", "checklist"]) {
+      expect(p).toContain(`"${t}"`);
+    }
+    expect(p.toLowerCase()).toContain("vary");
+  });
+});

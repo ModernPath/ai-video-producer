@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 5 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -20,6 +20,7 @@ Totals: 30 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-028 | Music-led planning (transcript in plan prompt) | P7 | DONE | docs/87 | prompt.spec REQ-STB-028 + snapshot E2E | prompt transcript block, proposeShotPlan wiring |
 | REQ-STB-029 | Route-aware shot durations (omni unlocks 4–10s) | P7 | DONE | REQ-GEN-023 follow-up | tests/duration-policy.spec.ts (7) | shared shotDurationPolicy; plan-normalize, music-sync, assertDuration, plan prompt schema |
 | REQ-STB-035 | Script-studio generation indicators + lane lockouts | P8 | IN_REVIEW | USER 2026-07-24 "this view does not show any generation indicators" | rendered-HTML check (synthetic queued row → banner) | script page activeGens query, pulse banner, 5 button lockouts |
+| REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
 | REQ-STB-034 | First take auto-selects (export never silently empty) | P8 | IN_REVIEW | USER 2026-07-24 "why can't I export" (5 takes bought, 0 selected → Export 0 ready) | tests/take-binding.int.spec.ts REQ-STB-034 + browser (5/5 generated) | materializeGenerationOutput take branch |
 | REQ-STB-033 | Cast visibility everywhere (bar with refs + profile badges; library from home) | P8 | IN_REVIEW | USER 2026-07-24 usability screenshots | browser E2E ×3 views | components/CastBar.tsx, script page wiring, home library link |
 | REQ-STB-032 | Lyric-shot alignment (text appears when the line is sung) | P8 | BLOCKED | Neon Rivers 2026-07-24 · blocked on OQ-115 (strategy: fill-to-timestamp vs track offset vs both) | — | — |
@@ -402,3 +403,15 @@ Totals: 30 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN an active kind THEN its button is disabled with an in-progress label.
 - **Tests:** rendered-HTML verification · **Code:** `apps/web/app/p/[id]/script/page.tsx` · **Log:** LOG 2026-07-24
 - **Deferred / notes:** storyboard already had per-shot pulses + RECENT GENERATIONS; this closes the gap for the text lanes.
+
+### REQ-STB-036 — Animation template variety: plan varies, user chooses
+- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Raised-by:** USER 2026-07-24: "the animations are really limited, always repeating one. Can we have some variability and even possibility to choose?"
+- **Statement:** The shot planner knows the full full-frame template set (`fullFrameAnimationTemplates` in shared config: title · kinetic · stat · quote · checklist), is instructed to VARY templates across animation shots, and its choice survives normalization, enqueue, and executor dispatch; the storyboard picker offers every template plus a subtext field (quote attribution / checklist items / stat subline). Root cause fixed: the executor collapsed every non-"kinetic" template to "title".
+- **Acceptance criteria:**
+  - GIVEN a planned animation with template stat/quote/checklist THEN normalization keeps it; unknown templates drop the animation (shot stays filmed).
+  - GIVEN the plan prompt THEN it lists all five templates and tells the model to vary them.
+  - GIVEN the picker THEN all five templates and the subtext field are submittable and reach the renderer.
+- **Tests:** `libs/stb/tests/plan-normalize.spec.ts` (REQ-STB-036 block) · `libs/gen/tests/prompt.spec.ts` (template-set + vary) · served-HTML check (all 5 options render on the storyboard)
+- **Code:** `libs/shared/src/config/limits.ts` (template list), `libs/gen/src/prompt.ts` (schema + guidance), `libs/stb/src/plan-normalize.ts`, `libs/stb/src/service.ts` (subtext forwarding), `libs/gen/src/executor.ts` (dispatch fix), `apps/web/app/actions.ts`, `apps/web/app/p/[id]/page.tsx`
+- **Log:** LOG 2026-07-24 · **Deferred / notes:** per-template prop editors (e.g. per-item checklist rows) later; REQ-ANM-006 owns the new compositions.

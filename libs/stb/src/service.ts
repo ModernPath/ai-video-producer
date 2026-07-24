@@ -2,7 +2,7 @@
 import { and, asc, eq, inArray, isNull, max } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
-import { archetypes, config, shotDurationPolicy } from "@avd/shared/config";
+import { archetypes, config, shotDurationPolicy, type FullFrameAnimationTemplate } from "@avd/shared/config";
 import { asset } from "@avd/ast/schema";
 import { listProjectEntities, projectStylePrompt } from "@avd/ast";
 import { enqueueGeneration } from "@avd/gen";
@@ -179,7 +179,7 @@ export async function requestTake(
 /** REQ-ANM-001: a free Remotion animation take (title template) for this shot. */
 export async function requestAnimationTake(
   db: Db,
-  input: { shotId: string; text: string; subtext?: string; highlightWord?: string; template?: "title" | "kinetic"; accent?: string; background?: string; principal: string; aspectRatio: "16:9" | "9:16" }
+  input: { shotId: string; text: string; subtext?: string; highlightWord?: string; template?: FullFrameAnimationTemplate; accent?: string; background?: string; principal: string; aspectRatio: "16:9" | "9:16" }
 ) {
   const s = await getShotOrThrow(db, input.shotId);
   if (!input.text.trim()) throw new StbValidationError("validation_failed", "Animation needs the title text");
@@ -200,6 +200,8 @@ export async function requestAnimationTake(
       durationSeconds: Number(s.durationS),
       entities: [],
       template: input.template ?? "title", // REQ-ANM-004 (eval fix: was silently dropped)
+      // REQ-STB-036: subtext feeds quote attributions / checklist items / stat sublines
+      ...((input.subtext ?? planSubtext) ? { subtext: (input.subtext ?? planSubtext)!.trim() } : {}),
       ...(accent ? { accent } : {}), // REQ-ANM-005: palette reaches the renderer
       ...(background ? { background } : {}),
       highlightWord: input.highlightWord, // product-launch recipe: highlight the product word
