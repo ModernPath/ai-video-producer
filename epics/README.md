@@ -1,6 +1,6 @@
 # Epics
 
-V-model epic records for user-visible capabilities. See `req-driven-dev/V-model-loop.md` and root `WORKLIST.md`.
+V-model epic records for user-visible capabilities. See `CLAUDE.md` §5B and root `WORKLIST.md`.
 
 ## Layout
 

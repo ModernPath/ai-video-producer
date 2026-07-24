@@ -1,6 +1,6 @@
 # V-Model Loop Work-List — AI Video Producer
 
-Live top-level control surface for epic-driven development. Detailed epic contents live in `epics/`. Ledger slices live in `libs/<ctx>/REQUIREMENTS.md`. See `req-driven-dev/V-model-loop.md`.
+Live top-level control surface for epic-driven development. Detailed epic contents live in `epics/`. Ledger slices live in `libs/<ctx>/REQUIREMENTS.md`. Process: `CLAUDE.md` §5B.
 
 ## Progress Ownership
 
@@ -53,4 +53,4 @@ Ledger requirements (`libs/<ctx>/REQUIREMENTS.md`) use a **separate** status set
 - A user requirement is `VALIDATED` when all linked epics are done and human approval is recorded.
 - A work-list row is `DONE` only when the linked task is `LOWER_VERIFIED`, the linked acceptance scenario is `UPPER_VALIDATED`, no unrecorded gap remains, and the parent epic has human approval before epic-level `DONE`.
 
-Acceptance gates and trace chain: `req-driven-dev/V-model-loop.md` · `CLAUDE.md` §5B.
+Acceptance gates and trace chain: `CLAUDE.md` §5B.

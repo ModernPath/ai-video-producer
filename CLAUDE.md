@@ -2,7 +2,7 @@
 
 Operating manual for building the **AI Video Producer** with full traceability from design docs → requirements → tests → code. Every contributor — human or AI agent — reads it at the start of a session and follows the loop in §6.
 
-This file defines **how** we build. The *what* (domain specs, data models, business rules) lives in `docs/`. Epic-scale work with BDD/E2E evidence also uses **`WORKLIST.md`** and **`req-driven-dev/V-model-loop.md`** (see root **`AGENTS.md`**).
+This file defines **how** we build. The *what* (domain specs, data models, business rules) lives in `docs/`. Epic-scale work with BDD/E2E evidence also uses **`WORKLIST.md`** and the V-model process in **§5B** (see root **`AGENTS.md`**).
 
 ---
 
@@ -58,7 +58,6 @@ These govern every change. A change that violates one is wrong even if its tests
 /BACKLOG.md                     ← triage inbox (§6A)
 /prompts.md                     ← copy-paste prompts
 /WORKLIST.md                    ← V-model epic/task rollup (§5B)
-/req-driven-dev/                ← V-model-loop.md, interview-flows.md
 /docs/                          ← canonical design
    00-overview.md · 01-ubiquitous-language.md · 02-bounded-contexts.md
    06-ux-architecture.md · 07-api-contracts.md · 08-open-questions.md
@@ -151,9 +150,22 @@ When a requirement's status changes, update **all three** atomically:
 
 ---
 
-## 5B. V-Model statuses (`WORKLIST.md` / epics)
+## 5B. V-Model process (`WORKLIST.md` / `epics/`) — complete reference
 
-Used for **epics**, acceptance scenarios, system requirements, and task rows — not for replacing ledger `REQ-*` status unless you explicitly map them.
+For **epic-scale, user-visible capabilities** that warrant BDD/E2E evidence on top of ledger slices. Two nested TDD loops sharing one trace chain:
+
+```
+UR → EPIC → SCN (BDD scenario) → SR (system requirement) → TASK → TEST → CODE
+```
+
+- **Upper loop** (user intent): epic owns user stories + BDD acceptance scenarios; each scenario is validated by a red-first E2E/user-flow test.
+- **Lower loop** (system behavior): scenarios decompose into system requirements and tasks; each is verified by red-first unit/component/contract/API/integration tests. Evidence rolls back up.
+- **Epic record** (`epics/EPIC-<AREA>-NNN-<title>.md`): sourced user outcome · linked URs · actors · owning bounded context(s) · key domain models/events · SCN list · SR list · TASK list — each row with status + evidence links. Rollup rows mirror into `WORKLIST.md`.
+- **Grounded recording:** every recorded fact/decision/status carries a source ref — `USER:<date>:<summary>` · `DOC:<path>#<section>` · `CODE:<path>:<line>` · `TEST:<path>:<name>` · `RUN:<command>` · `EPIC:<path>#<heading>`. Unsourced claims become open questions; conflicts stay recorded as conflicts until a sourced decision resolves them; completion claims require code + test/validation evidence.
+
+### Statuses
+
+Used for epics, scenarios, system requirements, and task rows — not for replacing ledger `REQ-*` status unless you explicitly map them.
 
 | Status | Meaning |
 |---|---|
@@ -166,7 +178,7 @@ Used for **epics**, acceptance scenarios, system requirements, and task rows —
 | `BLOCKED` | Cannot proceed; blocker recorded |
 | `DEFERRED` | Consciously postponed; reason recorded |
 
-**User requirement (UR) rollup:** a user requirement is **`VALIDATED`** when all linked epics are `DONE` and human approval is recorded (see `req-driven-dev/V-model-loop.md`).
+**User requirement (UR) rollup:** a user requirement is **`VALIDATED`** when all linked epics are `DONE` and human approval is recorded.
 
 **Acceptance gates (summary):**
 
@@ -178,7 +190,11 @@ Used for **epics**, acceptance scenarios, system requirements, and task rows —
 | Epic approval gate | `DONE` | all SCN `UPPER_VALIDATED`, all SR `LOWER_VERIFIED`, human approval |
 | User validation gate | `VALIDATED` | all linked epics `DONE`, human approval |
 
-Full roll-up rules: root **`WORKLIST.md`** and **`req-driven-dev/V-model-loop.md`**.
+**Epic Specification Gate** — implementation loops may start only when the epic record has: sourced user outcome + ≥1 linked UR · actors · owning context identified (or a blocking OQ) · key models/events sourced or recorded as OQs · ≥1 story tracing to a UR · BDD scenarios covering the initial workflow with sourced Given/When/Then · SRs and TASKs for the first loop, traced · an initial failing-test strategy (both loops) · `WORKLIST.md` rollup + work rows · no blocking OQ · deferred gaps carry reason/owner/trace. Any miss → epic stays `PROPOSED`/`BLOCKED`.
+
+**Operating rules:** the loop starts from `WORKLIST.md`; lower/upper-loop results are recorded in the parent epic AND `WORKLIST.md` (reconcile any drift before the next row); every `LOWER_VERIFIED`/`UPPER_VALIDATED`/`DONE`/`VALIDATED` claim references its code + test/validation evidence; `DONE`/`VALIDATED` additionally require recorded human approval; both loops are red-first TDD.
+
+This §5B is the canonical V-model reference.
 
 ---
 
@@ -329,6 +345,6 @@ Epic / UR completion additionally requires §5B gates and human approval on the 
 | API | `docs/07-api-contracts.md` |
 | Stack | `docs/82-tech-stack.md` |
 | OQs / gaps | `docs/08-open-questions.md`, `docs/gap-register.md` |
-| V-model | `req-driven-dev/V-model-loop.md`, `WORKLIST.md`, `req-driven-dev/interview-flows.md` |
+| V-model | §5B (this file), `WORKLIST.md`, `epics/` |
 
 **The discipline in one sentence:** every change starts as a requirement with acceptance criteria, becomes a failing test, then traced code — and anything we choose not to do is written down as a deferral, not forgotten.

@@ -152,16 +152,23 @@ Report: principle-by-principle verdict, defects found/fixed/deferred, total spen
 
 ---
 
-## Prompt E — Epic creation (V-model)
+## Prompt E — Epic creation (V-model, CLAUDE.md §5B)
 
 ```
-Read req-driven-dev/V-model-loop.md Epic Specification Gate and req-driven-dev/interview-flows.md Flow 2.
+Read CLAUDE.md §5B (trace chain, statuses, Epic Specification Gate).
 
 Topic: «e.g. Golden thread: direction → start frame → take → download clip»
 
-Create epics/EPIC-«AREA»-NNN-«title».md (or folder layout) with sourced user outcome, bounded context, BDD scenarios, system requirements, tasks, failing-test strategy.
-Add Epic Rollup and Work Rows to /WORKLIST.md when gate passes.
-End with Implementation kickoff prompt (Flow 11) if READY rows exist.
+1. INTERVIEW first: confirm the topic isn't already owned by an existing epic; elicit the
+   user outcome, actors, linked user requirements, and the initial workflow — record every
+   claim with a source ref (USER:/DOC:/CODE:), unsourced claims become open questions.
+2. Create epics/EPIC-«AREA»-NNN-«title».md per §5B: sourced outcome, bounded context(s),
+   BDD scenarios (sourced Given/When/Then), system requirements, tasks, failing-test
+   strategy for both loops.
+3. When the Specification Gate passes, add the Epic Rollup row + Work Rows to /WORKLIST.md.
+4. If READY rows exist, end with an implementation kickoff prompt specific enough that a
+   fresh session can start without re-interviewing (scoped strictly to the assigned rows).
+   For a PROPOSED/BLOCKED epic, instead list the missing gate items and needed sources.
 ```
 
 ---

@@ -19,7 +19,7 @@
 | Realtime | SSE | One-way progress only (ADR-006) |
 | UI kit | Tailwind + Radix primitives + Framer Motion | Award-worthy custom look lives in design system, not a component farm |
 | State | React Query + server state; no client store for domain data | Server is source of truth; events invalidate queries |
-| Tests | Vitest (unit/contract) · Testcontainers (integration) · Playwright (E2E vs `MOCK_GEN`) | CI rings per `req-driven-dev` |
+| Tests | Vitest (unit/contract) · Testcontainers (integration) · Playwright (E2E vs `MOCK_GEN`) | CI rings per `CLAUDE.md` §5B/§9 |
 | Monorepo | pnpm workspaces + Turborepo | `apps/web`, `apps/worker`, `libs/*` |
 | Deploy | Docker on Fly.io/Railway + managed Postgres + R2 | Long-running workers (ADR-007) |
 

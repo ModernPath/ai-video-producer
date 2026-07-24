@@ -12,7 +12,6 @@ An **AI video director** — from idea to script (`gemini-3.6-flash`), to a stor
 | [`WORKLIST.md`](./WORKLIST.md) | Epic/task rollup (V-model) |
 | [`BACKLOG.md`](./BACKLOG.md) | Discovery triage inbox |
 | [`PROGRESS.md`](./PROGRESS.md) | Ledger status rollup |
-| [`req-driven-dev/`](./req-driven-dev/) | V-model loop + interview flows |
 
 ## Design docs
 

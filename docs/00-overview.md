@@ -44,7 +44,6 @@ Script + Shot Plan + Consistent Look + Cheap Iteration on Frames
 | `apps/web` | Next.js app (UI + API) |
 | `apps/worker` | Generation + media workers (Gemini calls, ffmpeg) |
 | `epics/` | V-model epic records |
-| `req-driven-dev/` | V-model process templates |
 | `AGENTS.md`, `CLAUDE.md`, `WORKLIST.md` | Agent + build process |
 
 ---
@@ -103,7 +102,7 @@ Consequences baked into the domain: shot duration is capped at **8s** (Veo route
 
 **Reading order (implementers):** 01 → 02 → 13 → 14 → 06 → `features/<surface>` → 07 → 41 → 40 → your context doc.
 
-**Process:** `CLAUDE.md` (ledger loop), `req-driven-dev/V-model-loop.md` (epics).
+**Process:** `CLAUDE.md` (ledger loop §6, V-model/epics §5B).
 
 ---
 
