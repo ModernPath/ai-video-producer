@@ -1,4 +1,10 @@
-# Build Log — STB (Story & Storyboard)
+# Build Log — STB
+
+## 2026-07-24 — REQ-STB-029 route-aware shot durations (→ IN_REVIEW)
+**Done:** `shotDurationPolicy()` in shared config resolves the duration palette from `config.gen.videoRoute` at call time: Veo {4,6,8} cap 8 (unchanged), omni integers 4–10 cap 10. Wired into plan normalization (5s/10s survive, 12→10), `assertDuration` (INV-STB-001 cap follows the route), music-sync suggestions (a 7s boundary hit is now suggestible), and the shot-plan prompt schema (`durationS:4|5|…|10` on omni). Red-first 7 tests; veo-route regression pinned by tests + browser check (sync panel still suggests 6→8 on the production project).
+**Decisions:** palette floor stays `shot.minSeconds` (4s) — sub-4s omni clips unverified; revisit for hype-countdown rapid cuts.
+**Deferred:** UI duration picker unaware of the palette (server-side validation covers it).
+**Discovered:** none. **Follow-ups:** none. **Gate:** 154 passed, tsc clean. (Story & Storyboard)
 
 ## 2026-07-23 — slice 39: plan-authored template choice + ring re-run
 **Done:** eval-#2 finding closed — the shot-plan model now chooses the animation TEMPLATE per shot ("title" for held cards, "kinetic" for punchy word-by-word type: countdown digits, lyric lines, interstitials); normalize validates both (red-first), apply+first-frames renders with the plan's choice, and the per-shot template select prefills from it. DoD §9.8: real ring re-run green (3/3) covering yesterday's entity-prose dedup.

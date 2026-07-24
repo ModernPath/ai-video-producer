@@ -1,4 +1,6 @@
 // REQ-GEN-013 — deterministic prompt assembly (docs/14-generation.md §5).
+import { shotDurationPolicy } from "@avd/shared/config"; // REQ-STB-029: plan schema follows the video route
+
 export const PROMPT_TEMPLATE_VERSION = 3; // v3: model prompt guidelines (USER 2026-07-23) — single-scene pin, explicit audio intent, ref preservation, inpainting formula
 
 export interface DirectionInput {
@@ -108,7 +110,7 @@ export function assembleShotPlanPrompt(i: TextPromptInput): string {
     i.transcript
       ? `TRANSCRIPT of the attached track (align shot boundaries to these [MM:SS] sections; where the direction calls for animation shots, put the matching lyric lines into their text):\n${i.transcript}`
       : "",
-    `Return ONLY a JSON object exactly shaped: {"shots":[{"title":string,"durationS":4|6|8,"direction":{"synopsis":string,"subject":string,"action":string,"camera":string,"mood":string},"imagePrompt":string,"videoPrompt":string,"animation":{"template":"title"|"kinetic","text":string,"subtext":string}|null}]} — no markdown fences, no commentary.`,
+    `Return ONLY a JSON object exactly shaped: {"shots":[{"title":string,"durationS":${shotDurationPolicy().allowedS.join("|")},"direction":{"synopsis":string,"subject":string,"action":string,"camera":string,"mood":string},"imagePrompt":string,"videoPrompt":string,"animation":{"template":"title"|"kinetic","text":string,"subtext":string}|null}]} — no markdown fences, no commentary.`,
     `Set "animation" ONLY for pure graphic shots: template "title" for held cards (end-cards, quiet titles — optional subtext) or "kinetic" for punchy word-by-word type (countdown digits, lyric lines, interstitial statements). Filmed/generated shots get animation:null.`,
     `imagePrompt = a complete production-ready still-image prompt; videoPrompt = a complete video prompt (motion, camera, mood). Reference cast members by name.`,
     `Branding: invent original brand marks and packaging only — never describe or reference real-world / existing third-party brands, their logos, or recognizable trade dress.`,

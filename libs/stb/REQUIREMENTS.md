@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 29 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -18,6 +18,7 @@ Totals: 0 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-026 | Archetype selection injects directing recipe | P7 | IN_REVIEW | docs/87 | libs/gen/tests/prompt.spec.ts (REQ-STB-026 block) + snapshot E2E | config/archetypes.ts, migration 0021, recipeFor injection ×3, script-page select |
 | REQ-STB-027 | Archetype defaults (audio mode) | P7 | IN_REVIEW | docs/87 | E2E (product-launch → mix) | archetypes defaults, setProjectArchetype |
 | REQ-STB-028 | Music-led planning (transcript in plan prompt) | P7 | IN_REVIEW | docs/87 | prompt.spec REQ-STB-028 + snapshot E2E | prompt transcript block, proposeShotPlan wiring |
+| REQ-STB-029 | Route-aware shot durations (omni unlocks 4–10s) | P7 | IN_REVIEW | REQ-GEN-023 follow-up | tests/duration-policy.spec.ts (7) | shared shotDurationPolicy; plan-normalize, music-sync, assertDuration, plan prompt schema |
 | REQ-STB-025 | Lyric-synced cut suggestions (♪ MUSIC SYNC) | P6 | IN_REVIEW | USER Lyria epic ("time the change of scene according to song timing") | tests/music-sync.spec.ts + update-duration.int + browser E2E | src/music-sync.ts, updateShotDuration, applySyncAction, SYNC panel |
 | REQ-STB-024 | Plan-authored animation shots (free, no frame spend) | P6 | IN_REVIEW | USER Remotion epic ("purely remotion animations (prompt)") | plan-normalize spec + real E2E frame | migration 0020, normalize/apply, plan prompt, applyPlanAction branch, badge+prefill UI |
 | REQ-STB-023 | Music brief includes timed lyrics unless instrumental | P5 | IN_REVIEW | USER 2026-07-23 (Lyria epic) | libs/gen/tests/prompt.spec.ts + real-model check | assembleMusicBriefPrompt lyrics rule |
@@ -323,3 +324,14 @@ Totals: 0 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Statement:** When the project's track has a transcript, the shot-plan prompt includes it with instructions to align shot boundaries to the [MM:SS] sections and to carry matching lyric lines into animation-shot text.
 - **Tests:** prompt.spec REQ-STB-028 (block + alignment + lyric-into-animation instructions; absent when no transcript) · snapshot E2E on Aurora (transcript + DIRECTING both present in the plan prompt) · **Code:** prompt transcript block, proposeShotPlan getMusicBrief wiring · **Log:** LOG (slice 25)
 - **Deferred / notes:** full lyrics-FIRST orchestration (one-click: brief→track→transcript→plan) is UX sugar over these pieces — add if the manual sequence proves clumsy.
+
+### REQ-STB-029 — Route-aware shot durations
+- **Status:** IN_REVIEW  ·  **Stage:** P7  ·  **Priority:** should  ·  **Owner:** —
+- **Raised-by:** REQ-GEN-023 deferral (2026-07-24): omni route supports free-form durations but STB still snapped to Veo's {4,6,8}
+- **Source:** INV-STB-001 (cap follows provider limits); providerLimits.omniVideo
+- **Statement:** The shot-duration palette follows the active video route via `shotDurationPolicy()`: Veo → {4,6,8}s cap 8; omni → every integer 4–10s. Applied in plan normalization, duration validation, music-sync suggestions, and the shot-plan prompt schema.
+- **Acceptance criteria:**
+  - GIVEN the default route THEN policy/normalize/sync behave exactly as before (regression tests + browser check).
+  - GIVEN videoRoute=omni THEN a planned 5s or 10s shot survives normalization (12 clamps to 10), a 7s music-sync boundary hit becomes suggestible, and the plan prompt advertises durationS 4|5|…|10.
+- **Tests:** `tests/duration-policy.spec.ts` (7) · **Code:** shared config `shotDurationPolicy`, `src/plan-normalize.ts`, `src/music-sync.ts`, `src/service.ts` assertDuration, `../gen/src/prompt.ts` plan schema · **Log:** LOG 2026-07-24
+- **Deferred / notes:** UI duration picker still free-numeric (validation enforces policy server-side); sub-4s cuts untested on omni — palette floor stays at shot.minSeconds.

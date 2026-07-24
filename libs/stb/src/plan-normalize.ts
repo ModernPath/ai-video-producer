@@ -1,6 +1,6 @@
 // USER BUG 2026-07-23: the real model's shot-plan JSON varies in shape/keys/durations.
 // Normalize defensively so "Break into shots" always yields usable shots (or a clear failure).
-import { config, providerLimits } from "@avd/shared/config";
+import { config, shotDurationPolicy } from "@avd/shared/config";
 import type { DirectionJson } from "./service";
 
 export interface PlannedAnimation {
@@ -21,7 +21,7 @@ export interface NormalizedPlannedShot {
 function snapDuration(v: unknown): number {
   const n = typeof v === "number" ? v : Number(v);
   const fallback = config.shot.defaultSeconds;
-  const allowed = [...providerLimits.video.allowedDurationsS];
+  const allowed = shotDurationPolicy().allowedS; // REQ-STB-029: route-aware palette
   const target = Number.isFinite(n) && n > 0 ? n : fallback;
   return allowed.reduce((best, d) =>
     Math.abs(d - target) < Math.abs(best - target) || (Math.abs(d - target) === Math.abs(best - target) && d > best) ? d : best

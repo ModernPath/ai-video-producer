@@ -1,6 +1,6 @@
 // REQ-STB-025: lyric-synced cut suggestions — land shot boundaries on the track's
-// section changes (from the MM:SS transcript, REQ-GEN-020) within Veo's allowed durations.
-import { providerLimits } from "@avd/shared/config";
+// section changes (from the MM:SS transcript, REQ-GEN-020) within the route's allowed durations.
+import { shotDurationPolicy } from "@avd/shared/config";
 
 const STAMP = /^\[(\d{1,2}):(\d{2})\]/;
 
@@ -40,7 +40,7 @@ export function suggestSyncDurations(
   shots: SyncShot[],
   sectionTimesS: number[]
 ): { suggestions: SyncSuggestion[]; boundaries: number[] } {
-  const allowed = [...providerLimits.video.allowedDurationsS];
+  const allowed = shotDurationPolicy().allowedS; // REQ-STB-029: omni route unlocks odd-second hits
   const suggestions: SyncSuggestion[] = [];
   let cursor = 0;
   for (const s of shots) {

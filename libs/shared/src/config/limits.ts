@@ -58,3 +58,18 @@ export const config = {
     audioMimes: ["audio/mpeg", "audio/wav", "audio/x-wav"],
   },
 } as const;
+
+/**
+ * REQ-STB-029 — the shot-duration policy follows the active video route (REQ-GEN-023).
+ * Veo: discrete {4,6,8}s, cap 8 (INV-STB-001). Omni: every integer second from shot.minSeconds
+ * to the omni clip cap (10s verified 2026-07-24). Read at call time — tests flip the route.
+ */
+export function shotDurationPolicy(): { minSeconds: number; maxSeconds: number; allowedS: number[] } {
+  if (config.gen.videoRoute === "omni") {
+    const maxSeconds = providerLimits.omniVideo.maxClipSeconds;
+    const allowedS: number[] = [];
+    for (let d = config.shot.minSeconds; d <= maxSeconds; d++) allowedS.push(d);
+    return { minSeconds: config.shot.minSeconds, maxSeconds, allowedS };
+  }
+  return { minSeconds: config.shot.minSeconds, maxSeconds: config.shot.maxSeconds, allowedS: [...providerLimits.video.allowedDurationsS] };
+}

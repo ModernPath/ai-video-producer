@@ -2,7 +2,7 @@
 import { and, asc, eq, inArray, isNull, max } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
-import { archetypes, config } from "@avd/shared/config";
+import { archetypes, config, shotDurationPolicy } from "@avd/shared/config";
 import { asset } from "@avd/ast/schema";
 import { listProjectEntities, projectStylePrompt } from "@avd/ast";
 import { enqueueGeneration } from "@avd/gen";
@@ -29,7 +29,7 @@ export interface DirectionJson {
 }
 
 function assertDuration(durationS: number) {
-  const { minSeconds, maxSeconds } = config.shot;
+  const { minSeconds, maxSeconds } = shotDurationPolicy(); // REQ-STB-029: cap follows the video route
   if (Number.isNaN(durationS) || durationS < minSeconds || durationS > maxSeconds) {
     throw new StbValidationError(
       "validation_failed",
