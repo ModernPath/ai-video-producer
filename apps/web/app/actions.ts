@@ -547,3 +547,20 @@ export async function saveScriptsAndGenerateAction(formData: FormData) {
   }
   revalidatePath(`/p/${projectId}`);
 }
+
+/** REQ-AST-010: remove one reference image from an entity (dangling refs included). */
+export async function removeEntityRefAction(formData: FormData) {
+  const { removeEntityRef } = await import("@avd/ast");
+  await removeEntityRef(db(), {
+    entityId: String(formData.get("entityId")),
+    assetId: String(formData.get("assetId")),
+  });
+  revalidatePath("/library");
+}
+
+/** REQ-AST-010: soft-archive an entity — leaves the library and all project casts. */
+export async function archiveEntityAction(formData: FormData) {
+  const { archiveEntity } = await import("@avd/ast");
+  await archiveEntity(db(), { entityId: String(formData.get("entityId")) });
+  revalidatePath("/library");
+}

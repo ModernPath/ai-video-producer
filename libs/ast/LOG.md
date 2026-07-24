@@ -67,3 +67,10 @@
 **Decisions:** the two new candidates left unselected on Hero Climax Drop (the selected dragon frame + take stand).
 **Deferred:** — **Discovered:** browser submit-drop hit twice despite fresh navigation (no POST in dev log = client-side flake, not app bug); driver gained a `frames <projectId> <shotTitle> [count]` stage as the reliable fallback — memory updated.
 **Follow-ups:** — **Gate:** both gens succeeded at $0.067; spend today ≈ $12.0 / $100.
+
+## 2026-07-24 — REQ-AST-010 entity deletion (→ IN_REVIEW) — USER request with screenshot
+**Done:** "please allow me deleting assets" → per-ref ✕ (works on dangling ids — no validation, that IS the cleanup case) + "✕ archive" per entity (soft; leaves library AND project casts via new listProjectEntities filter). Red-first int tests 2/2; browser-verified end-to-end: clicking ✕ on Pasi's broken ref removed it through the real UI (DB: refAssetIds={}), card now shows the "no refs — designs will drift" hint. Assets never deleted (INV-AST-003).
+**Decisions:** removal over destruction everywhere; last-ref removal allowed with an honest drift warning.
+**Deferred:** add-ref to existing entity (Pasi needs a photo re-upload — currently ref-less); unarchive UI.
+**Discovered:** transient "action not defined" browser error during hot-reload mid-edit — stale chunk, gone on fresh load.
+**Follow-ups:** user uploads a Pasi photo (new entity or wait for add-ref). **Gate:** full suite green, tsc clean.

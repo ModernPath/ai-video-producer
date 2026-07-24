@@ -1,11 +1,12 @@
 # Requirements Ledger — AST (Asset Library)
 
 ## Dashboard — AST (Asset Library)
-Totals: 8 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 8 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-AST-001 | Object storage put/get round-trip | P1 | DONE | INV-AST-002 | tests/storage.int.spec.ts | src/storage.ts |
+| REQ-AST-010 | Entity deletion: remove refs (incl. dangling) + soft archive | P7 | IN_REVIEW | USER 2026-07-24 "please allow me deleting assets" (library screenshot, broken Pasi ref) | tests/entities.int.spec.ts REQ-AST-010 block + browser (real click removed the dangling ref) | entities.ts removeEntityRef/archiveEntity + cast filter, library UI ✕ buttons, actions |
 | REQ-AST-002 | Generated assets carry real validated bytes | P1 | DONE | INV-AST-002 | tests/generated-bytes.int.spec.ts | ../gen/src/executor.ts, ../gen/src/fixtures.ts |
 | REQ-AST-003 | Assets served to UI via streaming route | P1 | DONE | `docs/12` §5 | browser E2E (LOG 2026-07-23) | apps/web/app/api/assets/[id]/route.ts |
 | REQ-AST-004 | Uploads (presigned + direct) with validation | P3 | DONE | INV-AST-005 | tests/uploads.int.spec.ts + browser E2E | src/uploads.ts |
@@ -96,3 +97,15 @@ Totals: 8 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
 - **Deferred / notes:** existing 12 dev assets backfilled; config.derivative in shared config.
 
 *(PROPOSED 008: statement in `docs/12-asset-library.md`; elaborate when promoted.)*
+
+### REQ-AST-010 — Entity deletion (refs + archive)
+- **Status:** IN_REVIEW  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
+- **Raised-by:** USER 2026-07-24: "please allow me deleting assets" — library screenshot showed the broken Pasi ref with no removal affordance
+- **Source:** INV-AST-003 (originals immortal — deletion is reference removal / soft archive, never asset destruction)
+- **Statement:** Each entity ref thumb carries a ✕ that removes it from the entity (dangling ids included — no asset validation, that's the cleanup case); each entity card carries "✕ archive" which soft-archives it out of the library AND all project casts; asset rows are never deleted; removing the last ref is allowed with a "designs will drift" hint.
+- **Acceptance criteria:**
+  - GIVEN a dangling ref id WHEN removed THEN it leaves refAssetIds; GIVEN the last ref removed THEN refAssetIds=[] and the asset row survives (int test).
+  - GIVEN an archived entity THEN it disappears from listEntities AND listProjectEntities — prompts stop carrying it (int test).
+  - GIVEN the library page WHEN clicking a ref's ✕ THEN the ref disappears (browser-verified on the real Pasi dangling ref; DB shows {}).
+- **Tests:** `tests/entities.int.spec.ts` REQ-AST-010 block + browser E2E · **Code:** `src/entities.ts` (removeEntityRef, archiveEntity, listProjectEntities filter), `apps/web/app/library/page.tsx`, `apps/web/app/actions.ts` · **Log:** LOG 2026-07-24
+- **Deferred / notes:** adding refs to an EXISTING entity (re-upload) not yet built — Pasi currently has zero refs until the user uploads a photo via a new entity or we ship add-ref; unarchive UI also deferred (DB flag only).

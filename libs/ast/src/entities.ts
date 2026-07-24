@@ -61,8 +61,30 @@ export async function listProjectEntities(db: Db, projectId: string) {
     .select({ e: entity })
     .from(projectEntity)
     .innerJoin(entity, eq(projectEntity.entityId, entity.id))
-    .where(eq(projectEntity.projectId, projectId));
+    // REQ-AST-010: archived entities leave prompts too, not just the library listing
+    .where(and(eq(projectEntity.projectId, projectId), isNull(entity.archivedAt)));
   return rows.map((r) => r.e);
+}
+
+/**
+ * REQ-AST-010 — remove one reference image from an entity. Deliberately does NOT validate the
+ * asset id: the main use case is cleaning up dangling refs (asset row gone). The asset itself
+ * is never touched (INV-AST-003 — originals immortal); removing the last ref is allowed, the
+ * entity just loses its design anchor until a new ref is added.
+ */
+export async function removeEntityRef(db: Db, input: { entityId: string; assetId: string }): Promise<void> {
+  const [e] = await db.select().from(entity).where(eq(entity.id, input.entityId));
+  if (!e) throw new AstValidationError("not_found", "Entity not found");
+  await db.update(entity)
+    .set({ refAssetIds: (e.refAssetIds ?? []).filter((id) => id !== input.assetId) })
+    .where(eq(entity.id, input.entityId));
+}
+
+/** REQ-AST-010 — soft archive: hides the entity from the library and from every project cast. */
+export async function archiveEntity(db: Db, input: { entityId: string }): Promise<void> {
+  const [e] = await db.select().from(entity).where(eq(entity.id, input.entityId));
+  if (!e) throw new AstValidationError("not_found", "Entity not found");
+  await db.update(entity).set({ archivedAt: new Date() }).where(eq(entity.id, input.entityId));
 }
 
 /** BR-AST-005: swap an entity ref for its edited version (original asset remains, lineage preserved). */

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { listEntities, listStyleKits } from "@avd/ast";
 import { createStyleKitAction, devOrgId } from "../actions";
-import { createEntityAction, editEntityRefAction } from "../actions";
+import { archiveEntityAction, createEntityAction, editEntityRefAction, removeEntityRefAction } from "../actions";
 import { SubmitButton } from "../../components/SubmitButton";
 import { ImagePicker } from "../../components/ImagePicker";
 import { db } from "../../lib/db";
@@ -51,14 +51,30 @@ export default async function LibraryPage() {
       <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, marginTop: 18 }}>
         {entities.map((e) => (
           <div key={e.id} style={card}>
-            <p className="mono muted" style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.1em" }}>{e.kind}</p>
+            <div style={{ display: "flex", alignItems: "baseline" }}>
+              <p className="mono muted" style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.1em" }}>{e.kind}</p>
+              {/* REQ-AST-010: soft archive — leaves the library and every project cast; assets untouched */}
+              <form action={archiveEntityAction} style={{ marginLeft: "auto" }}>
+                <input type="hidden" name="entityId" value={e.id} />
+                <SubmitButton small pendingLabel="Archiving…" title="Archive this entity — removed from the library and all project casts; its images are kept">✕ archive</SubmitButton>
+              </form>
+            </div>
             <p style={{ fontWeight: 600, marginTop: 2 }}>{e.name}</p>
             <p className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>{e.description}</p>
             <div style={{ display: "flex", gap: 5, marginTop: 8 }}>
               {e.refAssetIds.map((rid) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img key={rid} src={`/api/assets/${rid}`} alt="" style={{ width: 38, height: 38, borderRadius: 6, objectFit: "cover", border: "1px solid var(--line)" }} />
+                <div key={rid} style={{ position: "relative" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/api/assets/${rid}`} alt="" style={{ width: 38, height: 38, borderRadius: 6, objectFit: "cover", border: "1px solid var(--line)" }} />
+                  {/* REQ-AST-010: remove a ref (works on dangling/broken refs too) */}
+                  <form action={removeEntityRefAction} style={{ position: "absolute", top: -6, right: -6 }}>
+                    <input type="hidden" name="entityId" value={e.id} />
+                    <input type="hidden" name="assetId" value={rid} />
+                    <SubmitButton small pendingLabel="…" title="Remove this reference image from the entity (the image itself is kept)" style={{ padding: "0 4px", fontSize: 9, lineHeight: "14px", borderRadius: 7 }}>✕</SubmitButton>
+                  </form>
+                </div>
               ))}
+              {e.refAssetIds.length === 0 && <span className="muted" style={{ fontSize: 10 }}>no refs — designs will drift; add one via a new entity or AI edit</span>}
             </div>
             <form action={editEntityRefAction} style={{ display: "flex", gap: 6, marginTop: 10 }}>
               <input type="hidden" name="entityId" value={e.id} />
