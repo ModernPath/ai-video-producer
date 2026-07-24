@@ -138,6 +138,9 @@ importers:
 
   libs/asm:
     dependencies:
+      '@avd/anm':
+        specifier: workspace:*
+        version: link:../anm
       '@avd/ast':
         specifier: workspace:*
         version: link:../ast

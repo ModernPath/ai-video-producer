@@ -18,6 +18,7 @@
     "@avd/stb": "workspace:*",
     "@avd/gen": "workspace:*",
     "@avd/plt": "workspace:*",
-    "@avd/prj": "workspace:*"
+    "@avd/prj": "workspace:*",
+    "@avd/anm": "workspace:*"
   }
 }

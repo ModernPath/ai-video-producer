@@ -8,7 +8,7 @@ Totals: 3 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 | REQ-ANM-001 | Title-card animation takes (pure Remotion scenes) | P6 | DONE | USER Remotion epic 2026-07-23 | tests/render.int.spec.ts (RUN_RENDER) + real chain + browser | src/*, gen executor branch, migration 0018, ✦ Animate UI |
 | REQ-ANM-002 | Animation overlays on generated shots | P6 | DONE | USER Remotion epic | anm render test (alpha webm) + stb overlay.int + real composite frame | LowerThird.tsx, composite.ts, executor overlay path, ✦ per-take UI |
 | REQ-ANM-004 | Effects library (noise, light leaks, text highlights, …) | P6 | DONE | USER 2026-07-23 | render test + frame proof | src/effects.tsx, TitleCard composition, render prop passthrough |
-| REQ-ANM-003 | Caption/lyric overlays from MM:SS transcripts (slice 1: template) | P6 | IN_REVIEW | USER Remotion epic + REQ-GEN-020 | tests/render.int.spec.ts REQ-ANM-003 + composite frame proof | src/Captions.tsx, Root/render wiring (transparent) |
+| REQ-ANM-003 | Caption/lyric overlays from MM:SS transcripts (slices 1+2) | P6 | IN_REVIEW | USER Remotion epic + REQ-GEN-020 | render.int + asm/tests/animated-captions.int.spec.ts (full export) + captions.spec cues | Captions.tsx + asm transcriptToCues/captionStyle path + UI option |
 
 ### REQ-ANM-001 — Title-card animation takes
 - **Status:** DONE · **Stage:** P6 · **Priority:** should · **Owner:** —
@@ -56,4 +56,5 @@ Totals: 3 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
   - GIVEN cues over a 6s duration THEN renderAnimation(template:"captions") returns an alpha webm of that duration (RUN_RENDER test).
   - GIVEN a real take THEN the composite shows the cue rendered at its window (frame-proofed on the KAIJU alley shot).
 - **Tests:** `tests/render.int.spec.ts` REQ-ANM-003 block + composite frame proof · **Code:** `src/Captions.tsx`, `src/Root.tsx`, `src/render.ts` (template union + transparent set) · **Log:** LOG 2026-07-24
-- **Deferred / notes:** slice 2 = wiring: transcript→cues parser (asm-side, near transcriptToSrt), export-time "captions: animated" option beside the burned path, and per-take overlay UI. Word-level karaoke timing out of scope until word timestamps exist.
+- **Slice 2 (same day):** `transcriptToCues` is the single timing source (SRT derives from it — timings can't drift); `createSnapshot` accepts `captionStyle:"animated"`; the export's caption pass renders the Captions overlay and composites it over the cut instead of the libass burn; UI gained "captions: lyrics · animated"; driver export stage takes a captions arg. Evidence: gated full-export int test (mock take + early lyric line → composited final) + real harbor export exercising the honest empty-cues fallthrough (its transcript is section-labels only).
+- **Deferred / notes:** per-take overlay UI; word-level karaoke timing (needs word timestamps).

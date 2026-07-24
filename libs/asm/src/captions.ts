@@ -16,11 +16,22 @@ function fmt(t: number): string {
   return `${pad(h)}:${pad(m)}:${pad(s)},${pad(ms, 3)}`;
 }
 
-export function transcriptToSrt(
+export interface TimedCue {
+  startS: number;
+  endS: number;
+  text: string;
+}
+
+/**
+ * REQ-ANM-003 slice 2 — the single timing source for captions: [MM:SS] lines → timed cues
+ * (end = next cue's start, capped at the cut). SRT burn and the animated Remotion overlay
+ * both derive from this, so their timings can never drift apart.
+ */
+export function transcriptToCues(
   transcript: string,
   totalDurationS: number,
   opts: { lyricsOnly?: boolean } = {}
-): string {
+): TimedCue[] {
   const cues: Cue[] = [];
   for (const raw of transcript.split("\n")) {
     const m = LINE.exec(raw.trim());
@@ -36,11 +47,19 @@ export function transcriptToSrt(
     cues.push({ startS, text });
   }
   const visible = cues.filter((c) => c.startS < totalDurationS);
-  return visible
-    .map((c, i) => {
-      const next = visible[i + 1];
-      const endS = Math.min(next?.startS ?? totalDurationS, totalDurationS);
-      return `${i + 1}\n${fmt(c.startS)} --> ${fmt(endS)}\n${c.text}\n`;
-    })
+  return visible.map((c, i) => ({
+    startS: c.startS,
+    endS: Math.min(visible[i + 1]?.startS ?? totalDurationS, totalDurationS),
+    text: c.text,
+  }));
+}
+
+export function transcriptToSrt(
+  transcript: string,
+  totalDurationS: number,
+  opts: { lyricsOnly?: boolean } = {}
+): string {
+  return transcriptToCues(transcript, totalDurationS, opts)
+    .map((c, i) => `${i + 1}\n${fmt(c.startS)} --> ${fmt(c.endS)}\n${c.text}\n`)
     .join("\n");
 }

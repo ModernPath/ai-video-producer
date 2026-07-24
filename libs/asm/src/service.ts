@@ -34,7 +34,7 @@ export interface SnapshotItem {
 
 export async function createSnapshot(
   db: Db,
-  input: { projectId: string; principal: string; excludeShotIds?: string[]; burnCaptions?: boolean; captionSource?: "lyrics" | "dialogue" }
+  input: { projectId: string; principal: string; excludeShotIds?: string[]; burnCaptions?: boolean; captionSource?: "lyrics" | "dialogue"; captionStyle?: "burned" | "animated" }
 ): Promise<string> {
   const status = await getProjectStatus(db, input.projectId); // BR-PRJ-003: archived projects are read-only
   if (status === "archived") throw new AsmValidationError("project_archived", "Project is archived — unarchive to export");
@@ -100,6 +100,7 @@ export async function createSnapshot(
     captionSource: input.burnCaptions ? (input.captionSource ?? "lyrics") : null,
     burnCaptions: Boolean(input.burnCaptions && (input.captionSource === "dialogue" || mb?.transcript)),
     transcript: input.burnCaptions && (input.captionSource ?? "lyrics") === "lyrics" ? (mb?.transcript ?? null) : null,
+    captionStyle: input.burnCaptions ? (input.captionStyle ?? "burned") : null, // REQ-ANM-003 slice 2
   };
 
   const id = uuidv7();
@@ -230,7 +231,7 @@ async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Pro
     }
 
     await db.update(exportJob).set({ progressStage: "concat" }).where(eq(exportJob.id, job.id));
-    const audio = (snap!.audio ?? {}) as { mixMode?: string; musicAssetId?: string | null; duckDb?: number; fadeOutS?: number; burnCaptions?: boolean; transcript?: string | null; captionSource?: "lyrics" | "dialogue" | null };
+    const audio = (snap!.audio ?? {}) as { mixMode?: string; musicAssetId?: string | null; duckDb?: number; fadeOutS?: number; burnCaptions?: boolean; transcript?: string | null; captionSource?: "lyrics" | "dialogue" | null; captionStyle?: "burned" | "animated" | null };
     const needsMusic = (audio.mixMode === "music" || audio.mixMode === "mix") && audio.musicAssetId;
     const needsCaptions = Boolean(audio.burnCaptions && (audio.transcript || audio.captionSource === "dialogue"));
     const afterMusicName = needsCaptions ? "precap.mp4" : "final.mp4";
@@ -278,6 +279,28 @@ async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Pro
         const { transcribeAudio } = await import("@avd/gen");
         transcriptText = await transcribeAudio(new Uint8Array(readFileSync(join(dir, "dialogue.mp3"))), "audio/mpeg");
       }
+      if (audio.captionStyle === "animated" && transcriptText) {
+        // REQ-ANM-003 slice 2: Remotion-animated captions — cue-timed alpha overlay composited
+        // over the whole cut, instead of the static libass burn. Same timing source as SRT.
+        const { transcriptToCues } = await import("./captions");
+        const cues = transcriptToCues(transcriptText, cutS, { lyricsOnly: audio.captionSource !== "dialogue" });
+        if (cues.length) {
+          const { renderAnimation } = await import("@avd/anm/render");
+          const { compositeOverlay } = await import("@avd/anm/composite");
+          const overlay = await renderAnimation({
+            template: "captions", text: "", cues, durationS: cutS, aspectRatio: "16:9",
+          });
+          const composed = await compositeOverlay({
+            videoBytes: new Uint8Array(readFileSync(join(dir, "precap.mp4"))),
+            overlayWebmBytes: overlay.bytes,
+            durationS: cutS,
+          });
+          writeFileSync(join(dir, "final.mp4"), Buffer.from(composed.bytes));
+        } else {
+          copyFileSync(join(dir, "precap.mp4"), join(dir, "final.mp4"));
+        }
+        // fall through to store below
+      } else {
       const srt = transcriptText ? transcriptToSrt(transcriptText, cutS) : "";
       if (srt) {
         writeFileSync(join(dir, "caps.srt"), srt);
@@ -292,6 +315,7 @@ async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Pro
       } else {
         copyFileSync(join(dir, "precap.mp4"), join(dir, "final.mp4"));
       }
+      } // end burned-style branch (REQ-ANM-003)
     }
 
     const outBytes = new Uint8Array(readFileSync(join(dir, "final.mp4")));

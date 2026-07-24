@@ -180,6 +180,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             <select name="captions" className="mono" title="Burned captions: lyrics uses the track transcript; dialogue transcribes the export's own audio" style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: 6, padding: "3px 5px", color: "var(--ink)", fontSize: 10 }}>
               <option value="">captions: off</option>
               <option value="lyrics">captions: lyrics</option>
+              <option value="lyrics-animated">captions: lyrics · animated</option>
               <option value="dialogue">captions: dialogue</option>
             </select>
             <SubmitButton primary disabled={shots.length === 0} pendingLabel="Exporting…">
@@ -193,6 +194,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             <select name="captions" className="mono" title="Burned captions: lyrics uses the track transcript; dialogue transcribes the export's own audio" style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: 6, padding: "3px 5px", color: "var(--ink)", fontSize: 10 }}>
               <option value="">captions: off</option>
               <option value="lyrics">captions: lyrics</option>
+              <option value="lyrics-animated">captions: lyrics · animated</option>
               <option value="dialogue">captions: dialogue</option>
             </select>
             <SubmitButton primary disabled={generated === 0} pendingLabel="Exporting…">

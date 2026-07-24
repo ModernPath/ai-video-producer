@@ -47,3 +47,10 @@
 **Decisions:** cue timing is line-level (word-level karaoke needs word timestamps we don't have); template stays pure props — transcript parsing belongs to the caller (slice 2, asm-side).
 **Deferred:** slice 2 wiring (transcript→cues, export option, per-take UI) — recorded in the ledger row.
 **Discovered:** — **Follow-ups:** — **Gate:** full suite + render ring + tsc green.
+
+## 2026-07-24 — REQ-ANM-003 slice 2: animated captions reach the export
+**Done:** `transcriptToCues` extracted as the single caption-timing source (transcriptToSrt now derives from it — red-first 7/7); snapshot carries `captionStyle: "burned"|"animated"`; the export caption pass branches: animated → render Captions alpha webm for the whole cut + compositeOverlay onto precap (asm gained the @avd/anm dep, same pattern as gen); UI export select gained "captions: lyrics · animated"; driver export stage takes the captions arg. Evidence: RUN_RENDER full-export int test green (mock take + early lyric → composited final.mp4); real harbor re-export exercised the empty-cues fallthrough honestly (transcript is section-labels only — no lyrics to caption, clean copy path).
+**Decisions:** burned stays the default; animated is opt-in per export.
+**Deferred:** per-take overlay UI; karaoke word timing.
+**Discovered:** instrumental-leaning transcripts (section labels only) are common — the lyric-video archetype is where animated captions shine; noted for the next full production.
+**Follow-ups:** — **Gate:** 165 passed + gated rings, tsc clean.

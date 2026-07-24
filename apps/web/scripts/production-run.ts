@@ -204,7 +204,14 @@ async function main() {
   } else if (stage === "export") {
     const p = await proj(args[0]!);
     const { createSnapshot, queueExport, runNextExport } = await import("@avd/asm");
-    const snapshotId = await createSnapshot(db, { projectId: p.id, principal: PRINCIPAL });
+    // optional 2nd arg: lyrics | lyrics-animated | dialogue (REQ-ASM-009/REQ-ANM-003)
+    const cap = args[1];
+    const snapshotId = await createSnapshot(db, {
+      projectId: p.id, principal: PRINCIPAL,
+      ...(cap ? { burnCaptions: true } : {}),
+      ...(cap === "dialogue" ? { captionSource: "dialogue" as const } : {}),
+      ...(cap === "lyrics-animated" ? { captionStyle: "animated" as const } : {}),
+    });
     const jobId = await queueExport(db, { projectId: p.id, snapshotId, principal: PRINCIPAL });
     await runNextExport(db, { organizationId: p.organizationId });
     const { exportJob } = await import("@avd/asm/schema");

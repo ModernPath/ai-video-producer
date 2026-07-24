@@ -131,10 +131,12 @@ export async function exportAction(formData: FormData) {
   const [p] = await db().select().from(project).where(eq(project.id, projectId));
   if (!p) return;
   const excludeRaw = String(formData.get("excludeShotIds") ?? "").trim();
+  const captionsChoice = String(formData.get("captions") ?? "");
   const snapshotId = await createSnapshot(db(), {
     projectId, principal: PRINCIPAL,
-    burnCaptions: formData.get("captions") === "lyrics" || formData.get("captions") === "dialogue", // REQ-ASM-009
-    ...(formData.get("captions") === "dialogue" ? { captionSource: "dialogue" as const } : {}), // REQ-GEN-021
+    burnCaptions: ["lyrics", "lyrics-animated", "dialogue"].includes(captionsChoice), // REQ-ASM-009
+    ...(captionsChoice === "dialogue" ? { captionSource: "dialogue" as const } : {}), // REQ-GEN-021
+    ...(captionsChoice === "lyrics-animated" ? { captionStyle: "animated" as const } : {}), // REQ-ANM-003 slice 2
     ...(excludeRaw ? { excludeShotIds: excludeRaw.split(",") } : {}),
   });
   const jobId = await queueExport(db(), { projectId, snapshotId, principal: PRINCIPAL });
