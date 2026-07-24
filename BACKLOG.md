@@ -205,3 +205,10 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 - BR-PRJ-003 export guard + costMeterUsd header → DROPPED as stale, both verified shipped: `asm/service.ts:39` throws `project_archived` on export snapshot; `page.tsx:68` uses `costMeterUsd` (succeeded+running only).
 **Remaining:** 1 item (Pasi dangling ref — user-data decision).
 **Notes:** ledger has 0 READY / 4 deliberately-parked PROPOSED; loop enters steady state pending user sign-off or new direction.
+
+## 2026-07-24 — USER decisions executed (route + entity)
+**Routed:**
+- "switch to omni" → GEN_VIDEO_ROUTE=omni in apps/web/.env.local, dev server restarted; browser-verified: route badge omni, 10s take ≈ $1.01 native, 6s ≈ $0.61 (token rate). Worker unchanged by design — route resolves at enqueue in the web tier.
+- "fix kind" → KAIJU Can entity kind character→product (label-fidelity guidance now triggers).
+- "use the dragon frame as ref" → entity ref now the dragon-emblem hero frame (asset 019f92ad-…); description de-tainted ("claw logo" wording → "original black kaiju-dragon emblem") — the phrase that caused the Monster drift is gone from entity data too.
+**Remaining user-gated:** batch sign-off (78 IN_REVIEW) · Pasi ref re-upload · films/takes review · parked PROPOSED priorities.
