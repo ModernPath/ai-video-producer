@@ -1,11 +1,12 @@
 # Requirements Ledger — AST (Asset Library)
 
 ## Dashboard — AST (Asset Library)
-Totals: 8 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 8 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-AST-001 | Object storage put/get round-trip | P1 | DONE | INV-AST-002 | tests/storage.int.spec.ts | src/storage.ts |
+| REQ-AST-011 | Add refs to an existing entity (upload, cap-guarded) | P7 | IN_REVIEW | REQ-AST-010 deferral (ref-less Pasi needs a way back) | tests/entities.int.spec.ts REQ-AST-011 block + browser (control renders) | entities.ts addEntityRefs, addEntityRefsAction, library ＋ Add refs UI |
 | REQ-AST-010 | Entity deletion: remove refs (incl. dangling) + soft archive | P7 | IN_REVIEW | USER 2026-07-24 "please allow me deleting assets" (library screenshot, broken Pasi ref) | tests/entities.int.spec.ts REQ-AST-010 block + browser (real click removed the dangling ref) | entities.ts removeEntityRef/archiveEntity + cast filter, library UI ✕ buttons, actions |
 | REQ-AST-002 | Generated assets carry real validated bytes | P1 | DONE | INV-AST-002 | tests/generated-bytes.int.spec.ts | ../gen/src/executor.ts, ../gen/src/fixtures.ts |
 | REQ-AST-003 | Assets served to UI via streaming route | P1 | DONE | `docs/12` §5 | browser E2E (LOG 2026-07-23) | apps/web/app/api/assets/[id]/route.ts |
@@ -109,3 +110,15 @@ Totals: 8 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEF
   - GIVEN the library page WHEN clicking a ref's ✕ THEN the ref disappears (browser-verified on the real Pasi dangling ref; DB shows {}).
 - **Tests:** `tests/entities.int.spec.ts` REQ-AST-010 block + browser E2E · **Code:** `src/entities.ts` (removeEntityRef, archiveEntity, listProjectEntities filter), `apps/web/app/library/page.tsx`, `apps/web/app/actions.ts` · **Log:** LOG 2026-07-24
 - **Deferred / notes:** adding refs to an EXISTING entity (re-upload) not yet built — Pasi currently has zero refs until the user uploads a photo via a new entity or we ship add-ref; unarchive UI also deferred (DB flag only).
+
+### REQ-AST-011 — Add refs to an existing entity
+- **Status:** IN_REVIEW  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
+- **Raised-by:** REQ-AST-010 deferral — removal shipped without re-add, leaving cleaned-up entities (Pasi) permanently ref-less
+- **Source:** INV-AST-004 (1–5 refs; cap applies to the combined set)
+- **Statement:** Entity cards below the cap offer "＋ Add refs": uploaded images append to refAssetIds; a ref-less entity regains its design anchor; exceeding the cap or non-ready assets are rejected.
+- **Acceptance criteria:**
+  - GIVEN a ref-less entity WHEN adding a ready image THEN refAssetIds has 1 (int test: full remove→add round trip).
+  - GIVEN an entity at the cap THEN adding is rejected naming the bounds and the UI hides the control; non-ready assets rejected (int test).
+  - GIVEN the library page THEN cards below the cap render the upload control (browser-verified on the ref-less Pasi card).
+- **Tests:** `tests/entities.int.spec.ts` REQ-AST-011 block + browser · **Code:** `src/entities.ts` addEntityRefs, `apps/web/app/actions.ts` addEntityRefsAction, `apps/web/app/library/page.tsx` · **Log:** LOG 2026-07-24
+- **Deferred / notes:** actual Pasi photo upload is the user's move (their likeness, their file).

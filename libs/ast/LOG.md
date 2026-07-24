@@ -74,3 +74,9 @@
 **Deferred:** add-ref to existing entity (Pasi needs a photo re-upload — currently ref-less); unarchive UI.
 **Discovered:** transient "action not defined" browser error during hot-reload mid-edit — stale chunk, gone on fresh load.
 **Follow-ups:** user uploads a Pasi photo (new entity or wait for add-ref). **Gate:** full suite green, tsc clean.
+
+## 2026-07-24 — REQ-AST-011 add refs to an existing entity (→ IN_REVIEW)
+**Done:** the REQ-AST-010 deferral closed same-day: `addEntityRefs` appends uploaded ready images under the INV-AST-004 cap (combined count), red-first 2/2 incl. the full remove-to-zero→add-back round trip; "＋ Add refs" control on every card below the cap (hidden at 5), browser-verified on the ref-less Pasi card; stale "add one via a new entity" hint corrected to point at the control.
+**Decisions:** cap validates the COMBINED set; upload path reuses uploadBytesDirect (client-shrunk like entity creation).
+**Deferred:** — **Discovered:** — **Follow-ups:** Pasi's actual photo upload is the user's move.
+**Gate:** full suite green, tsc clean.

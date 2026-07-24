@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { listEntities, listStyleKits } from "@avd/ast";
+import { config } from "@avd/shared/config";
 import { createStyleKitAction, devOrgId } from "../actions";
-import { archiveEntityAction, createEntityAction, editEntityRefAction, removeEntityRefAction } from "../actions";
+import { addEntityRefsAction, archiveEntityAction, createEntityAction, editEntityRefAction, removeEntityRefAction } from "../actions";
 import { SubmitButton } from "../../components/SubmitButton";
 import { ImagePicker } from "../../components/ImagePicker";
 import { db } from "../../lib/db";
@@ -74,14 +75,24 @@ export default async function LibraryPage() {
                   </form>
                 </div>
               ))}
-              {e.refAssetIds.length === 0 && <span className="muted" style={{ fontSize: 10 }}>no refs — designs will drift; add one via a new entity or AI edit</span>}
+              {e.refAssetIds.length === 0 && <span className="muted" style={{ fontSize: 10 }}>no refs — designs will drift; add one below</span>}
             </div>
-            <form action={editEntityRefAction} style={{ display: "flex", gap: 6, marginTop: 10 }}>
-              <input type="hidden" name="entityId" value={e.id} />
-              <input type="hidden" name="refAssetId" value={e.refAssetIds[0]} />
-              <input name="instruction" placeholder="AI-edit ref 1… (e.g. make it night)" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "5px 8px", color: "var(--ink)", fontSize: 11, flex: 1 }} />
-              <SubmitButton small pendingLabel="Editing…">✎ Edit</SubmitButton>
-            </form>
+            {/* REQ-AST-011: append refs (up to the INV-AST-004 cap) — the way back from ref-less */}
+            {e.refAssetIds.length < config.entity.maxRefs && (
+              <form action={addEntityRefsAction} style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "center" }}>
+                <input type="hidden" name="entityId" value={e.id} />
+                <ImagePicker name="refs" multiple />
+                <SubmitButton small pendingLabel="Uploading…" title={`Add reference images (max ${config.entity.maxRefs} total)`}>＋ Add refs</SubmitButton>
+              </form>
+            )}
+            {e.refAssetIds.length > 0 && (
+              <form action={editEntityRefAction} style={{ display: "flex", gap: 6, marginTop: 10 }}>
+                <input type="hidden" name="entityId" value={e.id} />
+                <input type="hidden" name="refAssetId" value={e.refAssetIds[0]} />
+                <input name="instruction" placeholder="AI-edit ref 1… (e.g. make it night)" style={{ background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "5px 8px", color: "var(--ink)", fontSize: 11, flex: 1 }} />
+                <SubmitButton small pendingLabel="Editing…">✎ Edit</SubmitButton>
+              </form>
+            )}
           </div>
         ))}
         {entities.length === 0 && <p className="muted" style={{ fontSize: 12 }}>No entities yet.</p>}

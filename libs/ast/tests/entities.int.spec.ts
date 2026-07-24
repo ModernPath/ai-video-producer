@@ -5,7 +5,7 @@ import { createDb } from "@avd/shared/db";
 import { organization } from "@avd/plt/schema";
 import { project } from "@avd/prj/schema";
 import { asset, entity, projectEntity } from "../src/schema";
-import { AstValidationError, archiveEntity, attachEntities, createEntity, listEntities, listProjectEntities, removeEntityRef, updateEntityRef } from "../src/entities";
+import { AstValidationError, addEntityRefs, archiveEntity, attachEntities, createEntity, listEntities, listProjectEntities, removeEntityRef, updateEntityRef } from "../src/entities";
 import { migrate } from "../../../scripts/migrate";
 
 // REQ-AST-006 — entity library (requires compose pg).
@@ -120,5 +120,55 @@ describe("REQ-AST-010: entity deletion (refs + archive)", () => {
     expect(lib.find((e) => e.id === entityId)).toBeUndefined();
     const cast = await listProjectEntities(db, projectId);
     expect(cast.find((e) => e.id === entityId)).toBeUndefined();
+  });
+});
+
+// REQ-AST-011 — add refs to an EXISTING entity (pairs with REQ-AST-010 removal; a ref-less
+// entity like the cleaned-up Pasi needs a way back to having a design anchor).
+describe("REQ-AST-011: add refs to an existing entity", () => {
+  const { db, client } = createDb();
+  const orgId = uuidv7();
+  let entityId: string;
+  const mkAsset = async (status: "ready" | "pending") => {
+    const id = uuidv7();
+    await db.insert(asset).values({
+      id, organizationId: orgId, projectId: null, kind: "image", source: "uploaded",
+      status, storageKey: `test/add-${id}.png`, mime: "image/png", bytes: 10,
+    });
+    return id;
+  };
+
+  beforeAll(async () => {
+    await migrate();
+    await db.insert(organization).values({ id: orgId, name: "AddRef Org" });
+    entityId = await createEntity(db, { organizationId: orgId, kind: "person", name: "Add Person", description: "d", refAssetIds: [await mkAsset("ready")] });
+  });
+  afterAll(async () => {
+    await db.delete(entity).where(eq(entity.organizationId, orgId));
+    await db.delete(asset).where(eq(asset.organizationId, orgId));
+    await db.delete(organization).where(eq(organization.id, orgId));
+    await client.end();
+  });
+
+  it("appends new ready refs; a ref-less entity regains its anchor", async () => {
+    const extra = await mkAsset("ready");
+    await addEntityRefs(db, { entityId, assetIds: [extra] });
+    let [e] = await db.select().from(entity).where(eq(entity.id, entityId));
+    expect(e!.refAssetIds).toHaveLength(2);
+    await removeEntityRef(db, { entityId, assetId: e!.refAssetIds[0]! });
+    await removeEntityRef(db, { entityId, assetId: e!.refAssetIds[1]! });
+    await addEntityRefs(db, { entityId, assetIds: [await mkAsset("ready")] }); // from zero back to one
+    [e] = await db.select().from(entity).where(eq(entity.id, entityId));
+    expect(e!.refAssetIds).toHaveLength(1);
+  });
+
+  it("rejects exceeding the cap and non-ready assets (INV-AST-004)", async () => {
+    const fillers = await Promise.all([1, 2, 3, 4].map(() => mkAsset("ready")));
+    await addEntityRefs(db, { entityId, assetIds: fillers }); // now at 5 = cap
+    await expect(addEntityRefs(db, { entityId, assetIds: [await mkAsset("ready")] })).rejects.toThrow(/reference images/);
+    const [e] = await db.select().from(entity).where(eq(entity.id, entityId));
+    expect(e!.refAssetIds).toHaveLength(5);
+    await removeEntityRef(db, { entityId, assetId: e!.refAssetIds[0]! });
+    await expect(addEntityRefs(db, { entityId, assetIds: [await mkAsset("pending")] })).rejects.toThrow(/ready image/);
   });
 });

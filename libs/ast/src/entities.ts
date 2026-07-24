@@ -80,6 +80,28 @@ export async function removeEntityRef(db: Db, input: { entityId: string; assetId
     .where(eq(entity.id, input.entityId));
 }
 
+/**
+ * REQ-AST-011 — append reference images to an existing entity (the way back from ref-less
+ * after REQ-AST-010 removal). Combined count must respect INV-AST-004's cap; new refs must
+ * be ready image assets.
+ */
+export async function addEntityRefs(db: Db, input: { entityId: string; assetIds: string[] }): Promise<void> {
+  const [e] = await db.select().from(entity).where(eq(entity.id, input.entityId));
+  if (!e) throw new AstValidationError("not_found", "Entity not found");
+  const combined = [...(e.refAssetIds ?? []), ...input.assetIds];
+  const max = config.entity.maxRefs;
+  if (input.assetIds.length < 1 || combined.length > max) {
+    throw new AstValidationError("validation_failed", `An entity needs between 1 and ${max} reference images`); // INV-AST-004
+  }
+  const refs = await db.select().from(asset).where(inArray(asset.id, input.assetIds));
+  const bad = input.assetIds.filter((id) => {
+    const a = refs.find((r) => r.id === id);
+    return !a || a.status !== "ready" || a.kind !== "image";
+  });
+  if (bad.length) throw new AstValidationError("validation_failed", "Every reference must be a ready image asset");
+  await db.update(entity).set({ refAssetIds: combined }).where(eq(entity.id, input.entityId));
+}
+
 /** REQ-AST-010 — soft archive: hides the entity from the library and from every project cast. */
 export async function archiveEntity(db: Db, input: { entityId: string }): Promise<void> {
   const [e] = await db.select().from(entity).where(eq(entity.id, input.entityId));

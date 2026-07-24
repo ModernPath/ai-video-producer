@@ -564,3 +564,21 @@ export async function archiveEntityAction(formData: FormData) {
   await archiveEntity(db(), { entityId: String(formData.get("entityId")) });
   revalidatePath("/library");
 }
+
+/** REQ-AST-011: upload + append reference images to an existing entity. */
+export async function addEntityRefsAction(formData: FormData) {
+  const { uploadBytesDirect, addEntityRefs } = await import("@avd/ast");
+  const entityId = String(formData.get("entityId"));
+  const files = formData.getAll("refs").filter((f): f is File => f instanceof File && f.size > 0);
+  if (!files.length) return;
+  const orgId = await devOrgId();
+  const assetIds: string[] = [];
+  for (const f of files) {
+    assetIds.push(await uploadBytesDirect(db(), {
+      organizationId: orgId, projectId: null, kind: "image",
+      mime: f.type || "image/png", bytes: new Uint8Array(await f.arrayBuffer()),
+    }));
+  }
+  await addEntityRefs(db(), { entityId, assetIds });
+  revalidatePath("/library");
+}
