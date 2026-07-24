@@ -180,3 +180,9 @@
 **Discovered:** pre-existing red in `libs/stb/tests/shot-refs-and-first-frames.int.spec.ts` (references `updateShotRefs`, not yet exported from stb — another slice in flight; fails on clean tree too). Not touched per boundary rules.
 **Follow-ups:** claim path is not concurrency-safe across parallel workers (no `FOR UPDATE SKIP LOCKED`) — consistent with existing single-claimer executor; captured as REQ-GEN-018 (PROPOSED, P5 enabler).
 **Gate:** `libs/gen` suite green (concurrency 4/4 + all prior); full suite green except the 2 pre-existing stb reds noted above.
+
+## 2026-07-24 — REQ-GEN-018 race-safe claim (PROPOSED → IN_REVIEW) — loop restarted on the ledger
+**Done:** USER restarted the loop with "execute the requirements ledger"; with 0 READY, promoted the last buildable PROPOSED. `claimGeneration` makes the queued→running flip atomic (conditional UPDATE + RETURNING); processGenerationRow refuses to execute unless it won; runNextGeneration scans past lost rows. Red-first: naive Promise.all race did NOT reproduce (pool serialization masks the window — recorded as a weak canary and kept), so the deterministic test targets the primitive: 4 concurrent claims → exactly 1 winner, re-claim on running → false. 2/2 green.
+**Decisions:** BR-GEN-005 slot check left read-then-check — bounded, harmless overshoot; noted in the ledger for a future FOR UPDATE SKIP LOCKED pass.
+**Deferred:** — **Discovered:** — **Follow-ups:** —
+**Gate:** 162 passed, tsc clean.

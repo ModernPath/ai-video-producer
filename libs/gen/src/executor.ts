@@ -75,7 +75,9 @@ export async function runNextGeneration(
       }
       if (!hasSlot) continue; // BR-GEN-005: capped video jobs stay queued (FIFO); non-video kinds proceed
     }
-    return processGenerationRow(db, next, opts.provider);
+    const result = await processGenerationRow(db, next, opts.provider);
+    if (result) return result;
+    // REQ-GEN-018: lost the claim race on this row — another runner has it; try the next one
   }
   return null;
 }
@@ -112,12 +114,26 @@ export async function runGenerationById(
   return processGenerationRow(db, row, provider);
 }
 
+/**
+ * REQ-GEN-018 — atomic claim: flip queued → running ONLY if still queued, reporting whether
+ * this caller won. The previous unconditional update let two runners that both read the same
+ * queued row each execute it (double provider call, double cost) once worker count > 1.
+ */
+export async function claimGeneration(db: Db, generationId: string): Promise<boolean> {
+  const claimed = await db
+    .update(generation)
+    .set({ status: "running", startedAt: new Date() })
+    .where(and(eq(generation.id, generationId), eq(generation.status, "queued")))
+    .returning({ id: generation.id });
+  return claimed.length === 1;
+}
+
 async function processGenerationRow(
   db: Db,
   next: typeof generation.$inferSelect,
   injectedProvider?: GenProvider
-): Promise<RunResult> {
-  await db.update(generation).set({ status: "running", startedAt: new Date() }).where(eq(generation.id, next.id));
+): Promise<RunResult | null> {
+  if (!(await claimGeneration(db, next.id))) return null; // REQ-GEN-018: another runner won this row
 
   const provider = injectedProvider ?? defaultProvider();
   const snapshot = next.promptSnapshot as {

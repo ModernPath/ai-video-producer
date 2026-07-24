@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 21 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 21 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -26,7 +26,7 @@ Totals: 21 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 | REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | DONE | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
 | REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | DONE | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
 | REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
-| REQ-GEN-018 | Race-safe claim across parallel workers | P5 | PROPOSED | `docs/03` §2 (enabler) | — | — |
+| REQ-GEN-018 | Race-safe claim across parallel workers | P5 | IN_REVIEW | `docs/03` §2 (enabler) | tests/claim-race.int.spec.ts (2) | executor claimGeneration (conditional update) + loser-scans-on loop |
 
 ### REQ-GEN-016 — Jobs execute via queue worker (pg-boss)
 - **Status:** DONE · **Stage:** P2 · **Priority:** must (enabler)
@@ -47,7 +47,13 @@ Totals: 21 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Tests:** `libs/prj/tests/activity.int.spec.ts` + browser E2E · **Code:** `libs/prj/src/activity.ts`, `apps/web/app/api/projects/[id]/events/route.ts`, `apps/web/components/LiveRefresh.tsx` · **Log:** LOG 2026-07-23 (slice 4)
 
 ### REQ-GEN-018 — Race-safe claim across parallel workers
-- **Status:** PROPOSED · **Stage:** P5 · **Source:** `docs/03` §2 (enabler) — discovered during REQ-GEN-011: queued-row claim and BR-GEN-005 slot check are read-then-update without `FOR UPDATE SKIP LOCKED`; fine single-claimer, racy if worker count > 1.
+- **Status:** IN_REVIEW · **Stage:** P5 · **Source:** `docs/03` §2 (enabler) — discovered during REQ-GEN-011
+- **Statement:** Claiming a queued generation is atomic: `claimGeneration` flips queued→running via conditional UPDATE (`WHERE status='queued'` + RETURNING) and reports the winner; losers scan on to the next queued row. A row can never be executed (and billed) twice however many runners race.
+- **Acceptance criteria:**
+  - GIVEN 4 concurrent claims on one queued row THEN exactly one wins; a later claim on the running row returns false (deterministic int test).
+  - GIVEN concurrent runNextGeneration calls THEN exactly one provider execution and the row ends succeeded (canary int test).
+- **Tests:** `tests/claim-race.int.spec.ts` · **Code:** `src/executor.ts` claimGeneration + scan-on loop · **Log:** LOG 2026-07-24
+- **Deferred / notes:** BR-GEN-005 slot check remains read-then-check — worst case briefly exceeds the video cap by (racers−1); harmless (cost cap still enforced at enqueue) and self-corrects; revisit with FOR UPDATE SKIP LOCKED if worker fleets grow.
 
 *(REQ-GEN-014 reserved for event emission — folded into 001/003 acceptance for now; split if it grows.)*
 
