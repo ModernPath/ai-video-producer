@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -19,6 +19,7 @@ Totals: 30 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-027 | Archetype defaults (audio mode) | P7 | DONE | docs/87 | E2E (product-launch → mix) | archetypes defaults, setProjectArchetype |
 | REQ-STB-028 | Music-led planning (transcript in plan prompt) | P7 | DONE | docs/87 | prompt.spec REQ-STB-028 + snapshot E2E | prompt transcript block, proposeShotPlan wiring |
 | REQ-STB-029 | Route-aware shot durations (omni unlocks 4–10s) | P7 | DONE | REQ-GEN-023 follow-up | tests/duration-policy.spec.ts (7) | shared shotDurationPolicy; plan-normalize, music-sync, assertDuration, plan prompt schema |
+| REQ-STB-035 | Script-studio generation indicators + lane lockouts | P8 | IN_REVIEW | USER 2026-07-24 "this view does not show any generation indicators" | rendered-HTML check (synthetic queued row → banner) | script page activeGens query, pulse banner, 5 button lockouts |
 | REQ-STB-034 | First take auto-selects (export never silently empty) | P8 | IN_REVIEW | USER 2026-07-24 "why can't I export" (5 takes bought, 0 selected → Export 0 ready) | tests/take-binding.int.spec.ts REQ-STB-034 + browser (5/5 generated) | materializeGenerationOutput take branch |
 | REQ-STB-033 | Cast visibility everywhere (bar with refs + profile badges; library from home) | P8 | IN_REVIEW | USER 2026-07-24 usability screenshots | browser E2E ×3 views | components/CastBar.tsx, script page wiring, home library link |
 | REQ-STB-032 | Lyric-shot alignment (text appears when the line is sung) | P8 | BLOCKED | Neon Rivers 2026-07-24 · blocked on OQ-115 (strategy: fill-to-timestamp vs track offset vs both) | — | — |
@@ -391,3 +392,13 @@ Totals: 30 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN ModernPath launch THEN the header reads 5/5 generated and Export is available (browser-verified after backfilling the 5 stranded takes).
 - **Tests:** `tests/take-binding.int.spec.ts` REQ-STB-034 block + browser · **Code:** `src/service.ts` materializeGenerationOutput take branch · **Log:** LOG 2026-07-24
 - **Deferred / notes:** refines slice-38's "never auto-select on the user's behalf": that decision covered AGENT-initiated repair takes; user-initiated takes filling an empty slot are the user's own action. Frames keep explicit selection (2 candidates arrive by design).
+
+### REQ-STB-035 — Script-studio generation indicators
+- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Raised-by:** USER 2026-07-24: the script studio gave zero signal while script/plan/brief/track/transcript generations ran (queue mode finishes AFTER the action returns; only the storyboard had indicators)
+- **Statement:** The script page queries active text/music generations and shows a pulsing accent banner naming what's generating ("updates live when it lands"); the five triggering buttons (Draft/Redraft, Break into shots, brief, ♫ track, ⏱ transcribe) lock and relabel while their kind is active — no signalless waits, no double-spend.
+- **Acceptance criteria:**
+  - GIVEN a queued/running text-or-music generation THEN the banner renders naming its kind (verified: synthetic queued script row → banner present in served HTML; RSC text-splitting noted for future greps).
+  - GIVEN an active kind THEN its button is disabled with an in-progress label.
+- **Tests:** rendered-HTML verification · **Code:** `apps/web/app/p/[id]/script/page.tsx` · **Log:** LOG 2026-07-24
+- **Deferred / notes:** storyboard already had per-shot pulses + RECENT GENERATIONS; this closes the gap for the text lanes.

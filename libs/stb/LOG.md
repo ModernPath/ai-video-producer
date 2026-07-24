@@ -344,3 +344,9 @@
 **Decisions:** refines slice-38's no-auto-select rule — that covered agent-initiated repairs; a user's own take filling an empty slot is their action. Frames keep explicit pick (2 candidates by design).
 **Deferred:** — **Discovered:** — **Follow-ups:** user hits Export cut.
 **Gate:** 173 passed, tsc clean, browser verified.
+
+## 2026-07-24 — REQ-STB-035 script-studio generation indicators (→ IN_REVIEW) — USER mid-flow report
+**Done:** the script page now surfaces live activity: pulsing accent banner naming the active kind(s) (script/shot plan/music brief/music track/transcript) + all five trigger buttons lock and relabel while their lane runs. Verified via served HTML with a synthetic queued row (grep initially missed because RSC flight data splits text nodes — recorded). Cleaned the synthetic row after.
+**Decisions:** DB-driven indicator (matches storyboard pattern) — SubmitButton pending alone can't cover queue-mode gaps.
+**Deferred:** — **Discovered:** zsh reserves $GID (two confusing shell failures) — use $ROWID in ad-hoc SQL snippets.
+**Follow-ups:** — **Gate:** 173 passed, tsc clean.

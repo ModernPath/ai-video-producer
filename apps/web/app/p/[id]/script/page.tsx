@@ -40,6 +40,14 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
     .orderBy(desc(generation.createdAt))
     .limit(1);
   const lastFailure = failedGens[0];
+  // REQ-STB-035 (USER 2026-07-24: "this view does not show any generation indicators"):
+  // queue-mode work finishes AFTER the action returns — surface live activity + lock the lanes.
+  const activeGens = await d
+    .select()
+    .from(generation)
+    .where(and(eq(generation.projectId, id), inArray(generation.status, ["queued", "running"]), inArray(generation.kind, ["script", "shot_plan", "music_brief", "music", "transcript"])));
+  const activeKinds = new Set(activeGens.map((g) => g.kind));
+  const kindLabel: Record<string, string> = { script: "script", shot_plan: "shot plan", music_brief: "music brief", music: "music track", transcript: "transcript" };
   const proposals = await d
     .select()
     .from(shotPlanProposal)
@@ -58,16 +66,24 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
           <form action={draftScriptAction}>
             <input type="hidden" name="projectId" value={id} />
-            <button type="submit" style={latest ? btn : btnPrimary}>{latest ? "Redraft" : "Draft script"}</button>
+            <button type="submit" disabled={activeKinds.has("script")} style={{ ...(latest ? btn : btnPrimary), opacity: activeKinds.has("script") ? 0.45 : 1 }}>{activeKinds.has("script") ? "Drafting…" : latest ? "Redraft" : "Draft script"}</button>
           </form>
           <form action={proposePlanAction}>
             <input type="hidden" name="projectId" value={id} />
-            <button type="submit" disabled={!latest} style={{ ...btnPrimary, opacity: latest ? 1 : 0.45 }}>
-              Break into shots
+            <button type="submit" disabled={!latest || activeKinds.has("shot_plan")} style={{ ...btnPrimary, opacity: !latest || activeKinds.has("shot_plan") ? 0.45 : 1 }}>
+              {activeKinds.has("shot_plan") ? "Planning…" : "Break into shots"}
             </button>
           </form>
         </div>
       </div>
+
+      {activeGens.length > 0 && (
+        <section style={{ ...card, marginTop: 16, borderColor: "var(--accent)" }}>
+          <p className="mono gen-pulse" style={{ fontSize: 11 }}>
+            ● generating {[...activeKinds].map((k) => kindLabel[k] ?? k).join(" + ")}… — this page updates live when it lands
+          </p>
+        </section>
+      )}
 
       {lastFailure && (
         <section style={{ ...card, marginTop: 16, borderColor: "#7a4b3a" }}>
@@ -164,13 +180,13 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
           <p className="mono muted" style={{ fontSize: 10 }}>MUSIC BRIEF · Suno round-trip (docs/17)</p>
           <form action={musicBriefAction} style={{ marginLeft: "auto" }}>
             <input type="hidden" name="projectId" value={id} />
-            <button type="submit" style={music ? btn : btnPrimary}>{music ? "Regenerate" : "Generate music brief"}</button>
+            <button type="submit" disabled={activeKinds.has("music_brief")} style={{ ...(music ? btn : btnPrimary), opacity: activeKinds.has("music_brief") ? 0.45 : 1 }}>{activeKinds.has("music_brief") ? "Briefing…" : music ? "Regenerate" : "Generate music brief"}</button>
           </form>
           <form action={generateMusicTrackAction} style={{ display: "inline" }}>
             <input type="hidden" name="projectId" value={id} />
             {music?.prompt && (
-              <button type="submit" style={btnPrimary} title="Runs the brief (incl. lyrics) through lyria-3-pro — full song, attaches as the project track">
-                ♫ Generate track ≈ ${priceTable.musicPerTrackUsd.toFixed(2)}
+              <button type="submit" disabled={activeKinds.has("music")} style={{ ...btnPrimary, opacity: activeKinds.has("music") ? 0.45 : 1 }} title="Runs the brief (incl. lyrics) through lyria-3-pro — full song, attaches as the project track">
+                {activeKinds.has("music") ? "♫ Generating…" : `♫ Generate track ≈ $${priceTable.musicPerTrackUsd.toFixed(2)}`}
               </button>
             )}
           </form>
@@ -193,7 +209,7 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
                   <audio controls src={`/api/assets/${music.activeTrackAssetId}`} style={{ height: 30 }} />
                   <form action={transcribeTrackAction} style={{ display: "inline" }}>
                     <input type="hidden" name="projectId" value={id} />
-                    <button type="submit" style={btn} title="MM:SS-timestamped lyrics/sections via audio understanding — for lyric-synced cuts">⏱ Transcribe</button>
+                    <button type="submit" disabled={activeKinds.has("transcript")} style={{ ...btn, opacity: activeKinds.has("transcript") ? 0.45 : 1 }} title="MM:SS-timestamped lyrics/sections via audio understanding — for lyric-synced cuts">{activeKinds.has("transcript") ? "⏱ Transcribing…" : "⏱ Transcribe"}</button>
                   </form>
                 </>
               ) : (
