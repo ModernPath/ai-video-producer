@@ -146,6 +146,9 @@ export async function exportAction(formData: FormData) {
     await runNextExport(db(), { organizationId: p.organizationId });
   }
   revalidatePath(`/p/${projectId}`);
+  // USER 2026-07-24 ("how do I even play the video"): land on the EXPORTS section, where the
+  // newest export now plays inline — the finished film should be impossible to miss.
+  redirect(`/p/${projectId}#exports`);
 }
 
 export async function draftScriptAction(formData: FormData) {

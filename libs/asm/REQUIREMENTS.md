@@ -1,11 +1,12 @@
 # Requirements Ledger — ASM (Assembly & Export)
 
 ## Dashboard — ASM (Assembly & Export)
-Totals: 11 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 11 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-ASM-001 | Snapshot requires ready takes; immutable | P1 | DONE | INV-ASM-001/002 | tests/export.int.spec.ts | src/service.ts |
+| REQ-ASM-013 | Finished film plays in-app (exports player + post-export jump) | P7 | IN_REVIEW | USER 2026-07-24 "how do I even play the video" | browser E2E (#exports anchor + inline player) | page.tsx exports section, exportAction redirect |
 | REQ-ASM-012 | Exports use universally playable audio (aac) | P7 | IN_REVIEW | USER BUG 2026-07-24 (downloaded export silent in QuickTime) | tests/audio-mix.int.spec.ts (music mode aac) | src/service.ts music-mode -c:a aac |
 | REQ-ASM-002 | Export concatenates takes, no generation | P1 | DONE | INV-ASM-003 | tests/export.int.spec.ts | src/service.ts |
 | REQ-ASM-003 | Export output downloadable as ready asset | P1 | DONE | `docs/15` §5 | tests/export.int.spec.ts + browser E2E | src/service.ts, apps/web (exports UI) |
@@ -144,3 +145,14 @@ Totals: 11 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN mix/native modes THEN aac as before (regression pinned).
 - **Tests:** `tests/audio-mix.int.spec.ts` · **Code:** `src/service.ts` music-mode args · **Log:** LOG 2026-07-24
 - **Deferred / notes:** both live films re-exported with aac; old silent-in-QuickTime exports remain as prior rows (immutable assets).
+
+### REQ-ASM-013 — Finished film plays in-app
+- **Status:** IN_REVIEW  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
+- **Raised-by:** USER 2026-07-24: "How do I even play the video as the service?" — the EXPORTS section offered only download/share links, no player
+- **Source:** docs/06 (the finished film is the product's payoff; it must be impossible to miss)
+- **Statement:** The EXPORTS section leads with an inline audible player for the newest successful export, carries the anchor `#exports`, and the Export action redirects to it on completion.
+- **Acceptance criteria:**
+  - GIVEN a project with a successful export WHEN opening /p/{id}#exports THEN the section is in view with a playing-capable <video> of the newest export (browser-verified).
+  - GIVEN Export cut completes THEN the page lands on #exports.
+- **Tests:** browser E2E · **Code:** `apps/web/app/p/[id]/page.tsx` exports section, `apps/web/app/actions.ts` exportAction redirect · **Log:** LOG 2026-07-24
+- **Deferred / notes:** queue-mode exports finish async — the redirect lands on the running row; LiveRefresh updates it in place.

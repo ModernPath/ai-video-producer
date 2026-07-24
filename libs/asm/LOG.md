@@ -78,3 +78,9 @@
 **Decisions:** aac everywhere in final containers; mp3 allowed only as an intermediate.
 **Deferred:** — **Discovered:** export discoverability may still be weak (user asked "how do I even play the video") — EXPORTS section exists at the storyboard bottom with per-export players + download links; watch for further confusion.
 **Follow-ups:** user re-download + play. **Gate:** full suite green, tsc clean.
+
+## 2026-07-24 — REQ-ASM-013 finished film plays in-app (→ IN_REVIEW)
+**Done:** The user's "how do I even play the video" exposed that EXPORTS had no player — download/share links only. The section now leads with an inline audible <video> of the newest successful export under an explicit "this is your finished film" header, carries id="exports", and exportAction redirects to /p/{id}#exports on completion. Browser-verified: anchor navigation lands on the section with the player showing the film's opening frame.
+**Decisions:** only the newest export gets the player (older rows keep links) — one obvious "finished film", no wall of videos.
+**Deferred:** — **Discovered:** — **Follow-ups:** user re-test.
+**Gate:** full suite green, tsc clean, browser verified.

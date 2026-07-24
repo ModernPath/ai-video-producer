@@ -469,8 +469,22 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       </section>
 
       {exports_.length > 0 && (
-        <section style={{ ...card, marginTop: 18 }}>
-          <p className="mono muted" style={{ fontSize: 10, marginBottom: 8 }}>EXPORTS</p>
+        <section id="exports" style={{ ...card, marginTop: 18 }}>
+          <p className="mono muted" style={{ fontSize: 10, marginBottom: 8 }}>EXPORTS · newest plays below — this is your finished film</p>
+          {/* USER 2026-07-24 "how do I even play the video": the section only had download/share
+              links — the newest successful export now plays right here. */}
+          {(() => {
+            const newest = exports_.find((e) => e.status === "succeeded" && e.outputAssetId);
+            return newest?.outputAssetId ? (
+              <video
+                src={`/api/assets/${newest.outputAssetId}`}
+                controls
+                playsInline
+                preload="metadata"
+                style={{ width: "100%", maxWidth: 720, borderRadius: 8, border: "1px solid var(--line)", background: "#000", marginBottom: 10 }}
+              />
+            ) : null;
+          })()}
           {exports_.map((e) => (
             <div key={e.id} style={{ display: "flex", gap: 12, alignItems: "center", padding: "5px 0", fontSize: 12 }}>
               <span className="mono muted">#{e.id.slice(-6)}</span>
