@@ -313,3 +313,8 @@
 **Decisions:** players default audible everywhere; the animatic keeps its own music-track audio path.
 **Deferred:** — **Discovered:** shots 1–4 of KAIJU still carry plan-era "claw logo" wording in their scripts (only the hero was re-scripted) — harmless unless reshot; offer cleanup.
 **Follow-ups:** user re-test with sound. **Gate:** tsc clean; page 200.
+
+## 2026-07-24 — Data hygiene: last "claw logo" wording purged from KAIJU scripts
+**Done:** Quiet Alley Spark's plan-era scripts still said "KAIJU Can with a black claw logo" (the phrase that summoned the Monster mark). Targeted replace → "original black kaiju-dragon emblem", matching the canonical ref/description. Zero claw references remain in live shot scripts; a future reshoot of any KAIJU shot now inherits clean wording.
+**Decisions:** minimal phrase-level edit only — the rest of the machine-authored creative text untouched.
+**Deferred/Discovered/Follow-ups:** none. **Gate:** health green.
