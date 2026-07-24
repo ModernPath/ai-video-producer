@@ -72,3 +72,9 @@
 **Discovered:** /api/assets/[id] serves any ready asset by uuid (dev-only route, REQ-AST-003 note says signed URLs replace it) — share-scoped asset serving should ride that signed-URL slice.
 **Follow-ups:** none.
 **Gate:** share.int.spec.ts red (module missing) → green 4/4; libs/asm 18/18 green; full suite green except 2 pre-existing intentionally-red STB baseline tests (REQ-STB-016 WIP commit b4eee04, fail identically without this slice).
+
+## 2026-07-24 — REQ-ASM-012 USER BUG: downloaded export silent (mp3-in-mp4) → aac (→ IN_REVIEW)
+**Done:** User clarified the earlier "no sound" report: the DOWNLOADED export was silent in their player. Root cause: music-mode exports encoded `-c:a libmp3lame` — mp3 inside .mp4, which QuickTime/AVFoundation plays silent while Chrome tolerates it (that mismatch is exactly why the earlier browser-side check "heard" audio). Red-first: codec assertion flipped mp3→aac (failed), music-mode args now `-c:a aac` like mix mode (passed 3/3). Both films re-exported; ffprobe confirms aac in each. Tile-player unmute (REQ-STB-031) remains valid — it fixed in-app preview, this fixes the downloaded file.
+**Decisions:** aac everywhere in final containers; mp3 allowed only as an intermediate.
+**Deferred:** — **Discovered:** export discoverability may still be weak (user asked "how do I even play the video") — EXPORTS section exists at the storyboard bottom with per-export players + download links; watch for further confusion.
+**Follow-ups:** user re-download + play. **Gate:** full suite green, tsc clean.

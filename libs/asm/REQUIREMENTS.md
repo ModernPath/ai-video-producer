@@ -1,11 +1,12 @@
 # Requirements Ledger — ASM (Assembly & Export)
 
 ## Dashboard — ASM (Assembly & Export)
-Totals: 11 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 11 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-ASM-001 | Snapshot requires ready takes; immutable | P1 | DONE | INV-ASM-001/002 | tests/export.int.spec.ts | src/service.ts |
+| REQ-ASM-012 | Exports use universally playable audio (aac) | P7 | IN_REVIEW | USER BUG 2026-07-24 (downloaded export silent in QuickTime) | tests/audio-mix.int.spec.ts (music mode aac) | src/service.ts music-mode -c:a aac |
 | REQ-ASM-002 | Export concatenates takes, no generation | P1 | DONE | INV-ASM-003 | tests/export.int.spec.ts | src/service.ts |
 | REQ-ASM-003 | Export output downloadable as ready asset | P1 | DONE | `docs/15` §5 | tests/export.int.spec.ts + browser E2E | src/service.ts, apps/web (exports UI) |
 | REQ-ASM-004 | Audio mix modes (native/music/mix) at export | P3 | DONE | BR-ASM-001/002 | tests/audio-mix.int.spec.ts + browser/ffprobe | src/service.ts (snapshot audio + mix pass) |
@@ -132,3 +133,14 @@ Totals: 11 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Code:** `src/share.ts` (// INV-ASM-005), `src/schema.ts` (shareLink), migration `0014_share_links.sql`, `config.asm.share.tokenBytes`, `apps/web/app/s/[token]/page.tsx`, `apps/web/app/share-actions.ts`
 - **Log:** LOG 2026-07-23 (slice 6)
 - **Deferred / notes:** exports-list Share button wiring in `app/p/[id]/page.tsx` is integrated later (out of this slice); `shareExportAction` is ready for it.
+
+### REQ-ASM-012 — Exports use universally playable audio
+- **Status:** IN_REVIEW  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
+- **Raised-by:** USER BUG 2026-07-24: "exported video did not contain audio" — music-mode exports muxed the Lyria mp3 stream as mp3-in-mp4, which QuickTime/AVFoundation plays SILENT (Chrome tolerates it, which masked the bug in browser checks)
+- **Source:** BR-ASM-001/002 (music mode); playback compatibility
+- **Statement:** Every export encodes audio as AAC regardless of mix mode; mp3 never reaches the final container.
+- **Acceptance criteria:**
+  - GIVEN a music-mode export THEN ffprobe shows exactly one aac audio stream (red-first test updated from the old mp3 assertion).
+  - GIVEN mix/native modes THEN aac as before (regression pinned).
+- **Tests:** `tests/audio-mix.int.spec.ts` · **Code:** `src/service.ts` music-mode args · **Log:** LOG 2026-07-24
+- **Deferred / notes:** both live films re-exported with aac; old silent-in-QuickTime exports remain as prior rows (immutable assets).

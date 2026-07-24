@@ -247,9 +247,10 @@ async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Pro
       const args =
         audio.mixMode === "music"
           ? [ // replace take audio with the track, fade out at the cut end (BR-ASM-001/002)
+              // aac, not mp3: mp3-in-mp4 plays silent in QuickTime/AVFoundation (USER BUG 2026-07-24)
               "-i", "/work/base.mp4", "-i", "/work/music.mp3",
               "-map", "0:v", "-map", "1:a",
-              "-c:v", "copy", "-c:a", "libmp3lame",
+              "-c:v", "copy", "-c:a", "aac",
               "-af", `afade=t=out:st=${Math.max(0, cutS - fade)}:d=${fade}`,
               "-shortest", "-movflags", "+faststart", "-y", `/work/${afterMusicName}`,
             ]

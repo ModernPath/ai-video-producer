@@ -116,7 +116,9 @@ describe("ASM audio mix modes", () => {
     const obj = await exportWithMode("music");
     const info = await ffprobe(obj.bytes, join(workDir, "music"));
     expect(info.audioStreams).toBe(1);
-    expect(info.audioCodecs).toEqual(["mp3"]); // audio replaced by the mp3 track (copy), not take AAC
+    // USER BUG 2026-07-24: mp3-in-mp4 plays SILENT in QuickTime/AVFoundation — music mode
+    // must re-encode to aac like mix mode for universal playback of downloaded exports.
+    expect(info.audioCodecs).toEqual(["aac"]);
     expect(info.durationS).toBeGreaterThan(5.5);
     expect(info.durationS).toBeLessThan(7); // trimmed to the 6s shot (REQ-ASM-005), not the 30s music
   }, 120_000);
