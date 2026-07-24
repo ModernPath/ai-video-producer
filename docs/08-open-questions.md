@@ -4,7 +4,6 @@ Design ambiguities that block or shape requirements. Mark affected `REQ-*` as `B
 
 | ID | Source | Question | Owner | Blocking | Status |
 |----|--------|----------|-------|----------|--------|
-| OQ-112 | `14` spike | **Omni Interactions adapter:** `gemini-omni-flash-preview` serves only the Interactions API (SDK 1.52 doesn't wrap it; generateContent+VIDEO rejected). Takes route to Veo 3.1 fast meanwhile. Needed for conversational retakes + 10s clips. | — | REQ-GEN-012 retake arm | OPEN |
 | OQ-103 | `15` | **Mix mode defaults:** ducking depth, music gain, per-shot native-audio overrides (e.g. keep dialogue in 2 shots, music elsewhere)? | — | REQ-ASM-* (mix) | OPEN |
 | OQ-105 | `14`/`06` | **Content-policy UX:** wording and remediation guidance when Google rejects a generation; do we pre-screen directions with `gemini-3.6-flash` before spending? | — | REQ-GEN-* (errors) | OPEN |
 | OQ-106 | `03` | **Worker heartbeat/resume:** on worker crash mid-video-generation, do we re-poll the provider operation or restart the generation (double cost)? | — | REQ-GEN-* (reliability) | OPEN |
@@ -26,4 +25,9 @@ Design ambiguities that block or shape requirements. Mark affected `REQ-*` as `B
 | OQ-t-001…008 (template) | Superseded by product pivot to shot-based director; decisions recorded as ADR-001…007 in `82-tech-stack.md` and domain docs (no timecode model, no OT/CRDT, SSE, session auth). | 2026-07-23 |
 
 - **OQ-114** (Lyria pricing) — RESOLVED 2026-07-23: $0.04/clip, $0.08/full song (pricing page); priceTable.musicPerTrackUsd.
-- **OQ-112** (Omni Interactions video route) — still open; Interactions REST now proven in-house via Lyria (REQ-GEN-019), spike de-risked, awaiting user go-ahead (~$1–2).
+- **OQ-112** (Omni Interactions video route) — **RESOLVED 2026-07-24 by paid spike (~$1.8, user-approved $100/day):**
+  - `POST /v1beta/interactions` with `{model:"gemini-omni-flash-preview", input:[{type:"image",data,mime_type},…,{type:"text",text}], response_format:{type:"video"}}` — synchronous, ~22–31s wall, video returned base64 in a `model_output` step.
+  - Tags live in the prompt TEXT: `<FIRST_FRAME>` → image_to_video (first-frame lock verified vs source frame), `<IMAGE_REF_N>` → reference_to_video (test-pattern ref faithfully wrapped onto a photoreal can). No `tag`/`task`/`duration_seconds` request params exist (400).
+  - Duration is prompt-driven and FREE-FORM: "Duration: 10 seconds." → 10.01s clip (Veo's {4,6,8} limit gone).
+  - Output: 1280x720 h264 + aac audio, 24fps. Billing is token-based and deterministic: 5,792 video tokens/s × $17.50/M = **$0.101/s ≈ Veo fast**. Input images ≈ 1,100 tok ($0.002).
+  - → REQ-GEN-023 (PROPOSED): omni-video as alternate take route (refs + free durations + retake-by-conversation).

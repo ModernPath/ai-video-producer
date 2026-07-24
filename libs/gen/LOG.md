@@ -1,5 +1,13 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-24 — OQ-112 Omni video spike RESOLVED + real-ring video E2E fixed (USER: $100/day test budget)
+**Done:** (1) Daily cap 20→100 per USER directive. (2) Full real ring green 4/4 incl. the RUN_REAL_VIDEO frame-conditioned Veo take — found and fixed a stale $0.15/s price assertion in the gated test (missed by the 0.15→0.10 cascade because it never runs un-gated; now derives from `priceTable.videoPerSecondUsd`). (3) RUN_RENDER Remotion ring 4/4. (4) **OQ-112 spike executed (~$1.8):** Interactions API video works — `input:[{type:"image"...},{type:"text"...}]` + `response_format:{type:"video"}`, tags `<FIRST_FRAME>`/`<IMAGE_REF_N>` in prompt text bind to image blocks by position; first-frame lock verified against the source frame; reference fidelity striking (test-pattern ref wrapped exactly onto a photoreal can); duration free-form via prompt ("Duration: 10 seconds." → 10.01s); synchronous 22–31s; billing deterministic 5,792 video tok/s × $17.50/M ≈ $0.101/s (Veo-fast parity).
+**Decisions:** Omni route is worth building for refs + free durations, not for cost — REQ-GEN-023 PROPOSED with draft acceptance criteria.
+**Deferred:** conversational retake (multi-turn interaction) untested — fold into REQ-GEN-023 slice.
+**Discovered:** entity "Pasi" ref asset id `019f9001-…` dangles (asset row missing, likely purge casualty) → BACKLOG.
+**Follow-ups:** run a full-scale real production (script→plan→frames→takes→music→captions→export) under the new budget next tick.
+**Gate:** pnpm test:real 4/4 · render ring 4/4 · spend today ≈ $3.2 / $100.
+
 ## 2026-07-23 — REQ-GEN-022 stale-running reaper (→ IN_REVIEW)
 **Done:** console/health sweep found a take stuck `running` for 5h on the user's project (orphaned by a dev-server restart mid-execution) — occupying a BR-GEN-005 video slot and spinning in the UI. Red-first reapStaleGenerations (config 30min window, claim-time invocation, fresh/queued untouched); the real orphan reaped via the shipped function — now failed/orphaned with a retry hint visible in the UI.
 **Decisions:** claim-time reaping (no scheduler needed); no provider-side cancel at this scale (noted).

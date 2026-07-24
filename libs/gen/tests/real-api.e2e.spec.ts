@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb } from "@avd/shared/db";
-import { modelRoutes } from "@avd/shared/config";
+import { modelRoutes, priceTable } from "@avd/shared/config";
 import { organization } from "@avd/plt/schema";
 import { project } from "@avd/prj/schema";
 import { asset } from "@avd/ast/schema";
@@ -161,7 +161,7 @@ describe.skipIf(!videoEnabled)("REAL API e2e: omni take (≈$0.40/run, 4s)", () 
     const result = await runNextGeneration(db, { organizationId: orgId, provider: createGeminiProvider() });
     const [g] = await db.select().from(generation).where(eq(generation.id, genId));
     if (result?.status !== "succeeded") throw new Error(`spike failed: ${g?.errorCode} ${g?.errorDetail}`);
-    expect(Number(g!.costUsd)).toBeCloseTo(0.6, 2); // 4s x $0.15 veo fast
+    expect(Number(g!.costUsd)).toBeCloseTo(4 * priceTable.videoPerSecondUsd, 2); // 4s at the configured veo fast rate
     const [a] = await db.select().from(asset).where(eq(asset.id, g!.outputAssetIds![0]!));
     expect(a?.status).toBe("ready");
     expect(a?.mime).toContain("video");

@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 0 DONE · 20 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 20 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -25,6 +25,7 @@ Totals: 0 DONE · 20 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 | REQ-GEN-020 | Audio transcription MM:SS (sync) | P5 | IN_REVIEW | USER 2026-07-23; docs/85 §Music | libs/stb/tests/transcript.int.spec.ts + real E2E | migration 0019, provider audio parts, executor ref fetch, requestTranscript, ⏱ UI |
 | REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | IN_REVIEW | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
 | REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | IN_REVIEW | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
+| REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | PROPOSED | OQ-112 spike 2026-07-24 | — | — |
 | REQ-GEN-018 | Race-safe claim across parallel workers | P5 | PROPOSED | `docs/03` §2 (enabler) | — | — |
 
 ### REQ-GEN-016 — Jobs execute via queue worker (pg-boss)
@@ -223,3 +224,15 @@ Totals: 0 DONE · 20 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
   - GIVEN the real 5h orphan THEN reaped via the shipped function (verified: failed/orphaned; retry button now shows on the user's project).
 - **Tests:** `tests/reaper.int.spec.ts` · **Code:** `src/executor.ts` reapStaleGenerations + claim-time call, config.gen.staleRunningMinutes · **Log:** LOG 2026-07-23
 - **Deferred / notes:** provider-side cancel (Veo operation abort) not attempted — the operation may still complete server-side and bill; acceptable at current scale.
+
+### REQ-GEN-023 — Omni video take route (references + free durations)
+- **Status:** PROPOSED  ·  **Stage:** P6  ·  **Priority:** should  ·  **Owner:** —
+- **Raised-by:** OQ-112 paid spike 2026-07-24 (user-approved budget)
+- **Source:** docs/08 OQ-112 resolution; docs/85 §tags (<FIRST_FRAME>/<IMAGE_REF_N>)
+- **Statement:** Takes may route to `gemini-omni-flash-preview` via the Interactions API as an alternative to Veo: entity refs as `<IMAGE_REF_N>` (subject consistency), start frame as `<FIRST_FRAME>`, free-form durations beyond {4,6,8}s, cost billed from video output tokens (5,792 tok/s × $17.50/M ≈ $0.101/s — parity with Veo fast).
+- **Acceptance criteria (draft):**
+  - GIVEN a shot with a selected frame WHEN the omni route is chosen THEN the request carries the frame as the first image block and `<FIRST_FRAME>` in the prompt, and the resulting take's first frame matches.
+  - GIVEN entity refs WHEN generating THEN refs become image blocks referenced by `<IMAGE_REF_N>` in the prompt.
+  - GIVEN a requested duration of 5 or 10 seconds THEN it is honored (no {4,6,8} snap) and cost = seconds × configured omni rate.
+- **Tests:** — · **Code:** — · **Log:** LOG 2026-07-24 (spike)
+- **Deferred / notes:** spike artifacts in session scratchpad; ~22–31s synchronous wall time, no polling needed.

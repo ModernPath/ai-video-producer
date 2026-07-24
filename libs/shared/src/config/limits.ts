@@ -21,7 +21,7 @@ export const config = {
     retryAttempts: 3,
     staleRunningMinutes: 30, // REQ-GEN-022: running longer than this = orphaned (crash mid-run)
     // INV-GEN-004: daily per-org spend cap; env-overridable for ops without a deploy
-    quota: { dailyUsdPerOrg: Number(process.env.GEN_DAILY_USD_CAP ?? 20) }, // raised 5→20 (USER 2026-07-23: "up to 20 dollars to testing")
+    quota: { dailyUsdPerOrg: Number(process.env.GEN_DAILY_USD_CAP ?? 100) }, // raised 20→100 (USER 2026-07-24: "you get 100 dollars for today")
   },
   audio: { duckDb: -12, fadeOutSeconds: 2, lufsTarget: -14 }, // BR-ASM-001..003
   asm: {
