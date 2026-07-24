@@ -53,3 +53,17 @@ describe("REQ-STB-024: plan-authored animation shots", () => {
     expect(out[1]!.animation).toBeUndefined();
   });
 });
+
+// REQ-ANM-005 — plan-authored animation palette (Neon Rivers finding: "cyan kinetic" intent
+// was dropped and templates rendered default gold).
+describe("REQ-ANM-005: planned animation palette", () => {
+  const base = { title: "S", durationS: 4, direction: { synopsis: "s", subject: "x", action: "y" }, imagePrompt: "i", videoPrompt: "v" };
+  it("valid hex accent/background survive normalization", () => {
+    const [s] = normalizePlannedShots({ shots: [{ ...base, animation: { template: "kinetic", text: "NEON", accent: "#00E5FF", background: "#0A0A1A" } }] });
+    expect(s!.animation).toEqual({ template: "kinetic", text: "NEON", accent: "#00E5FF", background: "#0A0A1A" });
+  });
+  it("non-hex colors are dropped, animation kept", () => {
+    const [s] = normalizePlannedShots({ shots: [{ ...base, animation: { template: "title", text: "T", accent: "cyan", background: "url(x)" } }] });
+    expect(s!.animation).toEqual({ template: "title", text: "T" });
+  });
+});

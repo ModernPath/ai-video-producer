@@ -205,6 +205,9 @@ async function processGenerationRow(
           text: anmInput.text ?? anmInput.customPrompt ?? "",
           subtext: (anmInput as { subtext?: string }).subtext,
           highlightWord: (anmInput as { highlightWord?: string }).highlightWord,
+          // REQ-ANM-005: palette props reach the templates (defaults apply when absent)
+          accent: (anmInput as { accent?: string }).accent,
+          background: (anmInput as { background?: string }).background,
           durationS: anmInput.durationSeconds ?? 4,
           aspectRatio,
         });

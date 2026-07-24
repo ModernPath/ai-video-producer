@@ -54,3 +54,10 @@
 **Deferred:** per-take overlay UI; karaoke word timing.
 **Discovered:** instrumental-leaning transcripts (section labels only) are common — the lyric-video archetype is where animated captions shine; noted for the next full production.
 **Follow-ups:** — **Gate:** 165 passed + gated rings, tsc clean.
+
+## 2026-07-24 — REQ-ANM-005 plan-driven animation palette (PROPOSED → IN_REVIEW)
+**Done:** Neon Rivers' defect closed same-day: PlannedAnimation carries hex-validated accent/background (junk like "cyan"/"url(x)" dropped — red-first 7/7 normalize spec), the plan prompt schema advertises the fields with palette-matching guidance, requestAnimationTake falls back to the shot's plan palette, and the executor forwards both to renderAnimation. $0 proof: kinetic "WE RUN THROUGH NEON RIVERS" rendered cyan-on-deep-blue with matching tinted light leaks — the exact look the plan authored and the pipeline previously dropped.
+**Decisions:** hex-only strictness (models emit names/gradients; validation beats trust); explicit input wins over plan palette.
+**Deferred:** style-kit/archetype palette defaults (config pass).
+**Discovered:** — **Follow-ups:** next full production will exercise plan-authored palettes on a real model.
+**Gate:** 167 passed, tsc clean.

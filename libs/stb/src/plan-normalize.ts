@@ -7,7 +7,12 @@ export interface PlannedAnimation {
   template: "title" | "kinetic";
   text: string;
   subtext?: string | undefined;
+  /** REQ-ANM-005: plan-authored palette (hex only — junk dropped, defaults apply). */
+  accent?: string | undefined;
+  background?: string | undefined;
 }
+
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
 export interface NormalizedPlannedShot {
   title: string;
@@ -72,7 +77,14 @@ export function normalizePlannedShots(raw: unknown): NormalizedPlannedShot[] {
       ...((): { animation?: PlannedAnimation } => {
         const a = s.animation as Record<string, unknown> | undefined;
         if (a && (a.template === "title" || a.template === "kinetic") && typeof a.text === "string" && a.text.trim()) {
-          return { animation: { template: a.template as "title" | "kinetic", text: a.text.trim(), ...(typeof a.subtext === "string" && a.subtext.trim() ? { subtext: a.subtext.trim() } : {}) } };
+          return { animation: {
+            template: a.template as "title" | "kinetic",
+            text: a.text.trim(),
+            ...(typeof a.subtext === "string" && a.subtext.trim() ? { subtext: a.subtext.trim() } : {}),
+            // REQ-ANM-005: hex-only palette — real models emit names/gradients too; drop those
+            ...(typeof a.accent === "string" && HEX_COLOR.test(a.accent.trim()) ? { accent: a.accent.trim() } : {}),
+            ...(typeof a.background === "string" && HEX_COLOR.test(a.background.trim()) ? { background: a.background.trim() } : {}),
+          } };
         }
         return {};
       })(),

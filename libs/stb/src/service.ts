@@ -179,11 +179,15 @@ export async function requestTake(
 /** REQ-ANM-001: a free Remotion animation take (title template) for this shot. */
 export async function requestAnimationTake(
   db: Db,
-  input: { shotId: string; text: string; subtext?: string; highlightWord?: string; template?: "title" | "kinetic"; principal: string; aspectRatio: "16:9" | "9:16" }
+  input: { shotId: string; text: string; subtext?: string; highlightWord?: string; template?: "title" | "kinetic"; accent?: string; background?: string; principal: string; aspectRatio: "16:9" | "9:16" }
 ) {
   const s = await getShotOrThrow(db, input.shotId);
   if (!input.text.trim()) throw new StbValidationError("validation_failed", "Animation needs the title text");
-  const planSubtext = (s.animation as { subtext?: string } | null)?.subtext; // REQ-STB-024 deferred item
+  const planAnim = s.animation as { subtext?: string; accent?: string; background?: string } | null;
+  const planSubtext = planAnim?.subtext; // REQ-STB-024 deferred item
+  // REQ-ANM-005: explicit input wins; otherwise the plan's authored palette flows through
+  const accent = input.accent ?? planAnim?.accent;
+  const background = input.background ?? planAnim?.background;
   return enqueueGeneration(db, {
     organizationId: s.organizationId,
     projectId: s.projectId,
@@ -196,6 +200,8 @@ export async function requestAnimationTake(
       durationSeconds: Number(s.durationS),
       entities: [],
       template: input.template ?? "title", // REQ-ANM-004 (eval fix: was silently dropped)
+      ...(accent ? { accent } : {}), // REQ-ANM-005: palette reaches the renderer
+      ...(background ? { background } : {}),
       highlightWord: input.highlightWord, // product-launch recipe: highlight the product word
       customPrompt: input.text.trim(),
       direction: { synopsis: input.text.trim(), subject: "title card", action: "animated text" },
