@@ -13,6 +13,7 @@
  *   npx tsx scripts/production-run.ts export <projectId>          (snapshot + ffmpeg export, music mix)
  *   npx tsx scripts/production-run.ts reshoot <projectId> <shotTitle>  (fresh frame + take under current prompts)
  *   npx tsx scripts/production-run.ts retry  <projectId>          (retry newest failed generation, retry_of provenance)
+ *   npx tsx scripts/production-run.ts frames <projectId> <shotTitle> [count]  (extra frame candidates on one shot)
  * Route note: GEN_VIDEO_ROUTE=omni switches takes to the Interactions adapter (REQ-GEN-023)
  * and widens the duration palette to 4-10s (REQ-STB-029) — set it on every stage's invocation.
  * Uses the same service calls as apps/web/app/actions.ts; inline queue; real providers.
@@ -148,6 +149,20 @@ async function main() {
     await drain([await stb.requestMusicTrack(db, { projectId: p.id, principal: PRINCIPAL })]);
     console.log("transcript…");
     await drain([await stb.requestTranscript(db, { projectId: p.id, principal: PRINCIPAL })]);
+  } else if (stage === "frames") {
+    const p = await proj(args[0]!);
+    const shots = await stb.listShots(db, p.id);
+    const s = shots.find((x) => x.title === args[1]);
+    if (!s) throw new Error(`shot "${args[1]}" not found (have: ${shots.map((x) => x.title).join(", ")})`);
+    const count = Number(args[2] ?? 2);
+    const ids = await stb.requestFrameBatch(db, { shotId: s.id, slot: "start", principal: PRINCIPAL, aspectRatio: p.aspectRatio, count });
+    console.log(`generating ${ids.length} frame candidate(s) for "${s.title}"…`);
+    await drain(ids);
+    const { generation } = await import("@avd/gen/schema");
+    for (const gid of ids) {
+      const [g] = await db.select().from(generation).where(eq(generation.id, gid));
+      console.log(`  asset ${g?.outputAssetIds?.[0]}`);
+    }
   } else if (stage === "retry") {
     const p = await proj(args[0]!);
     const { generation } = await import("@avd/gen/schema");

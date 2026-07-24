@@ -61,3 +61,9 @@
 **Done:** ImagePicker client component — createImageBitmap decodes any browser-supported format, canvas downscale to 2048px max edge, JPEG 0.85 re-encode, processed files swapped into the form via DataTransfer, previews with KB shown pre-submit, per-file inline error for undecodable formats. Library create form uses it. Backstop: experimental.serverActions.bodySizeLimit 30mb (correct Next 16 key after an invalid-config warning on first try). config.upload.clientResize added (no literals).
 **Evidence:** unit-untestable canvas path → browser E2E designated; automation hit two walls (file_upload bridge 10MB cap → smaller fixture; then extension disconnected mid-run — user's Chrome updating). fixtures/big-ref.png (6MB) ready for the click-through; user retry is the natural verification.
 **Gate:** 68 mock green.
+
+## 2026-07-24 — Entity-ref anchor VALIDATED (post-decision check)
+**Done:** USER's entity fixes (kind=product, dragon-frame ref, de-tainted description) validated with 2 fresh hero-shot frame candidates ($0.13): both independently reproduce the exact ref design — same circular kaiju-dragon emblem, same custom KAIJU lettering, matte green 330ml. Design consistency across generations is now anchored; contrast with the pre-fix era where every shot invented its own can (incl. a competitor's mark).
+**Decisions:** the two new candidates left unselected on Hero Climax Drop (the selected dragon frame + take stand).
+**Deferred:** — **Discovered:** browser submit-drop hit twice despite fresh navigation (no POST in dev log = client-side flake, not app bug); driver gained a `frames <projectId> <shotTitle> [count]` stage as the reliable fallback — memory updated.
+**Follow-ups:** — **Gate:** both gens succeeded at $0.067; spend today ≈ $12.0 / $100.
