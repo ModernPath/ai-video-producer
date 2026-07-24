@@ -1,5 +1,5 @@
 // REQ-GEN-003 / INV-GEN-003 — cost derives from the shared price table, never inline rates.
-import { omniVideoModel, priceTable, type FrameQuality, type GenerationKind } from "@avd/shared/config";
+import { config, omniVideoModel, priceTable, shotDurationPolicy, type FrameQuality, type GenerationKind } from "@avd/shared/config";
 
 export interface CostOpts {
   durationSeconds?: number;
@@ -28,4 +28,24 @@ export function computeCostUsd(kind: GenerationKind, opts: CostOpts = {}): numbe
     default:
       return 0; // text kinds: negligible; metered later (BACKLOG price-table item)
   }
+}
+
+/**
+ * REQ-STB-030 — what a take for this shot duration will ACTUALLY run and cost on the active
+ * route: veo snaps to its discrete palette (ties up), omni clamps free-form to the cap.
+ * The UI must show this instead of re-deriving snap math (split-brain found 2026-07-24:
+ * a 10s omni shot advertised the veo-snapped "$0.80" while $1.01 was billed).
+ */
+export function estimateTake(durationS: number): { effectiveSeconds: number; usd: number } {
+  const policy = shotDurationPolicy();
+  const effectiveSeconds =
+    config.gen.videoRoute === "omni"
+      ? Math.min(Math.max(durationS, policy.minSeconds), policy.maxSeconds)
+      : policy.allowedS.reduce((best, d) =>
+          Math.abs(d - durationS) < Math.abs(best - durationS) || (Math.abs(d - durationS) === Math.abs(best - durationS) && d > best) ? d : best);
+  const usd = computeCostUsd("take", {
+    durationSeconds: effectiveSeconds,
+    ...(config.gen.videoRoute === "omni" ? { model: omniVideoModel } : {}),
+  });
+  return { effectiveSeconds, usd };
 }

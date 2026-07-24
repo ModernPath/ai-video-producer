@@ -296,3 +296,9 @@
 **Discovered:** — 
 **Follow-ups:** human review for 016/017; storyboard-page ref toggles (see Deferred).
 **Gate:** target spec 2/2 green; full suite 70 passed + 4 skipped.
+
+## 2026-07-24 — REQ-STB-030 route-aware UI (→ IN_REVIEW)
+**Done:** shared `estimateTake()` (gen/cost.ts, red-first) replaces the page's inline veo snap math; storyboard header gains a route badge with switch instructions. Browser-verified on the harbor project: "route: veo" badge, 10s shot honestly reads "≈ $0.80 · 8s" with tooltip, 6s shot plain "$0.60".
+**Decisions:** estimates always describe what the ACTIVE route would do — no phantom omni prices on a veo server.
+**Deferred:** per-project route picker (mixed-route projects need a product decision).
+**Discovered:** none. **Follow-ups:** none. **Gate:** 156 passed, tsc clean.

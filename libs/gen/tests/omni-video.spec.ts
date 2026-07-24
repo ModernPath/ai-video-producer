@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { config, omniVideoModel, modelRoutes, priceTable } from "@avd/shared/config";
 import { resolveModel } from "../src/routing";
 import { buildOmniVideoRequest } from "../src/provider";
-import { computeCostUsd } from "../src/cost";
+import { computeCostUsd, estimateTake } from "../src/cost";
 
 const originalRoute = config.gen.videoRoute;
 afterEach(() => { config.gen.videoRoute = originalRoute; });
@@ -60,5 +60,23 @@ describe("REQ-GEN-023: omni cost derives from video tokens (INV-GEN-003)", () =>
   it("veo takes keep the per-second rate", () => {
     expect(computeCostUsd("take", { durationSeconds: 6, model: modelRoutes.take })).toBeCloseTo(0.6, 6);
     expect(computeCostUsd("take", { durationSeconds: 6 })).toBeCloseTo(0.6, 6); // model omitted = legacy path
+  });
+});
+
+describe("REQ-STB-030: route-aware take estimate (UI split-brain fix 2026-07-24)", () => {
+  it("veo: effective duration snaps (10->8s, $0.80; 5->6s, $0.60)", () => {
+    const ten = estimateTake(10);
+    expect(ten.effectiveSeconds).toBe(8);
+    expect(ten.usd).toBeCloseTo(0.8, 6);
+    const five = estimateTake(5);
+    expect(five.effectiveSeconds).toBe(6);
+    expect(five.usd).toBeCloseTo(0.6, 6);
+  });
+  it("omni: free-form clamped to the cap, token-rate priced", () => {
+    config.gen.videoRoute = "omni";
+    expect(estimateTake(10).effectiveSeconds).toBe(10);
+    expect(estimateTake(10).usd).toBeCloseTo(1.0136, 4);
+    expect(estimateTake(5).usd).toBeCloseTo(0.5068, 4);
+    expect(estimateTake(12).effectiveSeconds).toBe(10); // clamp, not reject
   });
 });

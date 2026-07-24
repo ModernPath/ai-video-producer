@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 0 DONE · 29 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 0 DONE · 30 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -19,6 +19,7 @@ Totals: 0 DONE · 29 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-027 | Archetype defaults (audio mode) | P7 | IN_REVIEW | docs/87 | E2E (product-launch → mix) | archetypes defaults, setProjectArchetype |
 | REQ-STB-028 | Music-led planning (transcript in plan prompt) | P7 | IN_REVIEW | docs/87 | prompt.spec REQ-STB-028 + snapshot E2E | prompt transcript block, proposeShotPlan wiring |
 | REQ-STB-029 | Route-aware shot durations (omni unlocks 4–10s) | P7 | IN_REVIEW | REQ-GEN-023 follow-up | tests/duration-policy.spec.ts (7) | shared shotDurationPolicy; plan-normalize, music-sync, assertDuration, plan prompt schema |
+| REQ-STB-030 | Route-aware UI (route badge + honest take estimates) | P7 | IN_REVIEW | BACKLOG 2026-07-24 (10s omni shot showed veo-snapped $0.80) | libs/gen/tests/omni-video.spec.ts REQ-STB-030 block + browser | gen estimateTake, storyboard header badge, take-button estimate + effective-duration hint |
 | REQ-STB-025 | Lyric-synced cut suggestions (♪ MUSIC SYNC) | P6 | IN_REVIEW | USER Lyria epic ("time the change of scene according to song timing") | tests/music-sync.spec.ts + update-duration.int + browser E2E | src/music-sync.ts, updateShotDuration, applySyncAction, SYNC panel |
 | REQ-STB-024 | Plan-authored animation shots (free, no frame spend) | P6 | IN_REVIEW | USER Remotion epic ("purely remotion animations (prompt)") | plan-normalize spec + real E2E frame | migration 0020, normalize/apply, plan prompt, applyPlanAction branch, badge+prefill UI |
 | REQ-STB-023 | Music brief includes timed lyrics unless instrumental | P5 | IN_REVIEW | USER 2026-07-23 (Lyria epic) | libs/gen/tests/prompt.spec.ts + real-model check | assembleMusicBriefPrompt lyrics rule |
@@ -335,3 +336,15 @@ Totals: 0 DONE · 29 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN videoRoute=omni THEN a planned 5s or 10s shot survives normalization (12 clamps to 10), a 7s music-sync boundary hit becomes suggestible, and the plan prompt advertises durationS 4|5|…|10.
 - **Tests:** `tests/duration-policy.spec.ts` (7) · **Code:** shared config `shotDurationPolicy`, `src/plan-normalize.ts`, `src/music-sync.ts`, `src/service.ts` assertDuration, `../gen/src/prompt.ts` plan schema · **Log:** LOG 2026-07-24
 - **Deferred / notes:** UI duration picker still free-numeric (validation enforces policy server-side); sub-4s cuts untested on omni — palette floor stays at shot.minSeconds.
+
+### REQ-STB-030 — Route-aware UI
+- **Status:** IN_REVIEW  ·  **Stage:** P7  ·  **Priority:** should  ·  **Owner:** —
+- **Raised-by:** BACKLOG 2026-07-24 — production #2 exposed the split-brain: a 10s omni shot's take button advertised the veo-snapped "$0.80" while $1.01 was billed
+- **Source:** REQ-GEN-023 / REQ-STB-029 follow-through; INV-GEN-003 (costs must be honest)
+- **Statement:** The storyboard surfaces the active take route (badge with explainer) and estimates take costs via the shared `estimateTake()` — which returns the duration the route will ACTUALLY run (veo snaps, omni clamps) and its price; when that differs from the shot's duration, the button says so.
+- **Acceptance criteria:**
+  - GIVEN veo route THEN a 10s shot's button reads "≈ $0.80 · 8s" with an explanatory title; a 6s shot reads plain "≈ $0.60" (browser-verified).
+  - GIVEN omni route THEN estimateTake(10) = 10s/$1.0136 and 12 clamps to the cap (unit).
+  - GIVEN either route THEN the header badge names it, with switch instructions in the tooltip.
+- **Tests:** `libs/gen/tests/omni-video.spec.ts` (REQ-STB-030 block) + browser E2E · **Code:** `libs/gen/src/cost.ts` estimateTake, `apps/web/app/p/[id]/page.tsx` (badge + button) · **Log:** LOG 2026-07-24
+- **Deferred / notes:** route stays env-level (no per-project route picker yet — needs a product decision on mixed-route projects).

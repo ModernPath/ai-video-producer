@@ -7,7 +7,7 @@ import { project } from "@avd/prj/schema";
 import { generation } from "@avd/gen/schema";
 import { exportJob } from "@avd/asm/schema";
 import { getMusicBrief, listCandidates, listShots } from "@avd/stb";
-import { assembleFramePrompt, assembleTakePrompt } from "@avd/gen";
+import { assembleFramePrompt, assembleTakePrompt, estimateTake } from "@avd/gen";
 import { listEntities, listProjectEntities, listStyleKits } from "@avd/ast";
 import { costMeterUsd } from "@avd/prj/service";
 import { parseSectionTimes, suggestSyncDurations } from "@avd/stb/music-sync";
@@ -132,6 +132,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <h1 className="disp" style={{ fontSize: 24 }}>{p.title}</h1>
         <span className="mono muted" style={{ fontSize: 12 }}>{p.aspectRatio} · target {p.targetDurationS}s</span>
         <span className="mono muted" style={{ fontSize: 12 }}>{generated}/{shots.length} generated</span>
+        {/* REQ-STB-030: the active take route drives durations + pricing — make it visible */}
+        <span className="mono" style={{ fontSize: 10, border: "1px solid var(--line)", borderRadius: 5, padding: "2px 7px", color: config.gen.videoRoute === "omni" ? "var(--accent)" : "var(--ink-2)" }}
+          title={config.gen.videoRoute === "omni" ? "Omni Interactions route: free durations 4-10s, refs as IMAGE_REF tags (GEN_VIDEO_ROUTE=omni)" : "Veo route: durations snap to 4/6/8s (set GEN_VIDEO_ROUTE=omni for 4-10s free-form)"}>
+          route: {config.gen.videoRoute}
+        </span>
         <span className="mono" style={{ fontSize: 12, marginLeft: "auto" }} title="Left: this project's total spend. Right: today's org-wide spend vs the daily cap (INV-GEN-004).">
           spend <b>${Number(cost).toFixed(2)}</b>
           <span className="muted"> · today ${spentToday.toFixed(2)} / ${config.gen.quota.dailyUsdPerOrg.toFixed(2)}</span>
@@ -353,9 +358,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     <form action={generateTakeAction}>
                       <input type="hidden" name="projectId" value={id} />
                       <input type="hidden" name="shotId" value={s.id} />
-                      <SubmitButton primary disabled={(activeByShot.get(s.id)?.take ?? 0) > 0} pendingLabel="Generating take…">
-                        ▸ Take ≈ ${(([...providerLimits.video.allowedDurationsS].reduce((b, d) => Math.abs(d - Number(s.durationS)) < Math.abs(b - Number(s.durationS)) || (Math.abs(d - Number(s.durationS)) === Math.abs(b - Number(s.durationS)) && d > b) ? d : b)) * priceTable.videoPerSecondUsd).toFixed(2)}
-                      </SubmitButton>
+                      {/* REQ-STB-030: estimate from the shared route-aware helper — no inline snap math */}
+                      {(() => {
+                        const est = estimateTake(Number(s.durationS));
+                        const differs = est.effectiveSeconds !== Number(s.durationS);
+                        return (
+                          <SubmitButton primary disabled={(activeByShot.get(s.id)?.take ?? 0) > 0} pendingLabel="Generating take…"
+                            {...(differs ? { title: `${config.gen.videoRoute} runs this as ${est.effectiveSeconds}s (shot says ${Number(s.durationS)}s)` } : {})}>
+                            ▸ Take ≈ ${est.usd.toFixed(2)}{differs ? ` · ${est.effectiveSeconds}s` : ""}
+                          </SubmitButton>
+                        );
+                      })()}
                     </form>
                   </div>
                 </div>
