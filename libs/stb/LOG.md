@@ -330,3 +330,11 @@
 **Done:** the lyric-alignment ambiguity is now a proper open question (docs/08 OQ-115) with three concrete strategies, trade-offs, and a recommendation ((c): archetype-chosen, track-offset first). REQ-STB-032 flipped PROPOSED → BLOCKED with the OQ id in all 3 ledger places — per §6 SPECIFY, ambiguous requirements don't get guessed at.
 **Decisions:** none taken — that's the point; the call is the user's.
 **Deferred/Discovered/Follow-ups:** none. **Gate:** ledger parse via progress.ts.
+
+## 2026-07-24 — REQ-STB-033 cast visibility everywhere (→ IN_REVIEW) — USER usability pass
+**Done:** shared CastBar component (checkbox chips + ref thumbnails + accent `profile` badge + Save cast + library link) now on storyboard AND script studio; the script-studio copy explains exactly what feeds script/plan/music prompts; projects home header links to the library. Browser-verified on all three views — and the script-studio bar immediately earned its keep by revealing that ModernPath launch had NO cast attached (scripts were drafted with zero entity context, invisible before).
+**Decisions:** one component, view-specific note prop — no divergent cast UIs.
+**Deferred:** per-shot cast override UI stays storyboard-only.
+**Discovered:** user uploaded a Pasi photo — the ref-less card era is over.
+**Follow-ups:** user may want to check ModernPath's cast boxes + redraft for company-aware scripts.
+**Gate:** 172 passed, tsc clean, browser ×3.

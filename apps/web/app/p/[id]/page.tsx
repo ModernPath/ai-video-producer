@@ -14,8 +14,9 @@ import { parseSectionTimes, suggestSyncDurations } from "@avd/stb/music-sync";
 import { shareLink } from "@avd/asm/schema";
 import {
   createShotAction, exportAction, generateFrameAction, generateMissingFramesAction, generateTakeAction,
-  animationTakeAction, applySyncAction, createShareLinkAction, overlayTakeAction, removeCandidateAction, reorderShotAction, retakeAction, setProjectStyleAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, setCastAction, updateShotScriptsAction,
+  animationTakeAction, applySyncAction, createShareLinkAction, overlayTakeAction, removeCandidateAction, reorderShotAction, retakeAction, setProjectStyleAction, updateShotRefsAction, removeShotAction, retryExportAction, retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction, setAudioModeAction, updateShotScriptsAction,
 } from "../../actions";
+import { CastBar } from "../../../components/CastBar";
 import { ABCompare } from "../../../components/ABCompare";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
@@ -204,22 +205,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         )}
       </div>
 
-      {orgEntities.length > 0 && (
-        <section style={{ ...card, marginTop: 16 }}>
-          <form action={setCastAction} style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
-            <input type="hidden" name="projectId" value={id} />
-            <p className="mono muted" style={{ fontSize: 10 }}>CAST</p>
-            {orgEntities.map((e) => (
-              <label key={e.id} style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12, cursor: "pointer" }}>
-                <input type="checkbox" name="entityIds" value={e.id} defaultChecked={castIds.has(e.id)} />
-                <span className="mono muted" style={{ fontSize: 9, textTransform: "uppercase" }}>{e.kind}</span> {e.name}
-              </label>
-            ))}
-            <SubmitButton small pendingLabel="Saving…">Save cast</SubmitButton>
-            <Link href="/library" className="mono" style={{ fontSize: 11, color: "var(--accent)" }}>library →</Link>
-          </form>
-        </section>
-      )}
+      {/* REQ-STB-033: shared cast bar — same component on script studio, thumbnails + profile badges */}
+      <CastBar
+        projectId={id}
+        entities={orgEntities.map((e) => ({ id: e.id, kind: e.kind, name: e.name, refAssetIds: e.refAssetIds, hasProfile: Boolean(e.profile) }))}
+        castIds={castIds}
+      />
 
       <section style={{ display: "grid", gap: 14, marginTop: 24 }}>
         {sync && sync.suggestions.length > 0 && (

@@ -36,7 +36,7 @@ export default async function Home() {
 
   return (
     <main style={{ maxWidth: 880, margin: "0 auto", padding: "56px 24px" }}>
-      <p className="mono muted" style={{ fontSize: 12 }}>local studio</p>
+      <p className="mono muted" style={{ fontSize: 12, display: "flex", gap: 16 }}>local studio <Link href="/library" style={{ color: "var(--accent)" }}>library — cast &amp; brand →</Link></p>
       <h1 className="disp" style={{ fontSize: 30, marginTop: 6 }}>
         Projects
         <span aria-hidden style={{ display: "inline-block", width: "0.4em", height: "0.4em", borderRadius: "50%", background: "var(--accent)", marginLeft: "0.3em" }} />

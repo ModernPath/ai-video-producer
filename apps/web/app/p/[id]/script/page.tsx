@@ -5,7 +5,9 @@ import { project } from "@avd/prj/schema";
 import { scriptVersion, shotPlanProposal } from "@avd/stb/schema";
 import { getMusicBrief } from "@avd/stb";
 import { archetypes, priceTable } from "@avd/shared/config";
+import { listEntities, listProjectEntities } from "@avd/ast";
 import { applyPlanAction, draftScriptAction, generateMusicTrackAction, musicBriefAction, proposePlanAction, setArchetypeAction, transcribeTrackAction, updateBriefAction, uploadTrackAction } from "../../../actions";
+import { CastBar } from "../../../../components/CastBar";
 import { LiveRefresh } from "../../../../components/LiveRefresh";
 import { db } from "../../../../lib/db";
 import { Markdown } from "../../../../components/Markdown";
@@ -28,6 +30,9 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
   const versions = await d.select().from(scriptVersion).where(eq(scriptVersion.projectId, id)).orderBy(desc(scriptVersion.version));
   const latest = versions[0];
   const music = await getMusicBrief(d, id);
+  // REQ-STB-033: show exactly what feeds the script/plan/music prompts — cast with refs + profiles
+  const orgEntities = await listEntities(d, p.organizationId);
+  const castIds = new Set((await listProjectEntities(d, id)).map((e) => e.id));
   const failedGens = await d
     .select()
     .from(generation)
@@ -101,6 +106,14 @@ export default async function ScriptPage({ params }: { params: Promise<{ id: str
           <button type="submit" style={btn}>Set</button>
         </form>
       </section>
+
+      {/* REQ-STB-033 (USER: "no idea what content is being included in the prompt") */}
+      <CastBar
+        projectId={id}
+        entities={orgEntities.map((e) => ({ id: e.id, kind: e.kind, name: e.name, refAssetIds: e.refAssetIds, hasProfile: Boolean(e.profile) }))}
+        castIds={castIds}
+        note="these members (and their profiles) are included in script, shot-plan and music prompts"
+      />
 
       <section style={{ ...card, marginTop: 16 }}>
         {latest ? (
