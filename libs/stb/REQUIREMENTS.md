@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -21,7 +21,7 @@ Totals: 30 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 | REQ-STB-029 | Route-aware shot durations (omni unlocks 4–10s) | P7 | DONE | REQ-GEN-023 follow-up | tests/duration-policy.spec.ts (7) | shared shotDurationPolicy; plan-normalize, music-sync, assertDuration, plan prompt schema |
 | REQ-STB-035 | Script-studio generation indicators + lane lockouts | P8 | IN_REVIEW | USER 2026-07-24 "this view does not show any generation indicators" | rendered-HTML check (synthetic queued row → banner) | script page activeGens query, pulse banner, 5 button lockouts |
 | REQ-STB-037 | One workspace: rail + focused shot + script/music/cast/output drawer | P8 | IN_REVIEW | USER 2026-07-25 UX review ("controls and flow does not seem intuitive… cant control easily the music etc on editor") | tests/board.spec.ts (6) + browser walkthrough (rail, drawer tabs, film, 2-take compare) | components/Workspace.tsx, libs/stb/src/board.ts, p/[id]/page.tsx rewrite, script route → redirect |
-| REQ-STB-038 | Drag-to-reorder shots in the rail | P9 | PROPOSED | REQ-STB-037 deferral (USER 2026-07-25 "change their order") | — | — |
+| REQ-STB-038 | Reorder shots by drag or ▲▼ | P9 | IN_REVIEW | USER 2026-07-25 "how can I actually change the order of the clips?" | tests/move-shot.int.spec.ts | stb/service.ts · components/Workspace.tsx · components/Timeline.tsx |
 | REQ-STB-039 | Music timeline: clips on the track's time axis, drift + off-beat cuts | P8 | IN_REVIEW | USER 2026-07-25 ("see the music timing within the clips… if I add a new clip it might outsync") | tests/timeline.spec.ts (9) + browser (Neon Rivers 5 clips, boundary ticks, 3/5→5/5 off-beat after a length edit) | libs/stb/src/timeline.ts, components/Timeline.tsx, ast/src/probe.ts (ffprobe), upload+music duration recording |
 | REQ-STB-040 | Edit clip length: free crop vs regenerate, stated per shot | P8 | IN_REVIEW | USER 2026-07-25 ("edit the length of clips (+regenerate or crop)") | tests/timeline.spec.ts crop/shortfall block + browser (5s→6s persisted, ⚠ 1s short, take price 0.51→0.61) | updateShotDurationAction, stage length editor, trimmedS/shortfallS in timeline.ts |
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
@@ -435,11 +435,21 @@ Totals: 30 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 - **Log:** LOG 2026-07-25
 - **Deferred / notes:** drag-to-reorder in the rail (↑↓ per shot for now) → REQ-STB-038 PROPOSED; inserting a shot at a position (append + reorder today); floating/detachable panels and multi-select take compare beyond the existing A/B overlay.
 
-### REQ-STB-038 — Drag-to-reorder shots in the rail
-- **Status:** PROPOSED · **Stage:** P9 · **Priority:** should
-- **Raised-by:** REQ-STB-037 deferral (USER 2026-07-25 "change their order")
-- **Statement:** The rail should support pointer drag to reorder shots (and insert a new shot at a position), persisting through one reorder command rather than repeated ↑/↓ steps.
-- **Deferred / notes:** needs a positional move service call (today's reorderShotAction is a neighbour swap).
+### REQ-STB-038 — Reorder shots by drag or ▲▼
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Raised-by:** USER 2026-07-25: "how can I actually change the order of the clips? I cant see up/down arrows?" — the ↑↓ pair existed only in the stage header, which scrolls off above the player, so from the rail the order looked fixed.
+- **Statement:** A shot's place in the cut shall be changeable from where the order is *shown*: every rail row carries a `⋮⋮` grip and an always-visible ▲/▼ pair (disabled at the ends), and clips on the timeline are draggable along the axis. Both paths issue ONE positional move (`moveShotToIndex`), not a chain of neighbour swaps, and the animatic, timeline and export order follow immediately.
+- **Acceptance criteria:**
+  - GIVEN four shots WHEN the last is moved to index 0 THEN order is D,A,B,C in one call.
+  - GIVEN a move forward past later siblings THEN the target index counts the list WITHOUT the moving shot (A→2 in A,B,C,D gives B,C,A,D).
+  - GIVEN an out-of-range index (99, −5) THEN it clamps instead of throwing; moving to its current index is a no-op.
+  - GIVEN a project where a shot was removed (its position stays reserved by the soft-deleted row) WHEN a live shot is moved THEN the renumber reuses only the slots the live shots occupy — no unique(project_id, position) collision.
+  - GIVEN positions after any move THEN they stay contiguous in list order (INV-STB-002).
+  - GIVEN a drag over a rail row's lower half or a clip's right half THEN an accent drop line marks the landing gap and the dragged element dims; dragend clears both.
+- **Tests:** `tests/move-shot.int.spec.ts` (10)
+- **Code:** `src/service.ts` (`moveShotToIndex`) · `apps/web/app/actions.ts` (`moveShotTo`, `moveShotAction`) · `apps/web/components/Workspace.tsx` (rail grip/arrows) · `apps/web/components/Timeline.tsx` (clip drag)
+- **Log:** see LOG 2026-07-25
+- **Deferred / notes:** inserting a *new* shot at a position (still append-then-move); keyboard-only reorder (the ▲▼ buttons are focusable, but there is no alt+↑/↓ shortcut); dragging a clip's edge to resize → REQ-STB-040 notes. The old neighbour-swap `reorderShotAction` stays exported for the animatic/older callers.
 
 ### REQ-STB-039 — Music timeline: clips on the track's time axis
 - **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must

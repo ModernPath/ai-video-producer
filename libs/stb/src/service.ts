@@ -688,6 +688,35 @@ export async function reorderShot(db: Db, input: { shotId: string; direction: "u
   });
 }
 
+/**
+ * REQ-STB-038 — move a shot to an arbitrary index among the live shots (USER 2026-07-25 "how can I
+ * actually change the order of the clips?"). Dragging a clip across the film is ONE command here,
+ * where `reorderShot` would need N neighbour swaps. `toIndex` is 0-based against the list WITHOUT
+ * the moving shot, and is clamped rather than rejected so a drag past either end still lands.
+ * Positions are rewritten contiguously 1..n in one transaction (INV-STB-002).
+ */
+export async function moveShotToIndex(db: Db, input: { shotId: string; toIndex: number }): Promise<void> {
+  const s = await getShotOrThrow(db, input.shotId);
+  if (s.deletedAt) throw new StbValidationError("not_found", "Shot not found");
+  const live = await listShots(db, s.projectId); // asc position, live only
+  const without = live.filter((x) => x.id !== s.id);
+  const target = Math.max(0, Math.min(input.toIndex, without.length));
+  const ordered = [...without.slice(0, target), s, ...without.slice(target)];
+  if (ordered.every((x, i) => x.id === live[i]!.id)) return; // already there
+  // unique(project_id, position) spans soft-deleted rows too (they keep their slot — see
+  // createShot), so reuse exactly the slots the live shots already occupy instead of 1..n.
+  const slots = live.map((x) => x.position).sort((p, q) => p - q);
+  await db.transaction(async (tx) => {
+    // park out of the positive range first — writing slots directly would collide mid-rewrite
+    for (const [i, x] of ordered.entries()) {
+      await tx.update(shot).set({ position: -(i + 1) }).where(eq(shot.id, x.id));
+    }
+    for (const [i, x] of ordered.entries()) {
+      await tx.update(shot).set({ position: slots[i]! }).where(eq(shot.id, x.id));
+    }
+  });
+}
+
 /** REQ-STB-025: duration edit (INV-STB-001 bounds) — used by music-sync apply. */
 export async function updateShotDuration(db: Db, input: { shotId: string; durationS: number }): Promise<void> {
   assertDuration(input.durationS);

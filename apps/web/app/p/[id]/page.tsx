@@ -24,8 +24,8 @@ import { parseSectionTimes, suggestSyncDurations } from "@avd/stb/music-sync";
 import {
   animationTakeAction, applyPlanAction, applySyncAction, createShareLinkAction, createShotAction,
   draftScriptAction, exportAction, generateFrameAction, generateMissingFramesAction,
-  generateMusicTrackAction, generateTakeAction, musicBriefAction, overlayTakeAction, proposePlanAction,
-  removeCandidateAction, removeShotAction, reorderShotAction, retakeAction, retryExportAction,
+  generateMusicTrackAction, generateTakeAction, moveShotTo, musicBriefAction, overlayTakeAction, proposePlanAction,
+  removeCandidateAction, removeShotAction, retakeAction, retryExportAction,
   retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction,
   setArchetypeAction, setProjectStyleAction, transcribeTrackAction,
   updateBriefAction, updateShotDurationAction, updateShotRefsAction, uploadTrackAction,
@@ -251,12 +251,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           )}
           {(busy.frame > 0 || busy.take > 0) && <span className="mono gen-pulse" style={{ fontSize: 10 }}>● generating…</span>}
           <div style={{ marginLeft: "auto", display: "flex", gap: 5, alignItems: "center" }}>
-            <form action={reorderShotAction} style={{ display: "flex", gap: 4 }}>
-              <input type="hidden" name="projectId" value={id} />
-              <input type="hidden" name="shotId" value={s.id} />
-              <SubmitButton small name="direction" value="up" title="Move earlier — animatic & export order follow" pendingLabel="…">↑</SubmitButton>
-              <SubmitButton small name="direction" value="down" title="Move later" pendingLabel="…">↓</SubmitButton>
-            </form>
             <form action={removeShotAction}>
               <input type="hidden" name="projectId" value={id} />
               <input type="hidden" name="shotId" value={s.id} />
@@ -905,6 +899,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       addShotPanel={addShotPanel}
       drawerPanels={drawerPanels}
       timeline={timeline}
+      onMove={moveShotTo.bind(null, id)}
       drawerBadges={{
         script: latestScript ? `v${latestScript.version}` : "—",
         music: music?.activeTrackAssetId ? "♫" : music ? "brief" : "—",

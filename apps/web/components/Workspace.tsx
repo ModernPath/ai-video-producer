@@ -47,6 +47,7 @@ export function Workspace({
   drawerPanels,
   drawerBadges,
   timeline,
+  onMove,
 }: {
   projectId: string;
   shots: RailShot[];
@@ -61,11 +62,16 @@ export function Workspace({
   drawerBadges?: Partial<Record<DrawerTab, string>>;
   /** REQ-STB-039: the cut on the track's time axis — clicking a clip focuses it. */
   timeline: TimelineModel;
+  /** REQ-STB-038: submit a positional move (drag in the rail or on the timeline). */
+  onMove: (shotId: string, toIndex: number) => void | Promise<void>;
 }) {
   // "film" = the finished cut, "add" = new shot form, otherwise a shot id.
   const [focus, setFocus] = useState<string>(() => shots[0]?.id ?? "film");
   const [tab, setTab] = useState<DrawerTab | null>(null);
   const [wide, setWide] = useState(false);
+  // REQ-STB-038 drag state: which shot is being dragged, and the gap it would drop into
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dropIdx, setDropIdx] = useState<number | null>(null);
 
   // Restore the last place per project so a re-render (or a redirect after export) lands you back.
   useEffect(() => {
@@ -140,6 +146,7 @@ export function Workspace({
             model={timeline}
             focusedId={focus === "film" || focus === "add" ? null : focus}
             onFocus={setFocus}
+            onMove={onMove}
             statusById={Object.fromEntries(shots.map((s) => [s.id, s.status]))}
           />
         </div>
@@ -166,37 +173,81 @@ export function Workspace({
             SHOTS · {shots.length}
           </p>
 
-          {shots.map((s) => (
-            <RailButton key={s.id} active={focus === s.id} onClick={() => setFocus(s.id)} title={s.title}>
-              <span
-                aria-hidden
-                title={s.status}
-                style={{
-                  width: 7, height: 7, borderRadius: "50%", flex: "0 0 auto",
-                  background: STATUS_COLOR[s.status],
+          {shots.map((s, i) => {
+            const active = focus === s.id;
+            const dragging = dragId === s.id;
+            return (
+              <div
+                key={s.id}
+                draggable
+                onDragStart={(e) => { setDragId(s.id); e.dataTransfer.effectAllowed = "move"; }}
+                onDragEnd={() => { setDragId(null); setDropIdx(null); }}
+                onDragOver={(e) => {
+                  if (!dragId || dragId === s.id) return;
+                  e.preventDefault();
+                  // drop above or below depending on which half of the row the cursor is in
+                  const r = e.currentTarget.getBoundingClientRect();
+                  setDropIdx(e.clientY < r.top + r.height / 2 ? i : i + 1);
                 }}
-              />
-              {s.thumbAssetId ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={`/api/assets/${s.thumbAssetId}?thumb=1`}
-                  alt=""
-                  style={{ width: 34, height: 20, borderRadius: 3, objectFit: "cover", flex: "0 0 auto", border: "1px solid var(--line)" }}
-                />
-              ) : (
-                <span style={{ width: 34, height: 20, borderRadius: 3, flex: "0 0 auto", border: "1px dashed var(--line)" }} />
-              )}
-              <span style={{ minWidth: 0, flex: 1 }}>
-                <span style={{ display: "block", fontSize: 11.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {s.position}. {s.title}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (!dragId || dropIdx === null) return;
+                  const from = shots.findIndex((x) => x.id === dragId);
+                  // dropIdx counts the list WITH the dragged row; the service counts it without
+                  const to = dropIdx > from ? dropIdx - 1 : dropIdx;
+                  if (to !== from) onMove(dragId, to);
+                  setDragId(null); setDropIdx(null);
+                }}
+                style={{
+                  position: "relative", opacity: dragging ? 0.4 : 1,
+                  borderTop: dropIdx === i ? "2px solid var(--accent)" : "2px solid transparent",
+                  borderBottom: dropIdx === i + 1 ? "2px solid var(--accent)" : "2px solid transparent",
+                }}
+              >
+                <RailButton active={active} onClick={() => setFocus(s.id)} title={`${s.title} — drag to reorder`}>
+                  <span aria-hidden className="mono muted" title="Drag to reorder" style={{ fontSize: 10, cursor: "grab", flex: "0 0 auto" }}>⋮⋮</span>
+                  <span aria-hidden title={s.status}
+                    style={{ width: 7, height: 7, borderRadius: "50%", flex: "0 0 auto", background: STATUS_COLOR[s.status] }} />
+                  {s.thumbAssetId ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={`/api/assets/${s.thumbAssetId}?thumb=1`} alt=""
+                      style={{ width: 30, height: 18, borderRadius: 3, objectFit: "cover", flex: "0 0 auto", border: "1px solid var(--line)" }} />
+                  ) : (
+                    <span style={{ width: 30, height: 18, borderRadius: 3, flex: "0 0 auto", border: "1px dashed var(--line)" }} />
+                  )}
+                  <span style={{ minWidth: 0, flex: 1 }}>
+                    <span style={{ display: "block", fontSize: 11.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {s.position}. {s.title}
+                    </span>
+                    <span className="mono muted" style={{ fontSize: 9 }}>
+                      {s.durationS}s{s.isAnimation ? " · ✦" : ""}
+                      {s.busy ? <span className="gen-pulse"> ● working</span> : ""}
+                    </span>
+                  </span>
+                </RailButton>
+                {/* keyboard/click path — drag is not the only way (and it's always visible) */}
+                <span style={{ position: "absolute", right: 4, top: "50%", transform: "translateY(-50%)", display: "flex", flexDirection: "column", gap: 1 }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onMove(s.id, i - 1); }}
+                    disabled={i === 0}
+                    title="Move earlier"
+                    className="mono"
+                    style={{ background: "var(--panel-2)", border: "1px solid var(--line)", borderRadius: 3, color: "var(--ink-2)", fontSize: 8, lineHeight: "10px", padding: "0 3px", cursor: i === 0 ? "default" : "pointer", opacity: i === 0 ? 0.3 : 1 }}
+                  >▲</button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onMove(s.id, i + 1); }}
+                    disabled={i === shots.length - 1}
+                    title="Move later"
+                    className="mono"
+                    style={{ background: "var(--panel-2)", border: "1px solid var(--line)", borderRadius: 3, color: "var(--ink-2)", fontSize: 8, lineHeight: "10px", padding: "0 3px", cursor: i === shots.length - 1 ? "default" : "pointer", opacity: i === shots.length - 1 ? 0.3 : 1 }}
+                  >▼</button>
                 </span>
-                <span className="mono muted" style={{ fontSize: 9 }}>
-                  {s.durationS}s{s.isAnimation ? " · ✦" : ""}
-                  {s.busy ? <span className="gen-pulse"> ● working</span> : ""}
-                </span>
-              </span>
-            </RailButton>
-          ))}
+              </div>
+            );
+          })}
+          {shots.length > 1 && (
+            <p className="mono muted" style={{ fontSize: 8.5, padding: "2px 8px" }}>drag ⋮⋮ or use ▲▼ to reorder</p>
+          )}
 
           <RailButton active={focus === "add"} onClick={() => setFocus("add")} title="Add a shot">
             <span style={{ fontSize: 13 }}>＋</span>

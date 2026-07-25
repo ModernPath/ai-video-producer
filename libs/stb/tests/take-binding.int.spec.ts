@@ -57,9 +57,11 @@ describe("REQ-STB-005: a take belongs to its shot and can never be moved (INV-ST
     await expect(selectTake(db, { shotId: shotB, takeId })).rejects.toMatchObject({ code: "not_found" });
     await selectTake(db, { shotId: shotA, takeId }); // its own shot works
 
-    // and the public service surface offers no take-move operation
+    // and the public service surface offers no take-move operation. Shot reordering
+    // (REQ-STB-038 `moveShotToIndex`) moves a shot with its takes still attached — it is not a
+    // relocation of a take, so the guard names takes explicitly. "remove*" is deletion.
     const service = await import("../src/service");
-    const moveLike = Object.keys(service).filter((k) => /^move|reassign|transfer/i.test(k)); // "remove*" is deletion, not relocation
+    const moveLike = Object.keys(service).filter((k) => /^(move|reassign|transfer).*take/i.test(k));
     expect(moveLike).toEqual([]);
   });
 });

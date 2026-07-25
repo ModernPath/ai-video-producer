@@ -397,6 +397,31 @@ export async function applySyncAction(formData: FormData) {
 }
 
 /**
+ * REQ-STB-038: move a shot to an arbitrary position (USER 2026-07-25 "how can I actually change the
+ * order of the clips?"). Drag in the rail or on the timeline sends one positional move; the ↑↓
+ * buttons send toIndex too, so every path shares this action.
+ */
+export async function moveShotAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const shotId = String(formData.get("shotId"));
+  const toIndex = Number(formData.get("toIndex"));
+  if (!Number.isFinite(toIndex)) return;
+  const { moveShotToIndex } = await import("@avd/stb");
+  await moveShotToIndex(db(), { shotId, toIndex });
+  revalidatePath(`/p/${projectId}`);
+}
+
+/**
+ * REQ-STB-038 — same move, callable directly from the client shell with args (Next.js `.bind`
+ * pattern) so a drag doesn't have to synthesize a form.
+ */
+export async function moveShotTo(projectId: string, shotId: string, toIndex: number) {
+  const { moveShotToIndex } = await import("@avd/stb");
+  await moveShotToIndex(db(), { shotId, toIndex });
+  revalidatePath(`/p/${projectId}`);
+}
+
+/**
  * REQ-STB-040: set one shot's length from the timeline (USER 2026-07-25 "being able to edit the
  * length of clips (+regenerate or crop)"). Shortening is free — the export normalizes every clip
  * with ffmpeg `-t durationS`, so a shorter shot simply crops its take. Lengthening past the take's

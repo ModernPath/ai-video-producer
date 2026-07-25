@@ -8,7 +8,7 @@
 // Scaling: the axis follows the CUT, not the track. A 2:55 track against a 0:27 cut squeezed every
 // clip into 15% of the width (browser check, Neon Rivers) — so leftover track is only drawn to
 // scale up to a third of the cut, then collapses into a labelled tail.
-import React from "react";
+import React, { useState } from "react";
 import type { Timeline as TimelineModel } from "@avd/stb/timeline";
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
@@ -25,13 +25,17 @@ function thinLabels(values: number[], span: number): number[] {
 }
 
 export function Timeline({
-  model, focusedId, onFocus, statusById,
+  model, focusedId, onFocus, onMove, statusById,
 }: {
   model: TimelineModel;
   focusedId: string | null;
   onFocus: (shotId: string) => void;
+  /** REQ-STB-038: drag a clip along the timeline to reorder it. */
+  onMove: (shotId: string, toIndex: number) => void | Promise<void>;
   statusById: Record<string, "planned" | "framed" | "generated">;
 }) {
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dropIdx, setDropIdx] = useState<number | null>(null);
   const cut = model.cutDurationS || 1;
   const leftover = model.driftS !== null && model.driftS < 0 ? Math.abs(model.driftS) : 0;
   const drawnLeftover = Math.min(leftover, cut * 0.33); // the rest collapses into a tail chip
@@ -75,7 +79,7 @@ export function Timeline({
 
       {/* clips to scale */}
       <div style={{ position: "relative", display: "flex", height: 30, gap: 2, alignItems: "stretch" }}>
-        {model.blocks.map((b) => {
+        {model.blocks.map((b, i) => {
           const st = statusById[b.id] ?? "planned";
           const active = focusedId === b.id;
           const share = b.durationS / span;
@@ -83,13 +87,33 @@ export function Timeline({
             <button
               key={b.id}
               onClick={() => onFocus(b.id)}
-              title={`${b.title} · ${mmss(b.startS)}–${mmss(b.endS)} (${b.durationS}s)${b.onBoundary ? " · lands on a section change" : ""}${b.shortfallS ? ` · take is ${b.shortfallS}s short` : ""}${b.trimmedS ? ` · export crops ${b.trimmedS}s` : ""}`}
+              draggable
+              onDragStart={(e) => { setDragId(b.id); e.dataTransfer.effectAllowed = "move"; }}
+              onDragEnd={() => { setDragId(null); setDropIdx(null); }}
+              onDragOver={(e) => {
+                if (!dragId || dragId === b.id) return;
+                e.preventDefault();
+                const r = e.currentTarget.getBoundingClientRect();
+                setDropIdx(e.clientX < r.left + r.width / 2 ? i : i + 1); // left/right half → before/after
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (!dragId || dropIdx === null) return;
+                const from = model.blocks.findIndex((x) => x.id === dragId);
+                const to = dropIdx > from ? dropIdx - 1 : dropIdx; // service counts without the moving clip
+                if (to !== from) onMove(dragId, to);
+                setDragId(null); setDropIdx(null);
+              }}
+              title={`${b.title} · ${mmss(b.startS)}–${mmss(b.endS)} (${b.durationS}s)${b.onBoundary ? " · lands on a section change" : ""}${b.shortfallS ? ` · take is ${b.shortfallS}s short` : ""}${b.trimmedS ? ` · export crops ${b.trimmedS}s` : ""} — drag to reorder`}
               style={{
                 width: pct(b.durationS), minWidth: 10, flex: "0 0 auto",
                 border: `1px solid ${active ? "var(--accent)" : "var(--line)"}`,
-                borderRadius: 5, cursor: "pointer", overflow: "hidden", position: "relative",
+                borderLeft: dropIdx === i ? "3px solid var(--accent)" : undefined,
+                borderRight: dropIdx === i + 1 ? "3px solid var(--accent)" : undefined,
+                borderRadius: 5, cursor: dragId ? "grabbing" : "grab", overflow: "hidden", position: "relative",
                 background: st === "generated" ? "rgba(79,175,126,.16)" : st === "framed" ? "rgba(226,163,60,.14)" : "var(--panel-2)",
                 boxShadow: active ? "inset 0 0 0 1px var(--accent)" : "none",
+                opacity: dragId === b.id ? 0.4 : 1,
                 padding: "0 4px", color: "var(--ink)", font: "inherit", textAlign: "left",
               }}
             >
