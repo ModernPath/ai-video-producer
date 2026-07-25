@@ -244,6 +244,9 @@ async function processGenerationRow(
         storageKey: key, mime: media.mime, bytes: media.bytes.byteLength,
         generationId: next.id,
       });
+      // REQ-STB-039: persist the real track length so the timeline can show drift
+      const { recordAssetDuration } = await import("@avd/ast/probe");
+      await recordAssetDuration(db, assetId, media.bytes, "mp3");
       await db.update(generation).set({
         status: "succeeded",
         outputAssetIds: [assetId],

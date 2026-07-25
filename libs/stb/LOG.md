@@ -1,5 +1,13 @@
 # Build Log — STB
 
+## 2026-07-25 — REQ-STB-039 music timeline · REQ-STB-040 clip length (→ IN_REVIEW)
+**Done:** Timeline strip under the command bar: clips drawn to scale on the track's time axis (status-tinted, click to focus), section-change ticks + thinned MM:SS ruler, `cut` vs `track`, drift (`▲ past the track` / `◂ track unused`) and an off-beat count. Per shot: its `0:08 → 0:12 in the cut`, `♪ on/off the beat`, a length field with `Set length`, and the consequence stated — `✂ export crops Ns · free` (the exporter already normalizes with ffmpeg `-t`) vs `⚠ take is Ns short — regenerate to fill` (hatched overlay on the clip, take repriced).
+**Decisions:** The axis follows the CUT, not the track — leftover is to scale only to a third of the cut, then a `⋯ +M:SS track` chip (a 2:55 track vs 0:27 cut had squeezed all clips into 15% of the width). No new crop pipeline: shortening is already free because the export trims each clip to the shot duration.
+**Deferred:** waveform + scrubbing playhead; drag-the-edge trimming (with REQ-STB-038); take IN-point offset (length only).
+**Discovered:** `asset.duration_s` was NULL for every audio row, so drift could never render — added `libs/ast/src/probe.ts` (ffprobe in the exporter's image), recorded on upload + music generation, and backfilled 17/17 existing tracks. Also: a scripted patch hit a duplicate anchor in uploads.ts and landed in `completeUpload` — tsc caught it (see [[tsc-after-scripted-edits]]).
+**Follow-ups:** none.
+**Gate:** RED→GREEN (timeline.spec 9 tests); full suite 193 passed | 14 skipped; tsc clean; browser: Neon Rivers boundary ticks + off-beat 3/5, length edit 5s→6s persisted and flipped it to 5/5 with the shortfall warning, restored to 5s.
+
 ## 2026-07-25 — REQ-STB-037 one workspace (→ IN_REVIEW) · REQ-STB-038 (PROPOSED)
 **Done:** Replaced the two-page storyboard + script studio with a single workspace: sticky command bar (title · progress · spend · live pulse · animatic · export), left shot rail (status dot, thumbnail, duration, working pulse, film + add-shot entries), a stage that focuses ONE shot (selected take playing large, takes side by side with select/retake/overlay, frames, prompts, per-shot refs), and a right drawer with Script · Music · Cast · Output. `/p/:id/script` now redirects into the workspace. Status/progress rules extracted to `libs/stb/src/board.ts` (red-first tests). Animatic moved next to the finished cut in the film panel.
 **Decisions:** Layout state (focus, open panel, panel width) lives in a client shell + sessionStorage so server-action re-renders never lose your place; every mutation stays a server action. Drawer width toggles narrow/wide for long scripts. Focus falls back to the first shot when a shot is removed.

@@ -14,9 +14,11 @@ import { exportJob, shareLink, storyboardSnapshot } from "@avd/asm/schema";
 import { scriptVersion, shotPlanProposal } from "@avd/stb/schema";
 import { getMusicBrief, listCandidates, listShots } from "@avd/stb";
 import { boardProgress, shotStatus } from "@avd/stb/board";
+import { buildTimeline } from "@avd/stb/timeline";
 import { normalizePlannedShots } from "@avd/stb/plan-normalize";
 import { assembleFramePrompt, assembleTakePrompt, estimateTake } from "@avd/gen";
 import { listEntities, listProjectEntities, listStyleKits } from "@avd/ast";
+import { asset } from "@avd/ast/schema";
 import { costMeterUsd } from "@avd/prj/service";
 import { parseSectionTimes, suggestSyncDurations } from "@avd/stb/music-sync";
 import {
@@ -26,7 +28,7 @@ import {
   removeCandidateAction, removeShotAction, reorderShotAction, retakeAction, retryExportAction,
   retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction,
   setArchetypeAction, setAudioModeAction, setProjectStyleAction, transcribeTrackAction,
-  updateBriefAction, updateShotRefsAction, uploadTrackAction,
+  updateBriefAction, updateShotDurationAction, updateShotRefsAction, uploadTrackAction,
 } from "../../actions";
 import { CastBar } from "../../../components/CastBar";
 import { ABCompare } from "../../../components/ABCompare";
@@ -131,6 +133,26 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     : [];
   const exportSnapshots = new Map(snaps.map((s) => [s.id, (s.excluded ?? []) as Array<{ shotId: string; title: string }>]));
   const newestExport = exports_.find((e) => e.status === "succeeded" && e.outputAssetId);
+
+  // ── REQ-STB-039: the cut on the track's time axis ───────────────────────
+  const [trackAsset] = music?.activeTrackAssetId
+    ? await d.select().from(asset).where(eq(asset.id, music.activeTrackAssetId))
+    : [];
+  const trackDurationS = trackAsset?.durationS ? Number(trackAsset.durationS) : null;
+  const timeline = buildTimeline({
+    shots: shots.map((s) => {
+      const sel = candidatesByShot.get(s.id)!.takes.find((t) => t.id === s.selectedTakeId);
+      return {
+        id: s.id,
+        title: s.title,
+        durationS: Number(s.durationS),
+        takeActualS: sel ? Number(sel.durationActualS ?? s.durationS) : null,
+      };
+    }),
+    sectionTimesS: music?.transcript ? parseSectionTimes(music.transcript) : [],
+    trackDurationS,
+  });
+  const timelineByShot = new Map(timeline.blocks.map((b) => [b.id, b]));
 
   // ── Rail ────────────────────────────────────────────────────────────────
   const railShots: RailShot[] = shots.map((s) => {
@@ -243,7 +265,49 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             </form>
           </div>
         </div>
-        {dd.synopsis && <p className="muted" style={{ fontSize: 12.5, marginBottom: 14 }}>{dd.synopsis}</p>}
+        {dd.synopsis && <p className="muted" style={{ fontSize: 12.5, marginBottom: 10 }}>{dd.synopsis}</p>}
+
+        {/* REQ-STB-040: length editing where the consequence is spelled out — crop is free,
+            a shortfall needs a regenerate (USER 2026-07-25). */}
+        {(() => {
+          const tb = timelineByShot.get(s.id);
+          if (!tb) return null;
+          return (
+            <div style={{ ...sub, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 14 }}>
+              <span className="mono muted" style={{ fontSize: 9.5 }}>
+                {`${Math.floor(tb.startS / 60)}:${String(Math.round(tb.startS % 60)).padStart(2, "0")}`}
+                {" → "}
+                {`${Math.floor(tb.endS / 60)}:${String(Math.round(tb.endS % 60)).padStart(2, "0")}`}
+                {" in the cut"}
+              </span>
+              {timeline.boundaries.length > 0 && (
+                <span className="mono" style={{ fontSize: 9.5, color: tb.onBoundary ? "var(--ok)" : "var(--ink-2)" }}
+                  title={tb.onBoundary ? "This cut lands exactly on a music section change" : "This cut falls mid-section — try a sync suggestion in the Music panel"}>
+                  {tb.onBoundary ? "♪ on the beat" : "♪ off the beat"}
+                </span>
+              )}
+              <form action={updateShotDurationAction} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <input type="hidden" name="projectId" value={id} />
+                <input type="hidden" name="shotId" value={s.id} />
+                <label className="mono muted" style={{ fontSize: 9.5 }}>length</label>
+                <input name="durationS" type="number" step="0.5" min={config.shot.minSeconds} max={config.shot.maxSeconds}
+                  defaultValue={Number(s.durationS)} style={{ ...tiny, width: 62 }} />
+                <SubmitButton small pendingLabel="…">Set length</SubmitButton>
+              </form>
+              {tb.trimmedS > 0 && (
+                <span className="mono" style={{ fontSize: 9.5, color: "var(--ok)" }} title="The export normalizes each clip with ffmpeg -t, so the extra footage is simply cropped — no regeneration, no cost">
+                  ✂ export crops {tb.trimmedS}s of this take · free
+                </span>
+              )}
+              {tb.shortfallS > 0 && (
+                <span className="mono" style={{ fontSize: 9.5, color: "#e0763a" }} title="The take has less footage than this length — the clip runs out. Regenerate the take at the new length.">
+                  ⚠ take is {tb.shortfallS}s short — regenerate to fill
+                </span>
+              )}
+              {!s.selectedTakeId && <span className="mono muted" style={{ fontSize: 9.5 }}>no take yet — length only sets what gets generated</span>}
+            </div>
+          );
+        })()}
 
         {/* Selected take plays big — this is what the cut will use */}
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}>
@@ -831,6 +895,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       filmPanel={filmPanel}
       addShotPanel={addShotPanel}
       drawerPanels={drawerPanels}
+      timeline={timeline}
       drawerBadges={{
         script: latestScript ? `v${latestScript.version}` : "—",
         music: music?.activeTrackAssetId ? "♫" : music ? "brief" : "—",

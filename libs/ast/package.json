@@ -7,7 +7,8 @@
     ".": "./src/index.ts",
     "./contracts": "./contracts/index.ts",
     "./schema": "./src/schema.ts",
-    "./storage": "./src/storage.ts"
+    "./storage": "./src/storage.ts",
+    "./probe": "./src/probe.ts"
   },
   "dependencies": {
     "@avd/shared": "workspace:*",

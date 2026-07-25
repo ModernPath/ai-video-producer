@@ -7,6 +7,8 @@
 // Everything is still server-rendered + server actions; this shell only owns layout state
 // (focused shot, drawer tab, widths) so a server action re-render never loses your place.
 import React, { useEffect, useState } from "react";
+import type { Timeline as TimelineModel } from "@avd/stb/timeline";
+import { Timeline } from "./Timeline";
 
 export interface RailShot {
   id: string;
@@ -44,6 +46,7 @@ export function Workspace({
   railFooter,
   drawerPanels,
   drawerBadges,
+  timeline,
 }: {
   projectId: string;
   shots: RailShot[];
@@ -56,6 +59,8 @@ export function Workspace({
   railFooter?: React.ReactNode;
   drawerPanels: Record<DrawerTab, React.ReactNode>;
   drawerBadges?: Partial<Record<DrawerTab, string>>;
+  /** REQ-STB-039: the cut on the track's time axis — clicking a clip focuses it. */
+  timeline: TimelineModel;
 }) {
   // "film" = the finished cut, "add" = new shot form, otherwise a shot id.
   const [focus, setFocus] = useState<string>(() => shots[0]?.id ?? "film");
@@ -128,6 +133,17 @@ export function Workspace({
           ))}
         </div>
       </header>
+
+      {timeline.blocks.length > 0 && (
+        <div style={{ flex: "0 0 auto" }}>
+          <Timeline
+            model={timeline}
+            focusedId={focus === "film" || focus === "add" ? null : focus}
+            onFocus={setFocus}
+            statusById={Object.fromEntries(shots.map((s) => [s.id, s.status]))}
+          />
+        </div>
+      )}
 
       <div style={{ flex: "1 1 auto", display: "flex", minHeight: 0 }}>
         {/* ── Rail: the whole film at a glance, click to focus ─────────────── */}

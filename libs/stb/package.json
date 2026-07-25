@@ -9,7 +9,8 @@
     "./schema": "./src/schema.ts",
     "./plan-normalize": "./src/plan-normalize.ts",
     "./music-sync": "./src/music-sync.ts",
-    "./board": "./src/board.ts"
+    "./board": "./src/board.ts",
+    "./timeline": "./src/timeline.ts"
   },
   "dependencies": {
     "@avd/shared": "workspace:*",

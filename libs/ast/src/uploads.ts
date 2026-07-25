@@ -8,7 +8,7 @@ import type { Db } from "@avd/shared/db";
 import { config } from "@avd/shared/config";
 import { asset, uploadSession } from "./schema";
 import { makeAssetThumb } from "./derivatives";
-import { assetKey, bucketName, putObject } from "./storage";
+import { assetKey, bucketName, getObject, putObject } from "./storage";
 
 export class AstValidationError extends Error {
   constructor(public code: string, message: string) {
@@ -100,6 +100,12 @@ export async function completeUpload(db: Db, sessionId: string): Promise<string>
   });
   await db.update(uploadSession).set({ status: "completed" }).where(eq(uploadSession.id, sessionId));
   await makeAssetThumb(db, assetId); // REQ-AST-005
+  if (session.kind === "audio") {
+    // REQ-STB-039: the timeline compares the cut against the track — record its true length
+    const { recordAssetDuration } = await import("./probe");
+    const obj = await getObject(session.storageKey);
+    await recordAssetDuration(db, assetId, obj.bytes, (session.mime.split("/")[1] ?? "mp3").replace("mpeg", "mp3"));
+  }
   return assetId;
 }
 
@@ -125,5 +131,10 @@ export async function uploadBytesDirect(
     bytes: input.bytes.byteLength,
   });
   await makeAssetThumb(db, assetId); // REQ-AST-005
+  if (input.kind === "audio") {
+    // REQ-STB-039: the timeline compares the cut against the track — record its true length
+    const { recordAssetDuration } = await import("./probe");
+    await recordAssetDuration(db, assetId, input.bytes, ext.replace("mpeg", "mp3"));
+  }
   return assetId;
 }

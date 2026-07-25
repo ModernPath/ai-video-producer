@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -22,6 +22,8 @@ Totals: 30 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 | REQ-STB-035 | Script-studio generation indicators + lane lockouts | P8 | IN_REVIEW | USER 2026-07-24 "this view does not show any generation indicators" | rendered-HTML check (synthetic queued row → banner) | script page activeGens query, pulse banner, 5 button lockouts |
 | REQ-STB-037 | One workspace: rail + focused shot + script/music/cast/output drawer | P8 | IN_REVIEW | USER 2026-07-25 UX review ("controls and flow does not seem intuitive… cant control easily the music etc on editor") | tests/board.spec.ts (6) + browser walkthrough (rail, drawer tabs, film, 2-take compare) | components/Workspace.tsx, libs/stb/src/board.ts, p/[id]/page.tsx rewrite, script route → redirect |
 | REQ-STB-038 | Drag-to-reorder shots in the rail | P9 | PROPOSED | REQ-STB-037 deferral (USER 2026-07-25 "change their order") | — | — |
+| REQ-STB-039 | Music timeline: clips on the track's time axis, drift + off-beat cuts | P8 | IN_REVIEW | USER 2026-07-25 ("see the music timing within the clips… if I add a new clip it might outsync") | tests/timeline.spec.ts (9) + browser (Neon Rivers 5 clips, boundary ticks, 3/5→5/5 off-beat after a length edit) | libs/stb/src/timeline.ts, components/Timeline.tsx, ast/src/probe.ts (ffprobe), upload+music duration recording |
+| REQ-STB-040 | Edit clip length: free crop vs regenerate, stated per shot | P8 | IN_REVIEW | USER 2026-07-25 ("edit the length of clips (+regenerate or crop)") | tests/timeline.spec.ts crop/shortfall block + browser (5s→6s persisted, ⚠ 1s short, take price 0.51→0.61) | updateShotDurationAction, stage length editor, trimmedS/shortfallS in timeline.ts |
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
 | REQ-STB-034 | First take auto-selects (export never silently empty) | P8 | IN_REVIEW | USER 2026-07-24 "why can't I export" (5 takes bought, 0 selected → Export 0 ready) | tests/take-binding.int.spec.ts REQ-STB-034 + browser (5/5 generated) | materializeGenerationOutput take branch |
 | REQ-STB-033 | Cast visibility everywhere (bar with refs + profile badges; library from home) | P8 | IN_REVIEW | USER 2026-07-24 usability screenshots | browser E2E ×3 views | components/CastBar.tsx, script page wiring, home library link |
@@ -438,3 +440,31 @@ Totals: 30 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 - **Raised-by:** REQ-STB-037 deferral (USER 2026-07-25 "change their order")
 - **Statement:** The rail should support pointer drag to reorder shots (and insert a new shot at a position), persisting through one reorder command rather than repeated ↑/↓ steps.
 - **Deferred / notes:** needs a positional move service call (today's reorderShotAction is a neighbour swap).
+
+### REQ-STB-039 — Music timeline: clips on the track's time axis
+- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Raised-by:** USER 2026-07-25: "somehow it would be nice to see the music timing within the clips, like traditional video editors do? Because if I e.g. add new clip, it might outsync the video."
+- **Statement:** A timeline strip under the command bar puts the cut on a real time axis: every clip drawn to scale (status-tinted, click to focus), the track's section changes (MM:SS transcript, REQ-GEN-020) as ticks across the clips with a thinned ruler, `cut` vs `track` lengths, drift (`▲ cut runs Ns past the track` / `◂ Ns of track unused`) and an off-beat count (`3/5 cuts off the beat`). Each shot also states its own `0:08 → 0:12 in the cut` and `♪ on/off the beat`. The axis follows the CUT: leftover track is drawn to scale only up to a third of the cut, then collapses to a `⋯ +M:SS track` chip, because a 2:55 track against a 0:27 cut squeezed every clip into 15% of the width.
+- **Acceptance criteria:**
+  - GIVEN shots in order THEN each block's start/end is its cumulative position and the total equals the cut length.
+  - GIVEN a transcript THEN cuts landing exactly on a section change are marked, and the rest are counted as off-beat.
+  - GIVEN a clip inserted or lengthened early THEN later cuts lose their boundary alignment and the off-beat count rises (verified live: 3/5 → 5/5 after +1s on clip 1).
+  - GIVEN a track longer/shorter than the cut THEN drift is reported with the direction stated; no track ⇒ no drift claim.
+- **Tests:** `libs/stb/tests/timeline.spec.ts` (9, red-first) · browser on Neon Rivers (2:55 track / 0:27 cut): 5 legible clips, boundary ticks at 0:23/0:27/0:32/0:34, collapsed `⋯ +2:27 track` tail, off-beat count flip on edit
+- **Code:** `libs/stb/src/timeline.ts`, `apps/web/components/Timeline.tsx`, `apps/web/components/Workspace.tsx`, `libs/ast/src/probe.ts` (ffprobe duration), `libs/ast/src/uploads.ts` + `libs/gen/src/executor.ts` (record audio duration), `apps/web/scripts/backfill-audio-durations.ts`
+- **Log:** LOG 2026-07-25
+- **Deferred / notes:** `asset.duration_s` was NULL for every audio row, so drift could never render — now probed at upload/generate and backfilled (17/17 existing tracks). Waveform rendering, a scrubbing playhead across clips, and drag-the-edge trimming are not built; ticks come from section stamps, not beat detection.
+
+### REQ-STB-040 — Edit clip length: free crop vs regenerate
+- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Raised-by:** USER 2026-07-25: "Maybe also being able to edit the length of clips (+renegerate or crop the video/animation)"
+- **Statement:** Each shot on the stage carries a length field with `Set length` (INV-STB-001 bounds enforced in the service) and states the consequence before you spend: shortening below the take's real footage shows `✂ export crops Ns of this take · free` (the exporter already normalizes every clip with ffmpeg `-t durationS`, so no regeneration is needed); lengthening past it shows `⚠ take is Ns short — regenerate to fill` plus a hatched overlay on the clip in the timeline, with the take estimate repriced for the new length.
+- **Acceptance criteria:**
+  - GIVEN a shot shorter than its take THEN `trimmedS` > 0 and the UI calls the crop free.
+  - GIVEN a shot longer than its take THEN `shortfallS` > 0 and the UI directs to a regenerate.
+  - GIVEN a shot with no take THEN neither claim is made.
+  - GIVEN Set length THEN the duration persists and the timeline, take estimate and off-beat state all update.
+- **Tests:** `libs/stb/tests/timeline.spec.ts` REQ-STB-040 block · browser: 5s → 6s persisted (`duration_s` 6.0), shortfall + reprice shown, restored to 5s
+- **Code:** `apps/web/app/actions.ts` (updateShotDurationAction), stage length editor in `apps/web/app/p/[id]/page.tsx`, `trimmedS`/`shortfallS` in `libs/stb/src/timeline.ts`
+- **Log:** LOG 2026-07-25
+- **Deferred / notes:** no re-encode-on-save crop (the export's `-t` covers it); trimming a take's IN point (start offset) is not supported — only its length; drag-the-edge resizing on the timeline → with REQ-STB-038.

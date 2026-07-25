@@ -396,6 +396,21 @@ export async function applySyncAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/**
+ * REQ-STB-040: set one shot's length from the timeline (USER 2026-07-25 "being able to edit the
+ * length of clips (+regenerate or crop)"). Shortening is free — the export normalizes every clip
+ * with ffmpeg `-t durationS`, so a shorter shot simply crops its take. Lengthening past the take's
+ * real footage is surfaced as a shortfall in the UI; the user then chooses to regenerate.
+ */
+export async function updateShotDurationAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const shotId = String(formData.get("shotId"));
+  const durationS = Number(formData.get("durationS"));
+  const { updateShotDuration } = await import("@avd/stb");
+  await updateShotDuration(db(), { shotId, durationS }); // INV-STB-001 enforced in the service
+  revalidatePath(`/p/${projectId}`);
+}
+
 /** REQ-ANM-002: composite a lower-third overlay onto an existing take (free). */
 export async function overlayTakeAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));
