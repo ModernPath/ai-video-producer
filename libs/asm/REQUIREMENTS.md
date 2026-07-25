@@ -1,11 +1,12 @@
 # Requirements Ledger — ASM (Assembly & Export)
 
 ## Dashboard — ASM (Assembly & Export)
-Totals: 11 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 11 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-ASM-001 | Snapshot requires ready takes; immutable | P1 | DONE | INV-ASM-001/002 | tests/export.int.spec.ts | src/service.ts |
+| REQ-ASM-015 | Audio mode in plain language, one click, next to the player | P8 | IN_REVIEW | USER 2026-07-25 "how do I select do I use the tracks own audio, music or mixed?" | browser (one click native→mix relabels player + ducks bed to 0.2512; restore to music) | components/AudioModePicker.tsx, stage + Music + Output wiring |
 | REQ-ASM-014 | Clip preview plays with the music bed at its cut position | P8 | IN_REVIEW | USER 2026-07-25 "how do I play the audio within one clip? … only the videos own audio track, not external music" | tests/preview-mix.spec.ts (6) + browser (music: bed@19.32 vs expected 19.27, scrub→21.33/21.32, pause stops bed; mix: duck 0.2512 == 10^(-12/20)) | libs/asm/src/preview.ts, components/ClipPlayer.tsx, stage wiring |
 | REQ-ASM-013 | Finished film plays in-app (exports player + post-export jump) | P7 | IN_REVIEW | USER 2026-07-24 "how do I even play the video" | browser E2E (#exports anchor + inline player) | page.tsx exports section, exportAction redirect |
 | REQ-ASM-012 | Exports use universally playable audio (aac) | P7 | IN_REVIEW | USER BUG 2026-07-24 (downloaded export silent in QuickTime) | tests/audio-mix.int.spec.ts (music mode aac) | src/service.ts music-mode -c:a aac |
@@ -171,3 +172,16 @@ Totals: 11 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Code:** `libs/asm/src/preview.ts`, `apps/web/components/ClipPlayer.tsx`, `apps/web/app/p/[id]/page.tsx` (stage player)
 - **Log:** LOG 2026-07-25
 - **Deferred / notes:** two media elements syncing in JS drift slightly on a heavily loaded tab (corrected past 0.18s, no audible flam in testing); a single WebAudio graph would be sample-accurate if that ever matters. Take-audio waveform display and per-clip volume/duck overrides are not built — duck comes from config, as in the export.
+
+### REQ-ASM-015 — Audio mode in plain language, one click, next to the player
+- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Raised-by:** USER 2026-07-25: "how do I select do I use the tracks own audio, music or mixed?" — the control existed but was undiscoverable: an `audio: native / music / mix` dropdown in the Output panel, jargon-named, two gestures (pick then Set), nowhere near the player.
+- **Statement:** One-click mode buttons in plain language — **Take audio** (only what the model generated), **Music only** (the track replaces it), **Both** (take audio up front, track ducked) — with the active mode checked and the current mode's meaning written under it. Rendered in three places: under the clip player (where the difference is audible), in the Music panel, and in Output. Modes needing a track are disabled with an explanation when none is attached.
+- **Acceptance criteria:**
+  - GIVEN any mode THEN the active button is checked and disabled, and the other two are one click away (no separate Set).
+  - GIVEN a click THEN the project's mode persists and the clip player's mix/label update accordingly.
+  - GIVEN no attached track THEN "Music only" and "Both" are disabled with the reason stated.
+- **Tests:** covered by `libs/asm/tests/preview-mix.spec.ts` for the mix rule itself · browser: Neon Rivers, one click Music only → Both relabeled the player to "take audio + ducked track" and set bedVolume 0.2512; clicked back to Music only ("replaces take audio")
+- **Code:** `apps/web/components/AudioModePicker.tsx`, `apps/web/app/p/[id]/page.tsx` (stage under the player, Music panel SOUND section, Output panel)
+- **Log:** LOG 2026-07-25
+- **Deferred / notes:** still one setting for the whole film — per-shot audio overrides (e.g. keep dialogue on one clip while the rest is music-only) are not built; that needs a per-shot column and an exporter change.

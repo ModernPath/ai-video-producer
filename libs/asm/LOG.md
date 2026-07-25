@@ -1,5 +1,13 @@
 # Build Log — ASM (Assembly & Export)
 
+## 2026-07-25 — REQ-ASM-015 audio mode picker (→ IN_REVIEW)
+**Done:** Replaced the `audio: native/music/mix` dropdown with one-click buttons in plain language — Take audio · Music only · Both — showing the active mode and what it means, rendered under the clip player, in the Music panel and in Output. Track-dependent modes disable themselves with a reason when no track is attached.
+**Decisions:** Put it under the player first: the user asked how to choose while listening to a clip, so the control belongs where the difference is audible, not in a settings panel. One gesture instead of select+Set.
+**Deferred:** per-shot audio overrides (one setting still governs the whole film).
+**Discovered:** the earlier scripted insert broke a ternary chain in the stage markup — tsc caught it before any browser check ([[tsc-after-scripted-edits]] again).
+**Follow-ups:** none.
+**Gate:** full suite 199 passed | 14 skipped; tsc clean; browser mode switch verified end-to-end (label + gains), project restored to music.
+
 ## 2026-07-25 — REQ-ASM-014 clip preview with the music bed (→ IN_REVIEW)
 **Done:** The selected take on the stage now plays through `ClipPlayer`, which runs the project track underneath seeked to the clip's own position in the cut (0:18→0:23 auditions against the export's bars). Mix comes from `previewMix` — the exporter's own rule: music replaces take audio, mix ducks the bed by config.audio.duckDb, native plays the take alone with a "♫ hear with music" audition toggle. Bed follows play/pause/seek/end and resyncs past 0.18s drift; no track ⇒ the UI says so.
 **Decisions:** Shared the mix policy with the export path rather than hardcoding gains in the component, so preview and render can't diverge. Gains applied imperatively (a `muted` attribute would fight the user's own volume control). Two elements + drift correction instead of a WebAudio graph — enough for auditioning, noted for later.

@@ -27,7 +27,7 @@ import {
   generateMusicTrackAction, generateTakeAction, musicBriefAction, overlayTakeAction, proposePlanAction,
   removeCandidateAction, removeShotAction, reorderShotAction, retakeAction, retryExportAction,
   retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction,
-  setArchetypeAction, setAudioModeAction, setProjectStyleAction, transcribeTrackAction,
+  setArchetypeAction, setProjectStyleAction, transcribeTrackAction,
   updateBriefAction, updateShotDurationAction, updateShotRefsAction, uploadTrackAction,
 } from "../../actions";
 import { CastBar } from "../../../components/CastBar";
@@ -36,6 +36,7 @@ import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
 import { Markdown } from "../../../components/Markdown";
 import { SubmitButton } from "../../../components/SubmitButton";
+import { AudioModePicker } from "../../../components/AudioModePicker";
 import { ClipPlayer } from "../../../components/ClipPlayer";
 import { Workspace, type DrawerTab, type RailShot } from "../../../components/Workspace";
 import { db } from "../../../lib/db";
@@ -335,6 +336,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               <p className="mono muted" style={{ fontSize: 9.5, marginTop: 5 }}>
                 {selFrame ? "selected start frame — no take yet" : "planned"}
               </p>
+            )}
+            {/* REQ-ASM-015: choose take audio / music / both right where you hear it */}
+            {selectedTake && (
+              <div style={{ ...sub, marginTop: 8 }}>
+                <AudioModePicker projectId={id} mode={p.audioMixMode as "native" | "music" | "mix"} hasTrack={Boolean(music?.activeTrackAssetId)} compact />
+              </div>
             )}
           </div>
 
@@ -767,6 +774,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         )}
       </Section>
 
+      <Section title="SOUND">
+        <AudioModePicker projectId={id} mode={p.audioMixMode as "native" | "music" | "mix"} hasTrack={Boolean(music?.activeTrackAssetId)} />
+      </Section>
+
       <Section title="TRACK">
         {music?.activeTrackAssetId ? (
           <div style={{ display: "grid", gap: 8 }}>
@@ -836,15 +847,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               <SubmitButton small pendingLabel="…">Set</SubmitButton>
             </form>
           )}
-          <form action={setAudioModeAction} style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            <input type="hidden" name="projectId" value={id} />
-            <select name="mode" defaultValue={p.audioMixMode} className="mono" title="native = take audio · music = track only · mix = both" style={{ ...tiny, flex: 1 }}>
-              <option value="native">audio: native</option>
-              <option value="music">audio: music</option>
-              <option value="mix">audio: mix</option>
-            </select>
-            <SubmitButton small pendingLabel="…">Set</SubmitButton>
-          </form>
+          <AudioModePicker projectId={id} mode={p.audioMixMode as "native" | "music" | "mix"} hasTrack={Boolean(music?.activeTrackAssetId)} />
           <form action={generateMissingFramesAction}>
             <input type="hidden" name="projectId" value={id} />
             <SubmitButton small pendingLabel="Generating…">＋ Frames for every unframed shot</SubmitButton>
