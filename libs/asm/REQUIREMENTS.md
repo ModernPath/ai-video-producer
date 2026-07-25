@@ -1,11 +1,12 @@
 # Requirements Ledger — ASM (Assembly & Export)
 
 ## Dashboard — ASM (Assembly & Export)
-Totals: 11 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 11 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-ASM-001 | Snapshot requires ready takes; immutable | P1 | DONE | INV-ASM-001/002 | tests/export.int.spec.ts | src/service.ts |
+| REQ-ASM-014 | Clip preview plays with the music bed at its cut position | P8 | IN_REVIEW | USER 2026-07-25 "how do I play the audio within one clip? … only the videos own audio track, not external music" | tests/preview-mix.spec.ts (6) + browser (music: bed@19.32 vs expected 19.27, scrub→21.33/21.32, pause stops bed; mix: duck 0.2512 == 10^(-12/20)) | libs/asm/src/preview.ts, components/ClipPlayer.tsx, stage wiring |
 | REQ-ASM-013 | Finished film plays in-app (exports player + post-export jump) | P7 | IN_REVIEW | USER 2026-07-24 "how do I even play the video" | browser E2E (#exports anchor + inline player) | page.tsx exports section, exportAction redirect |
 | REQ-ASM-012 | Exports use universally playable audio (aac) | P7 | IN_REVIEW | USER BUG 2026-07-24 (downloaded export silent in QuickTime) | tests/audio-mix.int.spec.ts (music mode aac) | src/service.ts music-mode -c:a aac |
 | REQ-ASM-002 | Export concatenates takes, no generation | P1 | DONE | INV-ASM-003 | tests/export.int.spec.ts | src/service.ts |
@@ -156,3 +157,17 @@ Totals: 11 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN Export cut completes THEN the page lands on #exports.
 - **Tests:** browser E2E · **Code:** `apps/web/app/p/[id]/page.tsx` exports section, `apps/web/app/actions.ts` exportAction redirect · **Log:** LOG 2026-07-24
 - **Deferred / notes:** queue-mode exports finish async — the redirect lands on the running row; LiveRefresh updates it in place.
+
+### REQ-ASM-014 — Clip preview plays with the music bed at its cut position
+- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Raised-by:** USER 2026-07-25: "how do I play the audio within one clip? Timeline is good, but can't play the video with the audio (only the videos own audio track, not external music)"
+- **Statement:** Playing the selected take on the stage also plays the project track underneath, seeked to THAT clip's position in the cut (a clip at 0:18→0:23 auditions against the same bars the export will use). The mix follows the project's audio mode through `previewMix`, the same rule the exporter applies (BR-ASM-001/002): `music` replaces the take audio with the track, `mix` keeps the take audio and ducks the track by `config.audio.duckDb`, `native` plays the take alone. In `native` a "♫ hear with music" toggle auditions the clip against the bed without changing the project's mode. The bed follows play/pause/seek/end and resyncs past a 0.18s drift; with no attached track the UI says so instead of implying a bed.
+- **Acceptance criteria:**
+  - GIVEN mode `music` + a track THEN the bed plays at full level and the take audio is silenced.
+  - GIVEN mode `mix` THEN take audio stays at 1 and the bed is ducked to 10^(duckDb/20).
+  - GIVEN mode `native` THEN no bed unless the user forces it; forcing without a track never invents one.
+  - GIVEN play/seek on a clip starting at 0:18 THEN the bed's time tracks 18 + the clip's time.
+- **Tests:** `libs/asm/tests/preview-mix.spec.ts` (6, red-first) · browser: Neon Rivers "Chorus - Burning Bright" (0:18→0:23) played → bed 19.32s vs expected 19.27s, scrub to 3.32s → bed 21.33s vs expected 21.32s, pause stopped the bed, take audio muted; ModernPath launch (`mix`) → bedVolume 0.2512 == expected duck
+- **Code:** `libs/asm/src/preview.ts`, `apps/web/components/ClipPlayer.tsx`, `apps/web/app/p/[id]/page.tsx` (stage player)
+- **Log:** LOG 2026-07-25
+- **Deferred / notes:** two media elements syncing in JS drift slightly on a heavily loaded tab (corrected past 0.18s, no audible flam in testing); a single WebAudio graph would be sample-accurate if that ever matters. Take-audio waveform display and per-clip volume/duck overrides are not built — duck comes from config, as in the export.

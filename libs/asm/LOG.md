@@ -1,5 +1,13 @@
 # Build Log — ASM (Assembly & Export)
 
+## 2026-07-25 — REQ-ASM-014 clip preview with the music bed (→ IN_REVIEW)
+**Done:** The selected take on the stage now plays through `ClipPlayer`, which runs the project track underneath seeked to the clip's own position in the cut (0:18→0:23 auditions against the export's bars). Mix comes from `previewMix` — the exporter's own rule: music replaces take audio, mix ducks the bed by config.audio.duckDb, native plays the take alone with a "♫ hear with music" audition toggle. Bed follows play/pause/seek/end and resyncs past 0.18s drift; no track ⇒ the UI says so.
+**Decisions:** Shared the mix policy with the export path rather than hardcoding gains in the component, so preview and render can't diverge. Gains applied imperatively (a `muted` attribute would fight the user's own volume control). Two elements + drift correction instead of a WebAudio graph — enough for auditioning, noted for later.
+**Deferred:** sample-accurate WebAudio mixing; per-clip volume/duck overrides; take-audio waveform.
+**Discovered:** no native-mode project exists in the dev DB, so the force-bed toggle is covered by unit tests only; the mix-mode duck was verified live instead (0.2512 == 10^(-12/20)).
+**Follow-ups:** none.
+**Gate:** RED→GREEN (preview-mix.spec 6); full suite 199 passed | 14 skipped; tsc clean; browser sync + duck verification as above.
+
 ## 2026-07-24 — BATCH SIGN-OFF: all IN_REVIEW → DONE (human-approved)
 **Done:** USER approved the review queue verbatim: "approve all for now" (evidence: sign-off artifact + per-REQ tests/browser/real-API links in the ledger). All IN_REVIEW rows in this ledger moved to DONE atomically (dashboard row + detail block + Totals).
 **Decisions:** approval is provisional ("for now") — regressions reopen the specific REQ, not the batch.

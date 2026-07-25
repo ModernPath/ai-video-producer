@@ -36,6 +36,7 @@ import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
 import { Markdown } from "../../../components/Markdown";
 import { SubmitButton } from "../../../components/SubmitButton";
+import { ClipPlayer } from "../../../components/ClipPlayer";
 import { Workspace, type DrawerTab, type RailShot } from "../../../components/Workspace";
 import { db } from "../../../lib/db";
 
@@ -313,11 +314,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}>
           <div style={{ flex: "1 1 520px", minWidth: 320 }}>
             {selectedTake ? (
-              <video
-                key={selectedTake.id}
-                src={`/api/assets/${selectedTake.videoAssetId}`}
-                controls playsInline preload="metadata"
-                style={{ width: "100%", aspectRatio: "16/9", borderRadius: 10, border: "2px solid var(--accent)", background: "#000" }}
+              // REQ-ASM-014: the clip plays with the project track under it, from its own position
+              <ClipPlayer
+                videoAssetId={selectedTake.videoAssetId}
+                musicAssetId={music?.activeTrackAssetId ?? null}
+                startS={timelineByShot.get(s.id)?.startS ?? 0}
+                durationS={Number(s.durationS)}
+                mixMode={p.audioMixMode as "native" | "music" | "mix"}
+                label={`selected take ${selectedTake.id.slice(-4)} · ${selectedTake.durationActualS ?? s.durationS}s — this is what the export uses`}
               />
             ) : selFrame ? (
               <ZoomImage src={`/api/assets/${selFrame.imageAssetId}`} alt="start frame"
@@ -327,9 +331,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 <p className="mono muted" style={{ fontSize: 11 }}>no frame yet — generate one below</p>
               </div>
             )}
-            <p className="mono muted" style={{ fontSize: 9.5, marginTop: 5 }}>
-              {selectedTake ? `selected take ${selectedTake.id.slice(-4)} · ${selectedTake.durationActualS ?? s.durationS}s — this is what the export uses` : selFrame ? "selected start frame — no take yet" : "planned"}
-            </p>
+            {!selectedTake && (
+              <p className="mono muted" style={{ fontSize: 9.5, marginTop: 5 }}>
+                {selFrame ? "selected start frame — no take yet" : "planned"}
+              </p>
+            )}
           </div>
 
           {/* Buy actions sit next to the preview, not two screens away */}
