@@ -1,5 +1,13 @@
 # Build Log — STB
 
+## 2026-07-25 — REQ-STB-037 one workspace (→ IN_REVIEW) · REQ-STB-038 (PROPOSED)
+**Done:** Replaced the two-page storyboard + script studio with a single workspace: sticky command bar (title · progress · spend · live pulse · animatic · export), left shot rail (status dot, thumbnail, duration, working pulse, film + add-shot entries), a stage that focuses ONE shot (selected take playing large, takes side by side with select/retake/overlay, frames, prompts, per-shot refs), and a right drawer with Script · Music · Cast · Output. `/p/:id/script` now redirects into the workspace. Status/progress rules extracted to `libs/stb/src/board.ts` (red-first tests). Animatic moved next to the finished cut in the film panel.
+**Decisions:** Layout state (focus, open panel, panel width) lives in a client shell + sessionStorage so server-action re-renders never lose your place; every mutation stays a server action. Drawer width toggles narrow/wide for long scripts. Focus falls back to the first shot when a shot is removed.
+**Deferred:** drag-to-reorder + insert-at-position → REQ-STB-038 (PROPOSED; needs a positional move service call, today's reorder is a neighbour swap). Floating/detachable panels; multi-take grid compare beyond the existing A/B overlay.
+**Discovered:** the browser extension's screenshot is downscaled from a 2592px viewport — coordinate clicks miss; click by `ref` from read_page instead (memory updated).
+**Follow-ups:** none.
+**Gate:** RED→GREEN (board.spec 6 tests); full suite 184 passed | 14 skipped, 0 failures; tsc clean; browser walkthrough (rail focus, Script panel, Music panel with track controls beside a shot, film panel, shot 13 two-take compare); `/script` → 307.
+
 ## 2026-07-24 — REQ-STB-036 animation template variety: plan varies, user chooses (→ IN_REVIEW)
 **Done:** Plan prompt schema now lists all five full-frame templates with per-template usage guidance and an explicit VARY instruction (never repeat back-to-back unless the format demands it); plan-normalize accepts the full set via shared `fullFrameAnimationTemplates` (unknown → animation dropped, shot stays filmed); executor dispatch fixed (was collapsing everything but "kinetic" to "title"); requestAnimationTake forwards subtext (input or plan); storyboard picker offers all five templates + a subtext field.
 **Decisions:** Config-not-code — the template list is shared config so adding a composition makes it choosable everywhere.

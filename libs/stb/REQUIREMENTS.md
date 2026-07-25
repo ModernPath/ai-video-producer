@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 5 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -20,6 +20,8 @@ Totals: 30 DONE · 5 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-028 | Music-led planning (transcript in plan prompt) | P7 | DONE | docs/87 | prompt.spec REQ-STB-028 + snapshot E2E | prompt transcript block, proposeShotPlan wiring |
 | REQ-STB-029 | Route-aware shot durations (omni unlocks 4–10s) | P7 | DONE | REQ-GEN-023 follow-up | tests/duration-policy.spec.ts (7) | shared shotDurationPolicy; plan-normalize, music-sync, assertDuration, plan prompt schema |
 | REQ-STB-035 | Script-studio generation indicators + lane lockouts | P8 | IN_REVIEW | USER 2026-07-24 "this view does not show any generation indicators" | rendered-HTML check (synthetic queued row → banner) | script page activeGens query, pulse banner, 5 button lockouts |
+| REQ-STB-037 | One workspace: rail + focused shot + script/music/cast/output drawer | P8 | IN_REVIEW | USER 2026-07-25 UX review ("controls and flow does not seem intuitive… cant control easily the music etc on editor") | tests/board.spec.ts (6) + browser walkthrough (rail, drawer tabs, film, 2-take compare) | components/Workspace.tsx, libs/stb/src/board.ts, p/[id]/page.tsx rewrite, script route → redirect |
+| REQ-STB-038 | Drag-to-reorder shots in the rail | P9 | PROPOSED | REQ-STB-037 deferral (USER 2026-07-25 "change their order") | — | — |
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
 | REQ-STB-034 | First take auto-selects (export never silently empty) | P8 | IN_REVIEW | USER 2026-07-24 "why can't I export" (5 takes bought, 0 selected → Export 0 ready) | tests/take-binding.int.spec.ts REQ-STB-034 + browser (5/5 generated) | materializeGenerationOutput take branch |
 | REQ-STB-033 | Cast visibility everywhere (bar with refs + profile badges; library from home) | P8 | IN_REVIEW | USER 2026-07-24 usability screenshots | browser E2E ×3 views | components/CastBar.tsx, script page wiring, home library link |
@@ -415,3 +417,24 @@ Totals: 30 DONE · 5 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Tests:** `libs/stb/tests/plan-normalize.spec.ts` (REQ-STB-036 block) · `libs/gen/tests/prompt.spec.ts` (template-set + vary) · served-HTML check (all 5 options render on the storyboard)
 - **Code:** `libs/shared/src/config/limits.ts` (template list), `libs/gen/src/prompt.ts` (schema + guidance), `libs/stb/src/plan-normalize.ts`, `libs/stb/src/service.ts` (subtext forwarding), `libs/gen/src/executor.ts` (dispatch fix), `apps/web/app/actions.ts`, `apps/web/app/p/[id]/page.tsx`
 - **Log:** LOG 2026-07-24 · **Deferred / notes:** per-template prop editors (e.g. per-item checklist rows) later; REQ-ANM-006 owns the new compositions.
+
+### REQ-STB-037 — One workspace: rail + focused shot + script/music/cast/output drawer
+- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Raised-by:** USER 2026-07-25 UX review: "The controls and flow does not seem intuitive, I need to navigate between the screens, scroll up and down etc. Especially when I need to edit something, e.g. script or music, it's really bad experience as script view changes them, but I cant control easily the music etc on editor. Also going up to generate the video etc is quirky, looking and comparing videos difficult, cant add my own scenes or change their order etc. Weird animatic seems useful with music, but it's too separate etc. Maybe rather use some sidebar/floating stuff etc?"
+- **Statement:** The project is one workspace, not two scrolling pages. A sticky command bar keeps title · progress · spend · animatic · export always reachable; a left rail lists every shot (status dot, thumbnail, duration, live "working" pulse) and focuses one at a time; the stage shows that single shot with its selected take playing large, its takes side by side, frames, prompts and per-shot refs; a right drawer holds Script · Music · Cast · Output so the script, brief, track and export settings are editable without leaving the board. `/p/:id/script` redirects into the workspace. Layout state (focused shot, open panel, panel width) survives server-action re-renders via sessionStorage.
+- **Acceptance criteria:**
+  - GIVEN a project WHEN opened THEN the command bar, shot rail and stage render without page-level scrolling of the chrome, and export is reachable without scrolling.
+  - GIVEN the Music (or Script) panel WHEN opened THEN brief/track/transcribe (or prompt/script/plan) controls operate while a shot stays on the stage.
+  - GIVEN a shot with 2+ takes THEN the takes render side by side at a size where they can be judged, with select/retake/overlay per take.
+  - GIVEN a shot removed by an action THEN the stage falls back to the first shot rather than blanking.
+  - GIVEN `/p/:id/script` THEN it redirects to the workspace (old links keep working).
+- **Tests:** `libs/stb/tests/board.spec.ts` (status + progress rules, red-first) · browser walkthrough on ModernPath Goes To QStock: rail focus, Script panel, Music panel, film panel with animatic, shot 13 two-take compare, `/script` → 200 after redirect
+- **Code:** `apps/web/components/Workspace.tsx`, `libs/stb/src/board.ts`, `apps/web/app/p/[id]/page.tsx` (rewrite), `apps/web/app/p/[id]/script/page.tsx` (redirect)
+- **Log:** LOG 2026-07-25
+- **Deferred / notes:** drag-to-reorder in the rail (↑↓ per shot for now) → REQ-STB-038 PROPOSED; inserting a shot at a position (append + reorder today); floating/detachable panels and multi-select take compare beyond the existing A/B overlay.
+
+### REQ-STB-038 — Drag-to-reorder shots in the rail
+- **Status:** PROPOSED · **Stage:** P9 · **Priority:** should
+- **Raised-by:** REQ-STB-037 deferral (USER 2026-07-25 "change their order")
+- **Statement:** The rail should support pointer drag to reorder shots (and insert a new shot at a position), persisting through one reorder command rather than repeated ↑/↓ steps.
+- **Deferred / notes:** needs a positional move service call (today's reorderShotAction is a neighbour swap).
