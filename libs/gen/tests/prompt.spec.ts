@@ -273,4 +273,41 @@ describe("REQ-GEN-026: card-driven visual prompts exclude the reference name", (
   it("still works with no card at all", () => {
     expect(assembleFramePrompt(input)).toBeTruthy();
   });
+
+  // USER 2026-07-26, reading a real shot's IMAGE SCRIPT: "Cinematic 35mm film frame, Aki
+  // Kaurismäki visual style." The PLANNER wrote the reference into the shot's own prompt despite
+  // being told not to, and a custom prompt goes to the image model verbatim — so the name reached
+  // the picture by a path none of the earlier guards covered.
+  it("strips the reference from a plan-authored custom prompt", () => {
+    const p = assembleFramePrompt({
+      ...input, card,
+      customPrompt: "Cinematic 35mm film frame, Aki Kaurismäki visual style. Symmetrical bus shelter.",
+    } as never);
+    expect(p.toLowerCase()).not.toContain("kaurism");
+    expect(p).toContain("Cinematic 35mm film frame");
+    expect(p).toContain("Symmetrical bus shelter.");
+  });
+
+  it("strips it from a custom VIDEO prompt too", () => {
+    const p = assembleTakePrompt({
+      ...input, durationSeconds: 6, card,
+      customPrompt: "Static wide, in the style of Aki Kaurismäki, a man waits.",
+    } as never);
+    expect(p.toLowerCase()).not.toContain("kaurism");
+    expect(p).toContain("a man waits.");
+  });
+
+  it("strips it from the direction the planner wrote, not just the custom prompt", () => {
+    const p = assembleFramePrompt({
+      ...input, card,
+      direction: { ...input.direction, mood: "melancholy, very Kaurismäki" },
+    } as never);
+    expect(p.toLowerCase()).not.toContain("kaurism");
+  });
+
+  it("leaves prompts alone when the card names no reference", () => {
+    const plain = { ...card, provenance: { references: [] } };
+    const text = "A red kettle boils.";
+    expect(assembleFramePrompt({ ...input, card: plain, customPrompt: text } as never)).toContain(text);
+  });
 });

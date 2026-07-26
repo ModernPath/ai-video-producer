@@ -1,6 +1,6 @@
 // REQ-GEN-013 — deterministic prompt assembly (docs/14-generation.md §5).
 import { config, fullFrameAnimationTemplates, shotAngles, shotDurationPolicy, shotMovements, shotSizes } from "@avd/shared/config";
-import { toVisualStyle, type StyleCard } from "@avd/shared/contracts"; // SR-DIR-005 card-driven look // REQ-STB-029 route palette · REQ-AST-012 profile cap · REQ-STB-036 template set
+import { stripReferences, toVisualStyle, type StyleCard } from "@avd/shared/contracts"; // SR-DIR-005 · SCN-DIR-002 // REQ-STB-029 route palette · REQ-AST-012 profile cap · REQ-STB-036 template set
 
 export const PROMPT_TEMPLATE_VERSION = 3; // v3: model prompt guidelines (USER 2026-07-23) — single-scene pin, explicit audio intent, ref preservation, inpainting formula
 
@@ -54,6 +54,19 @@ function cardLook(card?: StyleCard): string {
   return card ? toVisualStyle(card).trim() : "";
 }
 
+/**
+ * SCN-DIR-002, enforced at the LAST boundary before a model sees the text.
+ *
+ * The card's own axes are already clean, but a visual prompt is also built from text the PLANNER
+ * wrote — `customPrompt` (a shot's imagePrompt/videoPrompt) and the direction fields. The planner
+ * is instructed never to name a real director and does it anyway: a real shot came back as
+ * "Cinematic 35mm film frame, Aki Kaurismäki visual style." (USER 2026-07-26). Instructions are
+ * not a guarantee, so the assembled string is scrubbed rather than trusted.
+ */
+function guard(prompt: string, card?: StyleCard): string {
+  return card ? stripReferences(prompt, card.provenance?.references ?? []) : prompt;
+}
+
 function sentence(text: string): string {
   const t = text.trim();
   return /[.!?]$/.test(t) ? t : `${t}.`;
@@ -67,7 +80,7 @@ const BRAND_SAFETY = `Use only this project's own named brands; never depict rea
 export function assembleTakePrompt(i: TakePromptInput): string {
   if (i.customPrompt?.trim()) {
     const look = cardLook(i.card);
-    return `${i.customPrompt.trim()}\n${look ? `${look}\n` : ""}${BRAND_SAFETY}\n${i.aspectRatio} video, ${i.durationSeconds} seconds.`;
+    return guard(`${i.customPrompt.trim()}\n${look ? `${look}\n` : ""}${BRAND_SAFETY}\n${i.aspectRatio} video, ${i.durationSeconds} seconds.`, i.card);
   }
   const d = i.direction;
   const parts: string[] = [];
@@ -89,7 +102,7 @@ export function assembleTakePrompt(i: TakePromptInput): string {
   if (d.audioNotes) parts.push(sentence(`Sound design: ${d.audioNotes}`));
   if (!d.dialogue && !d.audioNotes) parts.push(`No dialogue; natural ambient sound only.`);
   parts.push(`A cinematic ${i.aspectRatio} video clip, ${i.durationSeconds} seconds, natural motion.`);
-  return parts.join(" ");
+  return guard(parts.join(" "), i.card);
 }
 
 export interface TextPromptInput {
@@ -182,7 +195,7 @@ export function assembleEditPrompt(i: EditPromptInput): string {
 export function assembleFramePrompt(i: Omit<TakePromptInput, "durationSeconds">): string {
   if (i.customPrompt?.trim()) {
     const look = cardLook(i.card);
-    return `${i.customPrompt.trim()}\n${look ? `${look}\n` : ""}${BRAND_SAFETY}\n${i.aspectRatio} still image.`;
+    return guard(`${i.customPrompt.trim()}\n${look ? `${look}\n` : ""}${BRAND_SAFETY}\n${i.aspectRatio} still image.`, i.card);
   }
   const d = i.direction;
   const parts: string[] = [];
@@ -207,5 +220,5 @@ export function assembleFramePrompt(i: Omit<TakePromptInput, "durationSeconds">)
   }
   parts.push(BRAND_SAFETY); // unconditional rail — drift happened with kind "character" and no product cast
   parts.push(`A cinematic still image, ${i.aspectRatio}, high detail.`);
-  return parts.join(" ");
+  return guard(parts.join(" "), i.card);
 }

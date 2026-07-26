@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 13 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 14 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -25,6 +25,7 @@ Totals: 30 DONE · 13 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 | REQ-STB-039 | Music timeline: clips on the track's time axis, drift + off-beat cuts | P8 | IN_REVIEW | USER 2026-07-25 ("see the music timing within the clips… if I add a new clip it might outsync") | tests/timeline.spec.ts (9) + browser (Neon Rivers 5 clips, boundary ticks, 3/5→5/5 off-beat after a length edit) | libs/stb/src/timeline.ts, components/Timeline.tsx, ast/src/probe.ts (ffprobe), upload+music duration recording |
 | REQ-STB-040 | Edit clip length: free crop vs regenerate, stated per shot | P8 | IN_REVIEW | USER 2026-07-25 ("edit the length of clips (+regenerate or crop)") | tests/timeline.spec.ts crop/shortfall block + browser (5s→6s persisted, ⚠ 1s short, take price 0.51→0.61) | updateShotDurationAction, stage length editor, trimmedS/shortfallS in timeline.ts |
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
+| REQ-STB-045 | Per-shot prompt identity + reference scrub at the prompt boundary | P9 | IN_REVIEW | USER 2026-07-26 "the image prompt is not retained, so I could actually generate alternative images" | apps/web/tests/stage-panel-identity.spec.tsx (3) + prompt.spec.ts (4) | page.tsx key={s.id}, prompt.ts guard(), shared/reference-scrub.ts |
 | REQ-STB-044 | The film's look reaches every picture (card → frame/take/animation) | P9 | IN_REVIEW | USER 2026-07-26 "styling was not held in the images… also character clothing changes" | tests/card-prompts.int.spec.ts (5) | stb/service.ts projectCard, shared continuity axis, style-compiler |
 | REQ-STB-043 | Director's pass: plans graded against the active card before anything is billed | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-006 (USER 2026-07-26 "Director's pass would be quite cool") | tests/director-pass.spec.ts (13) + live plan run | src/director-pass.ts · plan-normalize grammar fields · gen/prompt.ts plan schema |
 | REQ-STB-042 | Style Card contract: archetypes become data, refusals become expressible | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-003 (USER 2026-07-26 "further styling options… a bit humoristic") | shared/tests/style-card.spec.ts (18) | shared/contracts/style-card.ts · shared/config/style-cards.ts |
@@ -468,6 +469,20 @@ Totals: 30 DONE · 13 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 - **Code:** `libs/stb/src/timeline.ts`, `apps/web/components/Timeline.tsx`, `apps/web/components/Workspace.tsx`, `libs/ast/src/probe.ts` (ffprobe duration), `libs/ast/src/uploads.ts` + `libs/gen/src/executor.ts` (record audio duration), `apps/web/scripts/backfill-audio-durations.ts`
 - **Log:** LOG 2026-07-25
 - **Deferred / notes:** `asset.duration_s` was NULL for every audio row, so drift could never render — now probed at upload/generate and backfilled (17/17 existing tracks). Waveform rendering, a scrubbing playhead across clips, and drag-the-edge trimming are not built; ticks come from section stamps, not beat detection.
+
+### REQ-STB-045 — Per-shot prompt identity + reference scrub at the prompt boundary
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-26: "for some reason the image prompt is not retained, so I could actually generate alternative images if I'm not happy? Now having two Pasi's drinking is not what I was after." Focused on shot 15, the IMAGE SCRIPT box showed shot 7's title-card text.
+- **Statement:** Each shot's prompt editor shall show that shot's own text, and no reference name shall reach an image or video model through text the PLANNER wrote.
+- **Acceptance criteria:**
+  - GIVEN the stage swaps one panel in place THEN each panel carries `key={s.id}`, so switching shots remounts the uncontrolled `defaultValue` prompt boxes instead of reusing the previous shot's DOM.
+  - GIVEN a plan-authored `customPrompt` naming the reference ("Cinematic 35mm film frame, Aki Kaurismäki visual style.") THEN the assembled frame prompt is scrubbed while the surrounding craft text survives.
+  - GIVEN the same in a video prompt, or in a direction field the planner wrote, THEN likewise.
+  - GIVEN a card that names no reference THEN prompts are untouched.
+- **Tests:** `apps/web/tests/stage-panel-identity.spec.tsx` (3, source-level guard) · `libs/gen/tests/prompt.spec.ts` (4)
+- **Code:** `apps/web/app/p/[id]/page.tsx` (`key={s.id}`) · `libs/gen/src/prompt.ts` (`guard()` on every visual prompt) · `libs/shared/src/contracts/reference-scrub.ts` (scrubber moved out of the compiler so prompt assembly can use it without a cycle)
+- **Log:** see LOG 2026-07-26
+- **Deferred / notes:** "two Pasis" is a separate cast problem, not a prompt problem — the plan's `Synchronized Drink` shot has Pasi AND a colleague, but only Pasi is cast with reference images, so the model drew him twice. Casting a distinct second entity (or naming the colleague's appearance in the shot's prompt) is the fix; recorded here rather than silently bundled.
 
 ### REQ-STB-044 — The film's look reaches every picture
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must

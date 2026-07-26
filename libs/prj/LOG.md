@@ -1,5 +1,11 @@
 # Build Log — PRJ (Projects)
 
+## 2026-07-26 — REQ-PRJ-005 fix: freeform no longer destroys a compiled card
+**Done:** `setProjectArchetype` nulled `styleCard` on every write, including the null/"freeform" case. Combined with a picker that displays "freeform" whenever a compiled card is active, one press of Set silently deleted the user's compiled card — which is exactly what happened to them mid-session.
+**Decisions:** only choosing a REAL archetype replaces a compiled card; freeform leaves it alone. The one-active-style-source rule stands, but a destructive default reachable from a control that misrepresents the current state is a trap, not a rule. The picker now names the compiled card.
+**Gate:** new red-first case in `tests/style-card-store.int.spec.ts`; 29/29 in `libs/prj`; tsc clean.
+
+
 ## 2026-07-26 — REQ-PRJ-006 film runtime (→ IN_REVIEW)
 **Done:** USER: "it's only 30seconds instead of minute that I was asking for." Two independent causes, both fixed: `parseRequestedDurationS` reads a runtime out of the user's own prompt when a card is compiled, and the runtime is now editable in the workspace — it had been displayed in the header and settable nowhere since project creation.
 **Decisions:** the parser stays conservative and returns null on any doubt: out-of-range values are treated as "not a runtime" rather than clamped, because silently re-timing someone's film on a loose match ("shot on 16mm") is worse than not reading it. Clamping happens only in `setProjectTargetDuration`, where the user has explicitly asked for a number.

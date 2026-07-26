@@ -97,6 +97,16 @@ describe("REQ-PRJ-013: a compiled Style Card is stored on the project", () => {
     expect(back?.antiNotes).toEqual(["no zooms"]);
   });
 
+  // USER 2026-07-26: their compiled card vanished. The picker renders `defaultValue={p.archetype ?? ""}`
+  // — "freeform" — even while a compiled card is active, so pressing Set on what looks like the
+  // current state wiped it. Choosing a real archetype is a deliberate replacement; choosing
+  // freeform must not destroy a compiled card as a side effect of a misleading control.
+  it("does NOT clear a compiled card when the picker is set to freeform", async () => {
+    await setProjectStyleCard(db, { projectId, card });
+    await setProjectArchetype(db, { projectId, archetype: null });
+    expect((await getProjectStyleCard(db, projectId))?.name).toBe("Deadpan northern comedy");
+  });
+
   it("clears the compiled card when a built-in archetype is chosen instead", async () => {
     await setProjectArchetype(db, { projectId, archetype: "cinematic-mood" });
     expect(await getProjectStyleCard(db, projectId)).toBeNull();

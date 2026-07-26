@@ -82,9 +82,11 @@ export async function setProjectArchetype(db: Db, input: { projectId: string; ar
   const recipe = input.archetype ? styleCards[input.archetype] : undefined; // TASK-DIR-004
   await db.update(project).set({
     archetype: input.archetype,
-    // SR-DIR-008: exactly one style source. Choosing a built-in drops the compiled card, rather
-    // than leaving two answers to "what does this film look like?" for `recipeFor` to arbitrate.
-    styleCard: null,
+    // SR-DIR-008: exactly one style source — choosing a BUILT-IN replaces the compiled card, so
+    // "what does this film look like?" never has two answers. Choosing freeform (null) leaves it
+    // alone: the picker shows "freeform" whenever a compiled card is active, so treating that as
+    // "delete my card" destroyed the user's work on one accidental Set (USER 2026-07-26).
+    ...(input.archetype ? { styleCard: null } : {}),
     ...(recipe?.defaults?.audioMode ? { audioMixMode: recipe.defaults.audioMode } : {}), // REQ-STB-027
   }).where(eq(project.id, input.projectId));
 }

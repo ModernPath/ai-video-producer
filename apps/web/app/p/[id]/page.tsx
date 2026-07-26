@@ -242,7 +242,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     const estDiffers = est.effectiveSeconds !== Number(s.durationS);
 
     stagePanels[s.id] = (
-      <div style={{ maxWidth: 1460 }}>
+      // REQ-STB-045: the stage swaps ONE panel in place, and every panel has the same element
+      // shape — without a key React reuses the DOM and the uncontrolled `defaultValue` prompt
+      // boxes keep the previous shot's text (USER: "the image prompt is not retained").
+      <div key={s.id} style={{ maxWidth: 1460 }}>
         {/* Shot header — order & removal live where you're looking at the shot */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
           <span className="mono muted" style={{ fontSize: 12 }}>{s.position}</span>
@@ -676,8 +679,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </form>
         <form action={setArchetypeAction} style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 8 }}>
           <input type="hidden" name="projectId" value={id} />
-          <select name="archetype" defaultValue={p.archetype ?? ""} className="mono" title="Directing archetype (docs/87) — injects the recipe into script, shot plan and music prompts" style={{ ...tiny, flex: 1 }}>
-            <option value="">directing: freeform</option>
+          <select name="archetype" defaultValue={p.archetype ?? ""} className="mono" title="Directing style — injects the recipe into script, shot plan, music and picture prompts" style={{ ...tiny, flex: 1 }}>
+            {/* Honest state: with a compiled card active the picker used to read "freeform". */}
+            <option value="">{projectCard ? `directing: ✦ ${projectCard.name} (compiled)` : "directing: freeform"}</option>
             {Object.entries(styleCards).map(([k, a]) => <option key={k} value={k}>directing: {a.name}</option>)}
           </select>
           <SubmitButton small pendingLabel="…">Set</SubmitButton>
