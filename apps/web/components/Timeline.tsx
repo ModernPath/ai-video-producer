@@ -83,6 +83,7 @@ export function Timeline({
           const st = statusById[b.id] ?? "planned";
           const active = focusedId === b.id;
           const share = b.durationS / span;
+          const edge = active ? "var(--accent)" : "var(--line)";
           return (
             <button
               key={b.id}
@@ -107,9 +108,17 @@ export function Timeline({
               title={`${b.title} · ${mmss(b.startS)}–${mmss(b.endS)} (${b.durationS}s)${b.onBoundary ? " · lands on a section change" : ""}${b.shortfallS ? ` · take is ${b.shortfallS}s short` : ""}${b.trimmedS ? ` · export crops ${b.trimmedS}s` : ""} — drag to reorder`}
               style={{
                 width: pct(b.durationS), minWidth: 10, flex: "0 0 auto",
-                border: `1px solid ${active ? "var(--accent)" : "var(--line)"}`,
-                borderLeft: dropIdx === i ? "3px solid var(--accent)" : undefined,
-                borderRight: dropIdx === i + 1 ? "3px solid var(--accent)" : undefined,
+                // per-side, never mixed with the `border` shorthand: React warns when a rerender
+                // changes one while the other is set, and the drop edges change on every dragover
+                borderStyle: "solid",
+                borderTopWidth: 1,
+                borderBottomWidth: 1,
+                borderLeftWidth: dropIdx === i ? 3 : 1,
+                borderRightWidth: dropIdx === i + 1 ? 3 : 1,
+                borderTopColor: edge,
+                borderBottomColor: edge,
+                borderLeftColor: dropIdx === i ? "var(--accent)" : edge,
+                borderRightColor: dropIdx === i + 1 ? "var(--accent)" : edge,
                 borderRadius: 5, cursor: dragId ? "grabbing" : "grab", overflow: "hidden", position: "relative",
                 background: st === "generated" ? "rgba(79,175,126,.16)" : st === "framed" ? "rgba(226,163,60,.14)" : "var(--panel-2)",
                 boxShadow: active ? "inset 0 0 0 1px var(--accent)" : "none",

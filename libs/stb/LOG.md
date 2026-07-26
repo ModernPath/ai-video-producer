@@ -1,5 +1,13 @@
 # Build Log — STB
 
+## 2026-07-26 — REQ-STB-038 follow-up: React shorthand/per-side border warning
+**Done:** The timeline clip mixed `border: 1px solid …` with `borderLeft`/`borderRight`, and the drop edges change on every `dragover` — exactly the case React warns about ("Updating a style property during rerender (border) when a conflicting property is set (borderLeft)"). Split into `borderStyle` + four explicit widths and colours.
+**Decisions:** Colour is per side too, not a single `borderColor`: a uniform value would have painted the 3px drop indicator in `--line` on every clip that isn't the focused one, making the landing gap invisible exactly when it matters.
+**Deferred:** none.
+**Discovered:** nothing else in `apps/web` mixes the `border` shorthand with a per-side property (scanned every `style={{…}}` object).
+**Follow-ups:** none.
+**Gate:** `npx tsc -p apps/web/tsconfig.json --noEmit` exits 0; live re-check — unfocused clip rests at 1px `rgb(42,48,60)` and shows a 3px accent left edge on dragover, back to 1px on dragend; no console warnings after a fresh load plus a drag.
+
 ## 2026-07-25 — REQ-STB-038 reorder shots by drag or ▲▼ (PROPOSED → IN_REVIEW)
 **Done:** USER: "how can I actually change the order of the clips? I cant see up/down arrows?" — they existed, but only in the stage header, which sits above a tall player and scrolls out of view, so from the rail (where the order is actually *shown*) the cut looked frozen. Now every rail row has a `⋮⋮` grip plus an always-visible ▲/▼ pair (disabled at the ends), and timeline clips drag along the axis; an accent drop line marks the landing gap and the dragged element dims to 0.4. All paths go through one new positional move, `moveShotToIndex`, instead of N neighbour swaps.
 **Decisions:** Positional move, not a swap — a drag from clip 7 to the front is one command and one revalidate. The drop index counts the list WITHOUT the moving shot, so the UI converts its visual gap index (`dropIdx > from ? dropIdx - 1 : dropIdx`); out-of-range clamps rather than throws. The renumber reuses **only the slots the live shots already occupy** rather than 1..n: `unique(project_id, position)` spans soft-deleted rows, which keep their slot, so a naive renumber collided (`Key (project_id, position)=(…, 2) already exists`) on any project where a shot had been cut — caught by a purpose-written RED test before it reached the UI. Two positions passes inside one transaction (negatives first) so no intermediate state trips the index. Client calls the action bound with `projectId` (Next `.bind`) rather than synthesizing a form per drag. The stage-header ↑↓ pair was removed as a duplicate; `reorderShotAction` stays exported for older callers.
