@@ -1,5 +1,14 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-26 — REQ-GEN-025 style-card compiler (TASK-DIR-003 → IN_REVIEW)
+**Done:** Free-form intent now compiles into a validated Style Card via grounded search (the REQ-GEN-024 pattern pointed at a director instead of a company). `parseStyleCard` is pure so the whole contract is testable without a provider; `compileStyleCard` is the thin grounded call.
+**Decisions:** (1) Provenance is set by US from the brief, never lifted from the model's own card body — the model does not get to decide what it was compiled from. (2) `scrubReferences` is defence in depth behind the prompt rail: the prompt says do not name the reference in the axes, and the scrubber assumes it will anyway, because "Kaurismäki-style framing" is exactly how a language model naturally writes. It strips connectives with the name so no dangling "in the manner of ." remains. (3) Malformed list shapes are split, not rejected — the content was right, only its shape was wrong, and failing a paid grounded call over a semicolon is poor economics.
+**Deferred:** UI reachability and card persistence (SR-DIR-008) — a brief compiles in code only for now.
+**Discovered (all three from the live ring, none reachable by unit test):** (a) the model returned `antiNotes` as ONE semicolon-joined string despite the JSON schema in the prompt — hence `coerceList`; (b) on the retry it returned all nine refusals as one COMMA-joined sentence, so the coercion comma-splits a single item over 60 chars while leaving "no zooms, ever" intact; (c) it listed **"ModernPath AI" among the references** — the subject of the film, not a style source. That was the dangerous one: scrubbing would then have stripped the user's own brand out of the craft axes, which BRAND_SAFETY explicitly permits them to name. Fixed in the prompt: references are artistic sources only, never the subject/brand. Also found the model drops diacritics ("Kaurismaki"), so the scrubber matches de-accented spellings too.
+**Follow-ups:** TASK-DIR-004 card-driven prompts → TASK-DIR-005 director's pass.
+**Gate:** 25/25 in `tests/style-compiler.spec.ts` (red first); full suite 263 passed / 14 skipped / 0 failed. Real ring (§9.8), two live grounded compiles of the user's brief, ~$0.002 each: first surfaced findings (a) and (c); after the fixes the second returned 5 separate refusals, references clean of the subject, and no name leak in either prompt block — the card researched Timo Salminen (the cinematographer) and three specific films unprompted.
+
+
 ## 2026-07-24 — BATCH SIGN-OFF: all IN_REVIEW → DONE (human-approved)
 **Done:** USER approved the review queue verbatim: "approve all for now" (evidence: sign-off artifact + per-REQ tests/browser/real-API links in the ledger). All IN_REVIEW rows in this ledger moved to DONE atomically (dashboard row + detail block + Totals).
 **Decisions:** approval is provisional ("for now") — regressions reopen the specific REQ, not the batch.

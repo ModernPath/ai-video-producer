@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 21 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 21 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -26,6 +26,7 @@ Totals: 21 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | DONE | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
 | REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | DONE | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
 | REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
+| REQ-GEN-025 | Style-card compiler: free-form brief → craft primitives | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-004 (USER 2026-07-26 "a 1-minute feature film … directed by Aki Kaurismäki, a bit humoristic") | tests/style-compiler.spec.ts (25) + 2 live grounded compiles | src/style-compiler.ts |
 | REQ-GEN-024 | Web-grounded entity research (Google Search + URL context) | P8 | IN_REVIEW | USER 2026-07-24 (with docs links) | tests/research.spec.ts + real LastBot verification | src/research.ts (tools: googleSearch+urlContext), researchEntityProfileAction, library ✦ button |
 | REQ-GEN-018 | Race-safe claim across parallel workers | P5 | IN_REVIEW | `docs/03` §2 (enabler) | tests/claim-race.int.spec.ts (2) | executor claimGeneration (conditional update) + loser-scans-on loop |
 
@@ -244,6 +245,24 @@ Totals: 21 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a 5s omni take through the real pipeline THEN it succeeds, keeps durationS=5 (no {4,6,8} snap), and records cost 5×5792×$17.50/M ≈ $0.5068 (real E2E, RUN_REAL_OMNI).
 - **Tests:** `tests/omni-video.spec.ts` (7) · real E2E `tests/real-api.e2e.spec.ts` RUN_REAL_OMNI ($0.5068 verified) · **Code:** `src/provider.ts` (buildOmniVideoRequest + interactions branch), `src/routing.ts`, `src/cost.ts`, `src/executor.ts` (refs + model cost), shared config (omniVideoModel, priceTable omni rates, gen.videoRoute) · **Log:** LOG 2026-07-24
 - **Deferred / notes:** STB still snaps shot durations to {4,6,8} at plan level — exposing free durations (9–10s shots) in the UI is a follow-up STB slice. Conversational multi-turn retake untested. No UI switch — route is config/env by design (taste iteration without deploy, Tips #5).
+
+### REQ-GEN-025 — Style-card compiler: free-form brief → craft primitives
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Raised-by:** USER 2026-07-26: "Like saying I want a 1-minute feature film of ModernPath AI directed by Aki Kaurismäki, a bit humoristic." — EPIC-STB-001, SR-DIR-004 (SCN-DIR-001, SCN-DIR-002).
+- **Source:** `epics/EPIC-STB-001-director-briefs.md`; grounding pattern REQ-GEN-024 (`src/research.ts`)
+- **Statement:** A free-form creative brief shall compile into a validated Style Card (REQ-STB-042) using web-grounded research, and the reference it was compiled from shall not survive into any prompt. Research is the ONE moment a reference name is legitimately in play; afterwards the craft axes carry the intent, because providers filter or dilute named-artist prompts and a name averages to mush in an image model.
+- **Acceptance criteria:**
+  - GIVEN a brief THEN the prompt carries it verbatim, asks for grounded search on any named reference, demands craft primitives rather than the name, and asks for the refusals and the humour register.
+  - GIVEN a response with markdown fences THEN it still parses; GIVEN prose that is not a card THEN it is rejected with an `output_unusable` provider error.
+  - GIVEN a parsed card THEN `provenance` (brief + references) is set by US, never taken from the model's card body.
+  - GIVEN a reference name left in a craft axis THEN it is scrubbed from every axis — including diacritic-dropped spellings ("Kaurismaki" for "Kaurismäki") and connective forms ("in the manner of X", "X-style") — while the surrounding craft description survives and no dangling connective or double space is left.
+  - GIVEN a scrubbed card THEN neither `toDirectingBlock` nor `toVisualStyle` contains the name, end to end; the name remains in `provenance` for the UI.
+  - GIVEN list fields returned as a joined string THEN they are split rather than rejected: `;`/`|`/newline always, and commas only for a single item over 60 chars (so "no zooms, ever" survives intact).
+  - GIVEN the prompt THEN it states that references are artistic sources only and never the subject/brand of the video.
+- **Tests:** `tests/style-compiler.spec.ts` (25)
+- **Code:** `src/style-compiler.ts` (`assembleStyleCardPrompt`, `parseStyleCard`, `scrubReferences`, `compileStyleCard`)
+- **Log:** see LOG 2026-07-26
+- **Deferred / notes:** the compiler is not yet reachable from the UI and cards are not yet persisted (SR-DIR-008) — a brief compiles only in code. `MOCK_GEN` returns a fixed card so no test hits the provider. Real-ring evidence is two live grounded compiles (§9.8), each a single near-free text call with no generation-ledger row, matching the `research.ts` precedent.
 
 ### REQ-GEN-024 — Web-grounded entity research
 - **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** should
