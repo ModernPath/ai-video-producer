@@ -69,6 +69,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const [p] = await d.select().from(project).where(eq(project.id, id));
   if (!p) notFound();
 
+  // REQ-GEN-027 (USER 2026-07-26 "two videos seem stuck"): recovery used to require dispatching
+  // NEW work, which the person staring at a stuck shot never does. Reading the project heals it.
+  const { sweepStuckGenerations } = await import("@avd/gen");
+  await sweepStuckGenerations(d);
+
   const shots = await listShots(d, id);
   const candidatesByShot = new Map(
     await Promise.all(shots.map(async (s) => [s.id, await listCandidates(d, s.id)] as const))
@@ -127,6 +132,21 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     .orderBy(desc(generation.createdAt))
     .limit(1);
   const lastFailure = failedGens[0];
+
+  // REQ-GEN-027: a failed take or frame used to be INVISIBLE — the banner only covered text kinds,
+  // so a shot simply stopped saying "working" and showed nothing at all.
+  const failedVisual = await d
+    .select()
+    .from(generation)
+    .where(and(eq(generation.projectId, id), eq(generation.status, "failed"),
+      inArray(generation.kind, ["frame", "take", "retake", "animation", "image_edit"])))
+    .orderBy(desc(generation.createdAt))
+    .limit(20);
+  const failedByShot = new Map<string, typeof failedVisual[number]>();
+  for (const g of failedVisual) {
+    const shotId = (g.target as { shotId?: string }).shotId;
+    if (shotId && !failedByShot.has(shotId)) failedByShot.set(shotId, g); // newest per shot
+  }
 
   const exports_ = await d.select().from(exportJob).where(eq(exportJob.projectId, id)).orderBy(desc(exportJob.createdAt)).limit(6);
   const shareRows = exports_.length
@@ -479,6 +499,30 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             {cands.frames.length === 0 && <p className="muted" style={{ fontSize: 11.5 }}>No frames yet.</p>}
           </div>
         </div>
+
+        {/* REQ-GEN-027: name the failure on the shot it happened to, with one click to retry. */}
+        {(() => {
+          const f = failedByShot.get(s.id);
+          if (!f || (activeByShot.get(s.id)?.take ?? 0) > 0 || (activeByShot.get(s.id)?.frame ?? 0) > 0) return null;
+          const orphaned = f.errorCode === "orphaned";
+          return (
+            <section style={{ ...card, marginTop: 12, borderColor: "#7a4b3a" }}>
+              <p className="mono" style={{ fontSize: 10.5, color: "#e0763a" }}>
+                {f.kind} failed · {f.errorCode}
+              </p>
+              <p className="muted" style={{ fontSize: 10.5, marginTop: 4 }}>
+                {orphaned
+                  ? "This run was interrupted before it finished — usually the dev server restarting mid-generation. Nothing was charged."
+                  : (f.errorDetail?.slice(0, 220) ?? "Failures are never charged.")}
+              </p>
+              <form action={retryGenerationAction} style={{ marginTop: 8 }}>
+                <input type="hidden" name="projectId" value={id} />
+                <input type="hidden" name="generationId" value={f.id} />
+                <SubmitButton small pendingLabel="Retrying…">↻ Retry this {f.kind}</SubmitButton>
+              </form>
+            </section>
+          );
+        })()}
 
         {/* Prompts */}
         <form action={saveScriptsAndGenerateAction} style={{ ...card, marginTop: 12 }}>

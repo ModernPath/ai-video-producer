@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 21 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 21 DONE · 5 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -26,6 +26,7 @@ Totals: 21 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | DONE | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
 | REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | DONE | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
 | REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
+| REQ-GEN-027 | Stuck runs recover on page load, and failed pictures are visible | P9 | IN_REVIEW | USER 2026-07-26 "two videos seem stuck" | tests/stale-sweep.int.spec.ts (5) | executor sweepStuckGenerations, page.tsx sweep + per-shot failure banner |
 | REQ-GEN-026 | Card-driven prompts: the pipeline reads Style Cards, not prose recipes | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-005 | tests/prompt.spec.ts REQ-GEN-026 (5) + style-card.spec.ts | src/prompt.ts (card look) · stb recipeFor · prj setProjectArchetype · web picker · archetypes.ts deleted |
 | REQ-GEN-025 | Style-card compiler: free-form brief → craft primitives | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-004 (USER 2026-07-26 "a 1-minute feature film … directed by Aki Kaurismäki, a bit humoristic") | tests/style-compiler.spec.ts (25) + 2 live grounded compiles | src/style-compiler.ts |
 | REQ-GEN-024 | Web-grounded entity research (Google Search + URL context) | P8 | IN_REVIEW | USER 2026-07-24 (with docs links) | tests/research.spec.ts + real LastBot verification | src/research.ts (tools: googleSearch+urlContext), researchEntityProfileAction, library ✦ button |
@@ -246,6 +247,22 @@ Totals: 21 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a 5s omni take through the real pipeline THEN it succeeds, keeps durationS=5 (no {4,6,8} snap), and records cost 5×5792×$17.50/M ≈ $0.5068 (real E2E, RUN_REAL_OMNI).
 - **Tests:** `tests/omni-video.spec.ts` (7) · real E2E `tests/real-api.e2e.spec.ts` RUN_REAL_OMNI ($0.5068 verified) · **Code:** `src/provider.ts` (buildOmniVideoRequest + interactions branch), `src/routing.ts`, `src/cost.ts`, `src/executor.ts` (refs + model cost), shared config (omniVideoModel, priceTable omni rates, gen.videoRoute) · **Log:** LOG 2026-07-24
 - **Deferred / notes:** STB still snaps shot durations to {4,6,8} at plan level — exposing free durations (9–10s shots) in the UI is a follow-up STB slice. Conversational multi-turn retake untested. No UI switch — route is config/env by design (taste iteration without deploy, Tips #5).
+
+### REQ-GEN-027 — Stuck runs recover on page load, and failed pictures are visible
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-26: "two videos seem stuck" — two takes sat `running` for 38 minutes, past the 30-minute stale window, with the rail spinning "working" and the stage spinning "generating video…".
+- **Source:** extends REQ-GEN-022 (stale-running reaper); BR-GEN-005 (slots must free)
+- **Statement:** A run orphaned mid-flight shall recover without the user dispatching new work, and a failed picture or video generation shall be visible on the shot it belongs to with a one-click retry.
+- **Acceptance criteria:**
+  - GIVEN a run older than `config.gen.staleRunningMinutes` THEN a sweep fails it as `orphaned` with a retry-suggesting detail and a `finishedAt`.
+  - GIVEN a run in flight (2 minutes old) THEN it is untouched; GIVEN a `queued` row of any age THEN untouched — it never started, so it cannot be orphaned.
+  - GIVEN a second sweep THEN it reaps nothing — safe to call on every page load.
+  - GIVEN stuck runs filling the org's video concurrency THEN sweeping frees every slot (BR-GEN-005).
+  - GIVEN a failed frame/take/retake/animation THEN the shot shows the failure and a retry, and an `orphaned` failure explains it was interrupted rather than rejected, and that nothing was charged.
+- **Tests:** `tests/stale-sweep.int.spec.ts` (5)
+- **Code:** `src/executor.ts` (`sweepStuckGenerations`) · `apps/web/app/p/[id]/page.tsx` (sweep on load, `failedByShot` banner with `retryGenerationAction`)
+- **Log:** see LOG 2026-07-26
+- **Deferred / notes:** the underlying fragility is inline dev mode — a generation runs inside the server action's request, so an aborted request (a reload mid-take, which is how these two died) leaves the row `running` until swept. `WORKER_MODE=queue` with `apps/worker` does not have this failure mode; the sweep makes inline mode survivable rather than fixing it.
 
 ### REQ-GEN-026 — Card-driven prompts: the pipeline reads Style Cards, not prose recipes
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should

@@ -101,6 +101,20 @@ export async function reapStaleGenerations(db: Db): Promise<number> {
   return stale.length;
 }
 
+/**
+ * REQ-GEN-027 (USER 2026-07-26: "two videos seem stuck") — the same recovery as REQ-GEN-022, but
+ * callable from a page load.
+ *
+ * `reapStaleGenerations` only ran inside `runNextGeneration`, i.e. when the user DISPATCHED NEW
+ * WORK. Someone watching a stuck shot and waiting is exactly the person who never triggers that,
+ * so two orphaned takes span "generating video…" for 38 minutes with no way out. Reading the
+ * project is enough to recover it now. Safe to call anywhere: it only touches rows that started
+ * before the stale window, so work genuinely in flight is untouched.
+ */
+export async function sweepStuckGenerations(db: Db): Promise<number> {
+  return reapStaleGenerations(db);
+}
+
 /** Executes a specific generation by id (worker path, REQ-GEN-016). */
 export async function runGenerationById(
   db: Db,
