@@ -27,7 +27,7 @@ import {
   generateMusicTrackAction, generateTakeAction, moveShotTo, musicBriefAction, overlayTakeAction, proposePlanAction,
   removeCandidateAction, removeShotAction, retakeAction, retryExportAction,
   retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction,
-  setArchetypeAction, setProjectStyleAction, transcribeTrackAction,
+  compileStyleCardAction, setArchetypeAction, setProjectStyleAction, transcribeTrackAction,
   updateBriefAction, updateShotDurationAction, updateShotRefsAction, uploadTrackAction,
 } from "../../actions";
 import { CastBar } from "../../../components/CastBar";
@@ -104,6 +104,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   );
 
   const progress = boardProgress(shots.map((s) => ({ id: s.id, selectedTakeId: s.selectedTakeId })));
+  const briefIdea = String((p.brief as Record<string, unknown>)?.idea ?? "").trim();
+  const { getProjectStyleCard } = await import("@avd/prj/service");
+  const projectCard = await getProjectStyleCard(d, id); // SR-DIR-008
   const music = await getMusicBrief(d, id);
   const sync = music?.transcript
     ? suggestSyncDurations(shots.map((s) => ({ id: s.id, title: s.title, durationS: Number(s.durationS) })), parseSectionTimes(music.transcript))
@@ -679,6 +682,48 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           </select>
           <SubmitButton small pendingLabel="…">Set</SubmitButton>
         </form>
+
+        {/* SR-DIR-008: compile the prompt above into a seventh, project-specific card. */}
+        <form action={compileStyleCardAction} style={{ marginTop: 8 }}>
+          <input type="hidden" name="projectId" value={id} />
+          <input type="hidden" name="brief" value={String((p.brief as Record<string, unknown>)?.idea ?? "")} />
+          <SubmitButton small disabled={!briefIdea} pendingLabel="Researching the style…">
+            ✦ Direct from my prompt {briefIdea ? "· free" : "· save a prompt first"}
+          </SubmitButton>
+          <p className="mono muted" style={{ fontSize: 9, marginTop: 4 }}>
+            Names a director, film or genre in your prompt? This researches it and compiles the look into craft
+            direction — framing, camera, palette, pacing, and what the style refuses.
+          </p>
+        </form>
+
+        {projectCard && (
+          <div style={{ ...sub, marginTop: 8, borderColor: "var(--accent)" }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+              <p className="mono" style={{ fontSize: 11, fontWeight: 700 }}>✦ {projectCard.name}</p>
+              <span className="mono muted" style={{ fontSize: 9 }}>compiled from your prompt · overrides the picker</span>
+            </div>
+            {projectCard.provenance.references.length > 0 && (
+              <p className="mono muted" style={{ fontSize: 9, marginTop: 3 }}>
+                researched: {projectCard.provenance.references.join(" · ")} — kept for reference only, never sent to an image model
+              </p>
+            )}
+            <dl style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "2px 10px", margin: "7px 0 0", fontSize: 10.5 }}>
+              <dt className="mono muted">camera</dt>
+              <dd style={{ margin: 0 }}>{projectCard.camera.allowedMovements.join(", ")} · {projectCard.camera.preferredSizes.join("/")}</dd>
+              <dt className="mono muted">pacing</dt>
+              <dd style={{ margin: 0 }}>{projectCard.pacing.durationWindowS.join("–")}s per shot{projectCard.structure.shotCountHint ? ` · ${projectCard.structure.shotCountHint.join("–")} shots` : ""}</dd>
+              <dt className="mono muted">palette</dt>
+              <dd style={{ margin: 0, display: "flex", alignItems: "center", gap: 5 }}>
+                <span style={{ width: 10, height: 10, borderRadius: 2, background: projectCard.palette.accent, border: "1px solid var(--line)" }} />
+                <span style={{ width: 10, height: 10, borderRadius: 2, background: projectCard.palette.background, border: "1px solid var(--line)" }} />
+                <span className="muted">{projectCard.palette.notes}</span>
+              </dd>
+              {projectCard.humour && (<><dt className="mono muted">humour</dt><dd style={{ margin: 0 }}>{projectCard.humour}</dd></>)}
+              <dt className="mono muted">refuses</dt>
+              <dd style={{ margin: 0 }}>{projectCard.antiNotes.join(" · ")}</dd>
+            </dl>
+          </div>
+        )}
       </Section>
 
       <Section

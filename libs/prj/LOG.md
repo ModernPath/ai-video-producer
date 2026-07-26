@@ -1,5 +1,14 @@
 # Build Log — PRJ (Projects)
 
+## 2026-07-26 — REQ-PRJ-005 compiled Style Card on the project (SR-DIR-008 → IN_REVIEW)
+**Done:** USER asked how to test their Kaurismäki short film and found the directing picker offered only the six built-ins. Added `prj.project.style_card` (migration 0023), `setProjectStyleCard`/`getProjectStyleCard`, a `compileStyleCardAction` behind a "✦ Direct from my prompt · free" button under the picker, and a card panel showing what was compiled — camera, pacing, palette swatches, humour, refusals, and the researched references labelled as never sent to an image model.
+**Decisions:** (1) Exactly one style source: storing a compiled card nulls `archetype`, and choosing a built-in nulls the card. Two answers to "what does this film look like?" would leave `recipeFor` arbitrating, which is a bug waiting to happen. (2) The card is validated by `styleCardSchema` on write — an invalid card must never reach the prompt builders, which assume the contract holds. (3) `getProjectStyleCard` returns null rather than throwing when a stored card fails to parse, so a future contract change degrades to "no card" instead of breaking the whole project page. (4) Compiling stays off the generation ledger, matching the `research.ts` precedent for single near-free text calls.
+**Deferred:** axis-by-axis editing of a compiled card (UR-DIR-002) — recompiling replaces it for now.
+**Discovered:** `setArchetypeAction` was still revalidating `/p/<id>/script`, a route that has only redirected since REQ-STB-037 — so the picker's own change never invalidated the page it renders on. Fixed while here.
+**Follow-ups:** card editing; execute-and-apply the director's revision; surface notes in the UI.
+**Gate:** 9/9 `tests/style-card-store.int.spec.ts` (red first); 140/140 across the epic's specs; tsc clean. Verified live in the browser on the user's own project: "ModernPath short film in the style of Aki Kaurismäri" compiled in ~25s to "Static Retro Deadpan" — static/pan only, 5–9s, #c82323 on #2d3a45, five refusals — and it researched Kaurismäki, his cinematographer Timo Salminen and four films DESPITE the misspelled name. Drafting the script from it produced locked-off symmetrical framing, slate-teal walls, a crimson mug, hard tungsten key and a diegetic tango; the shot plan came back WS/MS/MCU/MW/CU/WS at 6s, and the director's pass graded it "The plan honours the style."
+
+
 ## 2026-07-24 — BATCH SIGN-OFF: all IN_REVIEW → DONE (human-approved)
 **Done:** USER approved the review queue verbatim: "approve all for now" (evidence: sign-off artifact + per-REQ tests/browser/real-API links in the ledger). All IN_REVIEW rows in this ledger moved to DONE atomically (dashboard row + detail block + Totals).
 **Decisions:** approval is provisional ("for now") — regressions reopen the specific REQ, not the batch.

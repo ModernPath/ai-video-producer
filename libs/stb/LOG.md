@@ -1,5 +1,13 @@
 # Build Log — STB
 
+## 2026-07-26 — REQ-STB-043 fix: plan normalization was not idempotent
+**Done:** `normalizePlannedShots` read `shotSize`/`angle`/`movement` from the top level or from `direction`, but NOT from the `grammar` object it writes itself. A shot-plan proposal is stored normalized, so every later reader normalizes a second time and silently lost the craft, falling back to MS/eye/static.
+**Decisions:** read the third location too rather than changing what is stored — the stored shape is the contract other code already relies on, and tolerating all three input shapes is what this normalizer exists to do.
+**Discovered:** found only by running the director's pass against a REAL stored plan, not a fixture. The user's Kaurismäki plan is WS/MS/MCU/MW/CU/WS, but the pass graded it as six identical MS shots and reported **five false contrast-cut errors** plus a false coverage warning. A grader that cries wolf is worse than no grader — this would have trained the user to ignore it. After the fix the same plan grades "The plan honours the style."
+**Follow-ups:** none.
+**Gate:** idempotence test added red-first (`expected MS to deeply equal MCU`); 25/25 across `director-pass.spec.ts` + `plan-normalize.spec.ts`, 140/140 across the epic's specs; tsc clean; re-graded the live plan clean.
+
+
 ## 2026-07-26 — REQ-STB-043 director's pass (TASK-DIR-005 → IN_REVIEW)
 **Done:** Plans can now state their own craft and be graded against the project's Style Card. `plan-normalize` gained `grammar {shotSize, angle, movement}`, the planner's JSON schema asks for them, and `reviewPlan()` grades a normalized plan against the card's constraints — closing the loop opened by REQ-STB-041, which had a grader with nothing real to read.
 **Decisions:** (1) Grading stays pure and synchronous, so a plan is reviewed for free before a frame or take is billed (SCN-DIR-003). Only the revision costs a text call. (2) Unknown vocabulary is DROPPED to the default rather than trusted — a model inventing "drone-orbit" must not silently widen the grammar — but long-form spellings ("wide", "Push In", "locked off") are accepted, because that is how models naturally write. (3) With no card selected, only the universal principles apply: no card means no refusals, so `forbidden-movement` cannot fire. (4) The revision prompt is built from `toDirectingBlock`, which is provenance-free, so the reference cannot reach the prompt that authors the visual prompts.

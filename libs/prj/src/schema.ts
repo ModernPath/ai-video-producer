@@ -11,6 +11,8 @@ export const project = prj.table("project", {
   status: text("status", { enum: ["active", "archived"] }).notNull().default("active"),
   styleKitId: uuid("style_kit_id"), // REQ-AST-007
   archetype: text("archetype"), // REQ-STB-026 (docs/87)
+  /** SR-DIR-008: a Style Card compiled from a free-form brief. Mutually exclusive with archetype. */
+  styleCard: jsonb("style_card"),
   aspectRatio: text("aspect_ratio", { enum: ["16:9", "9:16"] }).notNull(),
   targetDurationS: numeric("target_duration_s", { precision: 5, scale: 1 }).notNull(),
   brief: jsonb("brief").notNull().default({}),

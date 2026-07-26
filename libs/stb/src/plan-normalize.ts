@@ -102,12 +102,17 @@ export function normalizePlannedShots(raw: unknown): NormalizedPlannedShot[] {
     out.push({
       title: str(s.title) || str(s.name) || `Shot ${i + 1}`,
       durationS: snapDuration(s.durationS ?? s.duration ?? s.durationSeconds ?? s.duration_seconds),
-      grammar: {
-        // top level or inside `direction` — models put them in both places
-        shotSize: pick(s.shotSize ?? s.shot_size ?? dirRaw.shotSize ?? dirRaw.shot_size, shotSizes, SIZE_WORDS, "MS"),
-        angle: pick(s.angle ?? dirRaw.angle, shotAngles, {}, "eye"),
-        movement: pick(s.movement ?? s.camera_movement ?? dirRaw.movement ?? dirRaw.camera_movement, shotMovements, MOVE_WORDS, "static"),
-      },
+      grammar: ((): PlannedGrammar => {
+        // Top level, inside `direction`, or inside `grammar` — models use the first two, and the
+        // THIRD is our own output: a stored proposal is normalized already, so anything re-reading
+        // it normalizes twice and must not lose the craft it wrote itself (live bug 2026-07-26).
+        const g = (s.grammar && typeof s.grammar === "object" ? s.grammar : {}) as Record<string, unknown>;
+        return {
+          shotSize: pick(s.shotSize ?? s.shot_size ?? dirRaw.shotSize ?? dirRaw.shot_size ?? g.shotSize, shotSizes, SIZE_WORDS, "MS"),
+          angle: pick(s.angle ?? dirRaw.angle ?? g.angle, shotAngles, {}, "eye"),
+          movement: pick(s.movement ?? s.camera_movement ?? dirRaw.movement ?? dirRaw.camera_movement ?? g.movement, shotMovements, MOVE_WORDS, "static"),
+        };
+      })(),
       direction: {
         synopsis: synopsis || `Shot ${i + 1}`,
         subject: str(dirRaw.subject) || str(s.subject) || "main subject",

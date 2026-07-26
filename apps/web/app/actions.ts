@@ -384,7 +384,23 @@ export async function setArchetypeAction(formData: FormData) {
   const { setProjectArchetype } = await import("@avd/prj/service");
   const raw = String(formData.get("archetype") ?? "");
   await setProjectArchetype(db(), { projectId, archetype: raw || null });
-  revalidatePath(`/p/${projectId}/script`);
+  revalidatePath(`/p/${projectId}`); // the script route redirects here now (REQ-STB-037)
+}
+
+/**
+ * SR-DIR-008 (USER 2026-07-26: "how do I test my Kaurismäki shortfilm?") — compile the project's
+ * own prompt into a Style Card via grounded research and store it. One text call, no generation
+ * ledger row, nothing billed for images or video.
+ */
+export async function compileStyleCardAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const brief = String(formData.get("brief") ?? "").trim();
+  if (!brief) return;
+  const { compileStyleCard } = await import("@avd/gen/style-compiler");
+  const { setProjectStyleCard } = await import("@avd/prj/service");
+  const card = await compileStyleCard(brief);
+  await setProjectStyleCard(db(), { projectId, card });
+  revalidatePath(`/p/${projectId}`);
 }
 
 /** REQ-STB-025: apply lyric-sync duration suggestions (JSON [{shotId,toS}] in one field). */

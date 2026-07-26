@@ -35,6 +35,17 @@ describe("REQ-STB-043: the plan can state its own grammar", () => {
     expect(s!.grammar.movement).toBe("static");
   });
 
+  // A shot-plan proposal is STORED normalized, so anything that re-reads it (the director's pass,
+  // the UI, an applied plan) runs normalize a second time. Found live 2026-07-26: a real plan with
+  // WS/MS/MCU/MW/CU framing graded as six identical MS shots and produced five false contrast-cut
+  // errors, because the second pass could not see the `grammar` it had written itself.
+  it("is idempotent — re-normalizing its own output keeps the grammar", () => {
+    const once = planned([{ title: "A", durationS: 8, synopsis: "x", shotSize: "MCU", angle: "low", movement: "pan" }]);
+    const twice = normalizePlannedShots({ shots: once });
+    expect(twice[0]!.grammar).toEqual({ shotSize: "MCU", angle: "low", movement: "pan" });
+    expect(twice).toEqual(once);
+  });
+
   it("accepts the long-form spellings a model naturally writes", () => {
     const [s] = planned([{ title: "A", durationS: 8, synopsis: "x", shotSize: "wide", movement: "Push In" }]);
     expect(s!.grammar.shotSize).toBe("WS");
