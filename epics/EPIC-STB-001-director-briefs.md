@@ -1,6 +1,6 @@
 # EPIC-STB-001 — Director briefs: free-form style intent compiled into directable craft
 
-- **Status:** PROPOSED
+- **Status:** IN_PROGRESS — lower loop complete (5/5 tasks `LOWER_VERIFIED`), upper loop not started
 - **Owning context(s):** STB (story & storyboard) · GEN (prompt assembly, research) · PRJ (project style state)
 - **Created:** 2026-07-26
 
@@ -96,12 +96,12 @@ constraint; any scenario that leaks a reference name into a visual prompt fails.
 
 | SR | Statement | Context | Scenario | Status |
 |---|---|---|---|---|
-| SR-DIR-001 | A typed shot-grammar vocabulary (shot size, angle, movement) exists in versioned config and is expressible in the shot plan. | STB/shared | SCN-DIR-003 | PROPOSED |
-| SR-DIR-002 | A grader scores a shot list against grammar rules (contrast cuts, one idea per shot, held ending) and returns structured notes. | STB | SCN-DIR-003 | PROPOSED |
-| SR-DIR-003 | A Style Card contract defines the style axes including anti-notes, with the six current archetypes expressed as seed cards. | shared | SCN-DIR-001 | PROPOSED |
-| SR-DIR-004 | A compiler turns a free-form brief into a Style Card using grounded research. | GEN | SCN-DIR-001 | PROPOSED |
-| SR-DIR-005 | Prompt assembly consumes the card's primitives and provably excludes its reference name from visual prompts. | GEN | SCN-DIR-002 | PROPOSED |
-| SR-DIR-006 | The director's pass grades a draft plan against the active card and proposes a revision. | GEN/STB | SCN-DIR-003 | PROPOSED |
+| SR-DIR-001 | A typed shot-grammar vocabulary (shot size, angle, movement) exists in versioned config and is expressible in the shot plan. | STB/shared | SCN-DIR-003 | LOWER_VERIFIED |
+| SR-DIR-002 | A grader scores a shot list against grammar rules (contrast cuts, one idea per shot, held ending) and returns structured notes. | STB | SCN-DIR-003 | LOWER_VERIFIED |
+| SR-DIR-003 | A Style Card contract defines the style axes including anti-notes, with the six current archetypes expressed as seed cards. | shared | SCN-DIR-001 | LOWER_VERIFIED |
+| SR-DIR-004 | A compiler turns a free-form brief into a Style Card using grounded research. | GEN | SCN-DIR-001 | LOWER_VERIFIED |
+| SR-DIR-005 | Prompt assembly consumes the card's primitives and provably excludes its reference name from visual prompts. | GEN | SCN-DIR-002 | LOWER_VERIFIED |
+| SR-DIR-006 | The director's pass grades a draft plan against the active card and proposes a revision. | GEN/STB | SCN-DIR-003 | LOWER_VERIFIED |
 | SR-DIR-007 | Card palette and typography drive animation render props and effects. | STB/ANM | SCN-DIR-004 | PROPOSED |
 | SR-DIR-008 | Cards are stored per project, editable, and re-plannable. | PRJ | SCN-DIR-001 | PROPOSED |
 
@@ -109,11 +109,11 @@ constraint; any scenario that leaks a reference name into a visual prompt fails.
 
 | TASK | Scope | SR | Status | Lower evidence |
 |---|---|---|---|---|
-| TASK-DIR-001 | Grammar vocabulary in `@avd/shared/config` + `gradeShotGrammar()` in STB with red-first unit tests | SR-DIR-001, SR-DIR-002 | PROPOSED | — |
-| TASK-DIR-002 | Style Card contract + the six archetypes re-expressed as seed cards | SR-DIR-003 | PROPOSED | — |
-| TASK-DIR-003 | Brief → card compiler on the grounded-research pattern | SR-DIR-004 | PROPOSED | — |
-| TASK-DIR-004 | Prompt assembly from card primitives + name-exclusion test | SR-DIR-005 | PROPOSED | — |
-| TASK-DIR-005 | Director's pass: grade + revise, surfaced as notes | SR-DIR-006 | PROPOSED | — |
+| TASK-DIR-001 | Grammar vocabulary in `@avd/shared/config` + `gradeShotGrammar()` in STB with red-first unit tests | SR-DIR-001, SR-DIR-002 | LOWER_VERIFIED | `libs/stb/tests/grammar.spec.ts` (11) |
+| TASK-DIR-002 | Style Card contract + the six archetypes re-expressed as seed cards | SR-DIR-003 | LOWER_VERIFIED | — |
+| TASK-DIR-003 | Brief → card compiler on the grounded-research pattern | SR-DIR-004 | LOWER_VERIFIED | — |
+| TASK-DIR-004 | Prompt assembly from card primitives + name-exclusion test | SR-DIR-005 | LOWER_VERIFIED | — |
+| TASK-DIR-005 | Director's pass: grade + revise, surfaced as notes | SR-DIR-006 | LOWER_VERIFIED | — |
 
 ## Failing-test strategy
 
@@ -124,6 +124,21 @@ constraint; any scenario that leaks a reference name into a visual prompt fails.
 - **Upper loop:** a user-flow test drives brief → card → plan → notes on a seeded project, asserting
   the plan changes in the direction the notes demanded, with no `generation` row of kind `frame`,
   `take` or `animation` created (SCN-DIR-003's "not billed" clause).
+
+## Status — 2026-07-26
+
+Lower loop complete: all five tasks `LOWER_VERIFIED`, 73 tests across four packages, `archetypes.ts`
+deleted, and the compiler verified against the live grounded API. Ledger rows: REQ-STB-041,
+REQ-STB-042, REQ-STB-043, REQ-GEN-025, REQ-GEN-026.
+
+**No scenario is `UPPER_VALIDATED`, and the epic is NOT `DONE`.** Compiled cards are not persisted
+(SR-DIR-008 untouched) and nothing is reachable from the UI, so there is no user flow to validate
+and no human approval to record. SCN-DIR-002 (name exclusion) is verified at every prompt boundary
+by unit test and twice against the live API, but as a lower-loop proof, not as an E2E run.
+
+Remaining for the upper loop: persist cards per project (SR-DIR-008), a brief box + card editor in
+the workspace, execute-and-apply the director's revision, and card palette driving animation render
+props directly (SR-DIR-007 is closed only at the planning layer).
 
 ## Open questions
 

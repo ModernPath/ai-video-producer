@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 12 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -25,6 +25,7 @@ Totals: 30 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 | REQ-STB-039 | Music timeline: clips on the track's time axis, drift + off-beat cuts | P8 | IN_REVIEW | USER 2026-07-25 ("see the music timing within the clips… if I add a new clip it might outsync") | tests/timeline.spec.ts (9) + browser (Neon Rivers 5 clips, boundary ticks, 3/5→5/5 off-beat after a length edit) | libs/stb/src/timeline.ts, components/Timeline.tsx, ast/src/probe.ts (ffprobe), upload+music duration recording |
 | REQ-STB-040 | Edit clip length: free crop vs regenerate, stated per shot | P8 | IN_REVIEW | USER 2026-07-25 ("edit the length of clips (+regenerate or crop)") | tests/timeline.spec.ts crop/shortfall block + browser (5s→6s persisted, ⚠ 1s short, take price 0.51→0.61) | updateShotDurationAction, stage length editor, trimmedS/shortfallS in timeline.ts |
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
+| REQ-STB-043 | Director's pass: plans graded against the active card before anything is billed | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-006 (USER 2026-07-26 "Director's pass would be quite cool") | tests/director-pass.spec.ts (13) + live plan run | src/director-pass.ts · plan-normalize grammar fields · gen/prompt.ts plan schema |
 | REQ-STB-042 | Style Card contract: archetypes become data, refusals become expressible | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-003 (USER 2026-07-26 "further styling options… a bit humoristic") | shared/tests/style-card.spec.ts (18) | shared/contracts/style-card.ts · shared/config/style-cards.ts |
 | REQ-STB-041 | Shot grammar: typed craft vocabulary + plan grader | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-001/002 (USER 2026-07-26 "improve the artistic director skills… directed by Aki Kaurismäki") | tests/grammar.spec.ts (11) | shared/config/grammar.ts · libs/stb/src/grammar.ts |
 | REQ-STB-034 | First take auto-selects (export never silently empty) | P8 | IN_REVIEW | USER 2026-07-24 "why can't I export" (5 takes bought, 0 selected → Export 0 ready) | tests/take-binding.int.spec.ts REQ-STB-034 + browser (5/5 generated) | materializeGenerationOutput take branch |
@@ -466,6 +467,22 @@ Totals: 30 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 - **Code:** `libs/stb/src/timeline.ts`, `apps/web/components/Timeline.tsx`, `apps/web/components/Workspace.tsx`, `libs/ast/src/probe.ts` (ffprobe duration), `libs/ast/src/uploads.ts` + `libs/gen/src/executor.ts` (record audio duration), `apps/web/scripts/backfill-audio-durations.ts`
 - **Log:** LOG 2026-07-25
 - **Deferred / notes:** `asset.duration_s` was NULL for every audio row, so drift could never render — now probed at upload/generate and backfilled (17/17 existing tracks). Waveform rendering, a scrubbing playhead across clips, and drag-the-edge trimming are not built; ticks come from section stamps, not beat detection.
+
+### REQ-STB-043 — Director's pass: plans graded against the active card before anything is billed
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Raised-by:** USER 2026-07-26: "Director's pass would be quite cool." — EPIC-STB-001, SR-DIR-006 (SCN-DIR-003).
+- **Statement:** A draft shot plan shall state its own craft and be graded against the project's Style Card before any generation is paid for, with notes that name the shots and the axis each one violates; a revision prompt shall then ask for a plan that fixes exactly those notes.
+- **Acceptance criteria:**
+  - GIVEN a planner response THEN `shotSize`/`angle`/`movement` normalize from the top level or from `direction`, accept long-form spellings ("wide", "Push In"), fall back to MS/eye/static rather than dropping the shot, and DROP unknown vocabulary ("drone-orbit") rather than trusting it.
+  - GIVEN a plan and an active card THEN notes name the violated axis — `forbidden-movement` for camera the style refuses, `duration-window` quoting the card's own window, `contrast-cut`, `coverage`.
+  - GIVEN a plan that already honours the card THEN no notes.
+  - GIVEN no card THEN only the universal principles apply — no `forbidden-movement`, because with no card there are no refusals.
+  - GIVEN notes THEN the revision prompt carries them verbatim, carries the card's directing block, demands the same JSON shape back, and NEVER leaks the reference the card was compiled from.
+  - GIVEN grading THEN it is pure and synchronous — no model call, so a plan can be reviewed before a frame or take is billed.
+- **Tests:** `tests/director-pass.spec.ts` (13)
+- **Code:** `src/director-pass.ts` (`reviewPlan`, `assembleDirectorPassPrompt`, `summarizeNotes`) · `src/plan-normalize.ts` (grammar fields) · `libs/gen/src/prompt.ts` (plan schema states the craft)
+- **Log:** see LOG 2026-07-26
+- **Deferred / notes:** the revision is not yet executed or applied — `assembleDirectorPassPrompt` is built and tested but nothing calls the model with it and writes the result back, and the notes are not yet surfaced in the UI. Both need the plan-proposal flow and are the remaining work on SCN-DIR-003, which therefore is NOT `UPPER_VALIDATED`.
 
 ### REQ-STB-042 — Style Card contract: archetypes become data, refusals become expressible
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should

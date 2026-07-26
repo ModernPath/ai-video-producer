@@ -1,6 +1,9 @@
 // USER BUG 2026-07-23: the real model's shot-plan JSON varies in shape/keys/durations.
 // Normalize defensively so "Break into shots" always yields usable shots (or a clear failure).
-import { config, fullFrameAnimationTemplates, shotDurationPolicy, type FullFrameAnimationTemplate } from "@avd/shared/config";
+import {
+  config, fullFrameAnimationTemplates, shotAngles, shotDurationPolicy, shotMovements, shotSizes,
+  type FullFrameAnimationTemplate, type ShotAngle, type ShotMovement, type ShotSize,
+} from "@avd/shared/config";
 import type { DirectionJson } from "./service";
 
 export interface PlannedAnimation {
@@ -14,9 +17,17 @@ export interface PlannedAnimation {
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
+/** SR-DIR-001: the craft the shot is framed with, so the director's pass can grade it. */
+export interface PlannedGrammar {
+  shotSize: ShotSize;
+  angle: ShotAngle;
+  movement: ShotMovement;
+}
+
 export interface NormalizedPlannedShot {
   title: string;
   durationS: number;
+  grammar: PlannedGrammar;
   direction: DirectionJson;
   imagePrompt?: string | undefined;
   videoPrompt?: string | undefined;
@@ -35,6 +46,33 @@ function snapDuration(v: unknown): number {
 
 function str(v: unknown): string {
   return typeof v === "string" ? v.trim() : "";
+}
+
+// Models write "wide" and "Push In" as readily as "WS" and "push-in", so accept the long forms —
+// but drop anything outside the vocabulary rather than trusting invented terms like "drone-orbit".
+const SIZE_WORDS: Record<string, ShotSize> = {
+  "extreme wide": "EWS", "very wide": "EWS", establishing: "EWS",
+  wide: "WS", "medium wide": "MW", "medium long": "MW",
+  medium: "MS", "medium close-up": "MCU", "medium close up": "MCU",
+  "close-up": "CU", "close up": "CU", close: "CU",
+  "extreme close-up": "ECU", "extreme close up": "ECU", macro: "ECU",
+};
+const MOVE_WORDS: Record<string, ShotMovement> = {
+  locked: "static", "locked off": "static", still: "static", fixed: "static",
+  "push in": "push-in", pushin: "push-in", dolly: "push-in", "dolly in": "push-in",
+  "pull out": "pull-out", pullout: "pull-out", "dolly out": "pull-out",
+  track: "tracking", trucking: "tracking", handheld: "handheld", crane: "crane",
+  pan: "pan", tilt: "tilt",
+};
+
+function pick<T extends string>(v: unknown, allowed: readonly T[], words: Record<string, T>, fallback: T): T {
+  const raw = str(v);
+  if (!raw) return fallback;
+  const upper = raw.toUpperCase();
+  if ((allowed as readonly string[]).includes(upper)) return upper as T;
+  const lower = raw.toLowerCase();
+  if ((allowed as readonly string[]).includes(lower)) return lower as T;
+  return words[lower] ?? fallback;
 }
 
 export function normalizePlannedShots(raw: unknown): NormalizedPlannedShot[] {
@@ -64,6 +102,12 @@ export function normalizePlannedShots(raw: unknown): NormalizedPlannedShot[] {
     out.push({
       title: str(s.title) || str(s.name) || `Shot ${i + 1}`,
       durationS: snapDuration(s.durationS ?? s.duration ?? s.durationSeconds ?? s.duration_seconds),
+      grammar: {
+        // top level or inside `direction` — models put them in both places
+        shotSize: pick(s.shotSize ?? s.shot_size ?? dirRaw.shotSize ?? dirRaw.shot_size, shotSizes, SIZE_WORDS, "MS"),
+        angle: pick(s.angle ?? dirRaw.angle, shotAngles, {}, "eye"),
+        movement: pick(s.movement ?? s.camera_movement ?? dirRaw.movement ?? dirRaw.camera_movement, shotMovements, MOVE_WORDS, "static"),
+      },
       direction: {
         synopsis: synopsis || `Shot ${i + 1}`,
         subject: str(dirRaw.subject) || str(s.subject) || "main subject",
