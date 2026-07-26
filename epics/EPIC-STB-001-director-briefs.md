@@ -110,10 +110,10 @@ constraint; any scenario that leaks a reference name into a visual prompt fails.
 | TASK | Scope | SR | Status | Lower evidence |
 |---|---|---|---|---|
 | TASK-DIR-001 | Grammar vocabulary in `@avd/shared/config` + `gradeShotGrammar()` in STB with red-first unit tests | SR-DIR-001, SR-DIR-002 | LOWER_VERIFIED | `libs/stb/tests/grammar.spec.ts` (11) |
-| TASK-DIR-002 | Style Card contract + the six archetypes re-expressed as seed cards | SR-DIR-003 | LOWER_VERIFIED | — |
-| TASK-DIR-003 | Brief → card compiler on the grounded-research pattern | SR-DIR-004 | LOWER_VERIFIED | — |
-| TASK-DIR-004 | Prompt assembly from card primitives + name-exclusion test | SR-DIR-005 | LOWER_VERIFIED | — |
-| TASK-DIR-005 | Director's pass: grade + revise, surfaced as notes | SR-DIR-006 | LOWER_VERIFIED | — |
+| TASK-DIR-002 | Style Card contract + the six archetypes re-expressed as seed cards | SR-DIR-003 | LOWER_VERIFIED | `libs/shared/tests/style-card.spec.ts` (24) |
+| TASK-DIR-003 | Brief → card compiler on the grounded-research pattern | SR-DIR-004 | LOWER_VERIFIED | `libs/gen/tests/style-compiler.spec.ts` (25) + 2 live grounded compiles |
+| TASK-DIR-004 | Prompt assembly from card primitives + name-exclusion test | SR-DIR-005 | LOWER_VERIFIED | `libs/gen/tests/prompt.spec.ts` REQ-GEN-026 (5) |
+| TASK-DIR-005 | Director's pass: grade + revise, surfaced as notes | SR-DIR-006 | LOWER_VERIFIED | `libs/stb/tests/director-pass.spec.ts` (13) |
 
 ## Failing-test strategy
 
