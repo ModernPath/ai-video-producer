@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 11 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -25,6 +25,7 @@ Totals: 30 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 | REQ-STB-039 | Music timeline: clips on the track's time axis, drift + off-beat cuts | P8 | IN_REVIEW | USER 2026-07-25 ("see the music timing within the clips… if I add a new clip it might outsync") | tests/timeline.spec.ts (9) + browser (Neon Rivers 5 clips, boundary ticks, 3/5→5/5 off-beat after a length edit) | libs/stb/src/timeline.ts, components/Timeline.tsx, ast/src/probe.ts (ffprobe), upload+music duration recording |
 | REQ-STB-040 | Edit clip length: free crop vs regenerate, stated per shot | P8 | IN_REVIEW | USER 2026-07-25 ("edit the length of clips (+regenerate or crop)") | tests/timeline.spec.ts crop/shortfall block + browser (5s→6s persisted, ⚠ 1s short, take price 0.51→0.61) | updateShotDurationAction, stage length editor, trimmedS/shortfallS in timeline.ts |
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
+| REQ-STB-042 | Style Card contract: archetypes become data, refusals become expressible | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-003 (USER 2026-07-26 "further styling options… a bit humoristic") | shared/tests/style-card.spec.ts (18) | shared/contracts/style-card.ts · shared/config/style-cards.ts |
 | REQ-STB-041 | Shot grammar: typed craft vocabulary + plan grader | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-001/002 (USER 2026-07-26 "improve the artistic director skills… directed by Aki Kaurismäki") | tests/grammar.spec.ts (11) | shared/config/grammar.ts · libs/stb/src/grammar.ts |
 | REQ-STB-034 | First take auto-selects (export never silently empty) | P8 | IN_REVIEW | USER 2026-07-24 "why can't I export" (5 takes bought, 0 selected → Export 0 ready) | tests/take-binding.int.spec.ts REQ-STB-034 + browser (5/5 generated) | materializeGenerationOutput take branch |
 | REQ-STB-033 | Cast visibility everywhere (bar with refs + profile badges; library from home) | P8 | IN_REVIEW | USER 2026-07-24 usability screenshots | browser E2E ×3 views | components/CastBar.tsx, script page wiring, home library link |
@@ -465,6 +466,23 @@ Totals: 30 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 - **Code:** `libs/stb/src/timeline.ts`, `apps/web/components/Timeline.tsx`, `apps/web/components/Workspace.tsx`, `libs/ast/src/probe.ts` (ffprobe duration), `libs/ast/src/uploads.ts` + `libs/gen/src/executor.ts` (record audio duration), `apps/web/scripts/backfill-audio-durations.ts`
 - **Log:** LOG 2026-07-25
 - **Deferred / notes:** `asset.duration_s` was NULL for every audio row, so drift could never render — now probed at upload/generate and backfilled (17/17 existing tracks). Waveform rendering, a scrubbing playhead across clips, and drag-the-edge trimming are not built; ticks come from section stamps, not beat detection.
+
+### REQ-STB-042 — Style Card contract: archetypes become data, refusals become expressible
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Raised-by:** USER 2026-07-26: "also looking for even further styling options. Like saying I want a 1-minute feature film of ModernPath AI directed by Aki Kaurismäki, a bit humoristic." — EPIC-STB-001, SR-DIR-003.
+- **Source:** `epics/EPIC-STB-001-director-briefs.md` (SCN-DIR-001, SCN-DIR-002); `docs/87-directing-playbook.md`
+- **Statement:** Style shall be structured, editable data rather than prose in prompt strings. A Zod Style Card (ADR-003 canonical) carries typed craft axes — structure/arc, camera (allowed movements, sizes, angles), pacing window, palette, light, performance, **humour**, sound, typography — plus **anti-notes**, the refusals no `ArchetypeRecipe` field could express. The six existing archetypes are re-expressed as seed cards under their existing keys. `provenance` (the user's brief and any reference director) is display-only and MUST NOT reach any prompt.
+- **Acceptance criteria:**
+  - GIVEN a fully specified card THEN it parses; GIVEN no `antiNotes` key THEN it is rejected — a style with no refusals has no point of view.
+  - GIVEN a non-hex palette colour, an inverted duration window, or an empty `allowedMovements` THEN the card is rejected.
+  - GIVEN a card THEN `toGrammarConstraints` yields exactly the grader's `allowedMovements` + `durationWindowS` (REQ-STB-041).
+  - GIVEN a card compiled from a brief naming a real director THEN NEITHER `toDirectingBlock` NOR `toVisualStyle` contains that name or the raw brief, while the craft primitives (camera notes, light, palette prose) do appear — SCN-DIR-002.
+  - GIVEN a card THEN the directing block states the refusals as explicit AVOID instructions, carries the humour register, and forbids the planner from naming any real director/artist/brand in the prompts it writes.
+  - GIVEN the seed set THEN its keys equal today's six archetype keys (no project loses its selection), every seed validates, every seed has ≥1 anti-note, none names a reference, and `cinematic-mood`/`hype-countdown` keep their docs/87 windows ([8,8] / [4,4]).
+- **Tests:** `libs/shared/tests/style-card.spec.ts` (18)
+- **Code:** `libs/shared/src/contracts/style-card.ts` (schema + `toGrammarConstraints`/`toDirectingBlock`/`toVisualStyle`) · `libs/shared/src/config/style-cards.ts` (six seed cards)
+- **Log:** see LOG 2026-07-26
+- **Deferred / notes:** enabler slice — `archetypes.ts` still feeds `recipeFor()` (`libs/stb/src/service.ts`) and `setProjectArchetype` (`libs/prj/src/service.ts`); switching those call sites to cards is TASK-DIR-004, which the key-parity test above protects. Storing per-project editable cards is SR-DIR-008. Whip pan was left out of the vocabulary deliberately: it is a transition, not a shot movement, and belongs to the deferred exporter-transitions work.
 
 ### REQ-STB-041 — Shot grammar: typed craft vocabulary + plan grader
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
