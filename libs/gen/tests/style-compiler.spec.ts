@@ -172,6 +172,30 @@ describe("REQ-GEN-025: a leaked reference name is scrubbed from the craft axes (
     }
   });
 
+  // Live compile 2026-07-26 ("shot like a David Attenborough nature documentary") returned
+  // references including "Planet Earth" and "The Blue Planet". Splitting those into words and
+  // stripping each one would delete "earth tones" and "blue hour" from legitimate craft text —
+  // the scrubber must not damage the card it is protecting.
+  it("does not strip common words that happen to appear in a referenced TITLE", () => {
+    const card = {
+      palette: { notes: "Warm earth tones against a deep blue hour sky." },
+      light: "Natural history lighting, low and raking.",
+    } as unknown as StyleCard;
+    const out = scrubReferences(card, ["Planet Earth", "The Blue Planet", "BBC Natural History Unit"]);
+    expect(out.palette.notes).toBe("Warm earth tones against a deep blue hour sky.");
+    expect(out.light).toBe("Natural history lighting, low and raking.");
+  });
+
+  it("still strips the full title when it is quoted verbatim", () => {
+    const card = { palette: { notes: "Graded like Planet Earth, saturated and rich." } } as unknown as StyleCard;
+    expect(scrubReferences(card, ["Planet Earth"]).palette.notes).not.toMatch(/Planet Earth/);
+  });
+
+  it("still strips a person's surname, which is the case that matters", () => {
+    const card = { light: "Kaurismäki-style hard practical sources." } as unknown as StyleCard;
+    expect(scrubReferences(card, ["Aki Kaurismäki"]).light).not.toMatch(/Kaurism/i);
+  });
+
   it("scrubs standalone too, for any card from any source", () => {
     const card = { camera: { notes: "Shot like Wes Anderson would." } } as unknown as StyleCard;
     expect(scrubReferences(card, ["Wes Anderson"]).camera.notes).not.toMatch(/Anderson/);
