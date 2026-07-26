@@ -58,6 +58,9 @@ export const styleCardSchema = z.object({
 
   /** What this style refuses to do. Required — a style with no refusals has no point of view. */
   antiNotes: z.array(z.string()),
+
+  /** Project settings the style implies (REQ-STB-027 — was `ArchetypeRecipe.defaults`). */
+  defaults: z.object({ audioMode: z.enum(["native", "music", "mix"]).optional() }).optional(),
 });
 
 export type StyleCard = z.infer<typeof styleCardSchema>;
@@ -90,6 +93,29 @@ export function toDirectingBlock(card: StyleCard): string {
     `Describe the look in concrete craft terms only — never name a real director, artist, studio or brand in any prompt you write.`,
   ];
   return lines.filter(Boolean).join("\n");
+}
+
+/** Shot-plan-only guidance: pacing, coverage and the palette its animation shots must match. */
+export function toPlanBias(card: StyleCard): string {
+  const [min, max] = card.pacing.durationWindowS;
+  return [
+    `Shot lengths must fall between ${min} and ${max} seconds${min === max ? ` — use ${min}s` : ` (prefer ${min}–${max}s)`}.`,
+    card.structure.shotCountHint ? `Aim for ${card.structure.shotCountHint[0]}–${card.structure.shotCountHint[1]} shots in total.` : "",
+    `Favour ${card.camera.preferredSizes.join("/")} framing; vary the framing between adjacent shots.`,
+    `Camera movement is limited to: ${card.camera.allowedMovements.join(", ")}.`,
+    // SR-DIR-007: graphics stop inventing their own colours and match the footage.
+    `Any animation shot MUST use accent "${card.palette.accent}" and background "${card.palette.background}" so graphics match the footage.`,
+    card.typography ? `Typography: ${card.typography}` : "",
+    card.antiNotes.length ? `Never plan: ${card.antiNotes.join("; ")}.` : "",
+  ].filter(Boolean).join("\n");
+}
+
+/** Music-brief-only guidance, from the card's own sound axis. */
+export function toMusicBias(card: StyleCard): string {
+  // A card whose humour axis reads "None — this style is sincere" must not become the instruction
+  // "Tone: None"; a register that does not exist is simply left unsaid.
+  const register = /^\s*none\b/i.test(card.humour) ? "" : card.humour.trim();
+  return [card.sound, register ? `Tone: ${register}` : ""].filter(Boolean).join(" ");
 }
 
 /** VISUAL prompts (frame + take). Craft axes only — never `provenance`. */

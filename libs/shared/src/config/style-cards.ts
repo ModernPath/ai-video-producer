@@ -11,6 +11,7 @@ import type { StyleCard } from "../contracts/style-card";
 export const styleCards: Record<string, StyleCard> = {
   "brand-pulse": {
     id: "brand-pulse",
+    defaults: { audioMode: "music" },
     name: "Brand pulse",
     provenance: { references: [] },
     structure: { arc: "build to a single peak two-thirds in, then land on a held graphic", shotCountHint: [5, 7] },
@@ -32,6 +33,7 @@ export const styleCards: Record<string, StyleCard> = {
 
   "lyric-video": {
     id: "lyric-video",
+    defaults: { audioMode: "music" },
     name: "Lyric video",
     provenance: { references: [] },
     structure: { arc: "follows the song's sections exactly — verses recede, choruses assert" },
@@ -53,6 +55,7 @@ export const styleCards: Record<string, StyleCard> = {
 
   "cinematic-mood": {
     id: "cinematic-mood",
+    defaults: { audioMode: "music" },
     name: "Cinematic mood film",
     provenance: { references: [] },
     structure: { arc: "calm → swell → return to calm; end on the longest, quietest shot", shotCountHint: [4, 6] },
@@ -74,6 +77,7 @@ export const styleCards: Record<string, StyleCard> = {
 
   "product-launch": {
     id: "product-launch",
+    defaults: { audioMode: "mix" },
     name: "Product launch",
     provenance: { references: [] },
     structure: { arc: "detail → context → detail, resolving on the product name", shotCountHint: [5, 7] },
@@ -95,6 +99,7 @@ export const styleCards: Record<string, StyleCard> = {
 
   "character-story": {
     id: "character-story",
+    defaults: { audioMode: "mix" },
     name: "Character story",
     provenance: { references: [] },
     structure: { arc: "setup → turn → payoff; each shot advances exactly one beat", shotCountHint: [6, 9] },
@@ -116,6 +121,7 @@ export const styleCards: Record<string, StyleCard> = {
 
   "hype-countdown": {
     id: "hype-countdown",
+    defaults: { audioMode: "music" },
     name: "Hype countdown",
     provenance: { references: [] },
     structure: { arc: "rapid-fire escalation to a reveal that gets the longest hold", shotCountHint: [3, 5] },

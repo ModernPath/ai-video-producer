@@ -229,3 +229,48 @@ describe("REQ-STB-036: plan prompt offers the full template set with variability
     expect(p.toLowerCase()).toContain("vary");
   });
 });
+
+// SR-DIR-005 (EPIC-STB-001, TASK-DIR-004): visual prompts are built from the card's craft
+// primitives, and the reference the card was compiled from must never reach an image or video
+// model — the governing constraint of the epic (SCN-DIR-002).
+describe("REQ-GEN-026: card-driven visual prompts exclude the reference name", () => {
+  const card = {
+    id: "c", name: "Deadpan northern comedy",
+    provenance: { brief: "a film directed by Aki Kaurismäki", references: ["Aki Kaurismäki"] },
+    structure: { arc: "flat affect" },
+    camera: { allowedMovements: ["static"] as const, preferredSizes: ["MW"] as const, angles: ["eye"] as const, notes: "Locked off, frontal." },
+    pacing: { durationWindowS: [6, 8] as [number, number] },
+    palette: { accent: "#c8202a", background: "#4a4a32", notes: "Saturated primaries against drab olive." },
+    light: "Hard practical sources.", performance: "Deadpan.", humour: "Understatement.",
+    sound: "Sparse.", typography: "Plain.", antiNotes: ["no handheld"],
+  };
+
+  it("folds the card's craft primitives into the frame prompt", () => {
+    const p = assembleFramePrompt({ ...input, card } as never);
+    expect(p).toContain("Locked off, frontal.");
+    expect(p).toContain("Saturated primaries against drab olive.");
+  });
+
+  it("folds them into the take prompt too", () => {
+    const p = assembleTakePrompt({ ...input, durationSeconds: 6, card } as never);
+    expect(p).toContain("Hard practical sources.");
+  });
+
+  it("never lets the reference name or the raw brief into either visual prompt", () => {
+    for (const p of [assembleFramePrompt({ ...input, card } as never), assembleTakePrompt({ ...input, durationSeconds: 6, card } as never)]) {
+      expect(p.toLowerCase()).not.toContain("kaurism");
+      expect(p).not.toContain(card.provenance.brief);
+    }
+  });
+
+  it("keeps a user's own custom prompt verbatim but still adds the card look", () => {
+    const p = assembleTakePrompt({ ...input, durationSeconds: 6, card, customPrompt: "A red kettle boils." } as never);
+    expect(p).toContain("A red kettle boils.");
+    expect(p).toContain("Locked off, frontal.");
+    expect(p.toLowerCase()).not.toContain("kaurism");
+  });
+
+  it("still works with no card at all", () => {
+    expect(assembleFramePrompt(input)).toBeTruthy();
+  });
+});

@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 21 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 21 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -26,6 +26,7 @@ Totals: 21 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | DONE | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
 | REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | DONE | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
 | REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
+| REQ-GEN-026 | Card-driven prompts: the pipeline reads Style Cards, not prose recipes | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-005 | tests/prompt.spec.ts REQ-GEN-026 (5) + style-card.spec.ts | src/prompt.ts (card look) · stb recipeFor · prj setProjectArchetype · web picker · archetypes.ts deleted |
 | REQ-GEN-025 | Style-card compiler: free-form brief → craft primitives | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-004 (USER 2026-07-26 "a 1-minute feature film … directed by Aki Kaurismäki, a bit humoristic") | tests/style-compiler.spec.ts (25) + 2 live grounded compiles | src/style-compiler.ts |
 | REQ-GEN-024 | Web-grounded entity research (Google Search + URL context) | P8 | IN_REVIEW | USER 2026-07-24 (with docs links) | tests/research.spec.ts + real LastBot verification | src/research.ts (tools: googleSearch+urlContext), researchEntityProfileAction, library ✦ button |
 | REQ-GEN-018 | Race-safe claim across parallel workers | P5 | IN_REVIEW | `docs/03` §2 (enabler) | tests/claim-race.int.spec.ts (2) | executor claimGeneration (conditional update) + loser-scans-on loop |
@@ -245,6 +246,23 @@ Totals: 21 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a 5s omni take through the real pipeline THEN it succeeds, keeps durationS=5 (no {4,6,8} snap), and records cost 5×5792×$17.50/M ≈ $0.5068 (real E2E, RUN_REAL_OMNI).
 - **Tests:** `tests/omni-video.spec.ts` (7) · real E2E `tests/real-api.e2e.spec.ts` RUN_REAL_OMNI ($0.5068 verified) · **Code:** `src/provider.ts` (buildOmniVideoRequest + interactions branch), `src/routing.ts`, `src/cost.ts`, `src/executor.ts` (refs + model cost), shared config (omniVideoModel, priceTable omni rates, gen.videoRoute) · **Log:** LOG 2026-07-24
 - **Deferred / notes:** STB still snaps shot durations to {4,6,8} at plan level — exposing free durations (9–10s shots) in the UI is a follow-up STB slice. Conversational multi-turn retake untested. No UI switch — route is config/env by design (taste iteration without deploy, Tips #5).
+
+### REQ-GEN-026 — Card-driven prompts: the pipeline reads Style Cards, not prose recipes
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Raised-by:** EPIC-STB-001 SR-DIR-005 (TASK-DIR-004), following REQ-STB-042 and REQ-GEN-025.
+- **Statement:** Every prompt the pipeline assembles shall derive from the project's Style Card rather than from hardcoded prose, and no visual prompt shall contain the reference the card was compiled from. `ArchetypeRecipe` and `archetypes.ts` are removed: the directing block, plan bias and music bias are now DERIVED (`toDirectingBlock`/`toPlanBias`/`toMusicBias`), so editing one axis of a card changes the prompts.
+- **Acceptance criteria:**
+  - GIVEN a card THEN `assembleFramePrompt` and `assembleTakePrompt` fold in its craft primitives (camera notes, light, palette prose, performance, typography).
+  - GIVEN a card compiled from a real director THEN NEITHER visual prompt contains the reference name nor the raw brief — the epic's governing constraint, now enforced at the prompt boundary.
+  - GIVEN a user's own custom prompt THEN it stays verbatim AND the card look is still applied, with the name still absent.
+  - GIVEN no card THEN prompt assembly is unchanged.
+  - GIVEN a card THEN the plan bias states the pacing window, shot-count hint, preferred framing, allowed movements, the refusals, and pins animation accent/background to the card palette (SR-DIR-007) so graphics match the footage.
+  - GIVEN a card whose humour axis reads "None — …" THEN the music bias omits the register rather than instructing "Tone: None".
+  - GIVEN the six seed keys THEN `setProjectArchetype` still applies each card's `defaults.audioMode` (REQ-STB-027 preserved).
+- **Tests:** `tests/prompt.spec.ts` (REQ-GEN-026, 5) · `libs/shared/tests/style-card.spec.ts` (24)
+- **Code:** `src/prompt.ts` (`card` input + `cardLook`) · `libs/stb/src/service.ts` (`recipeFor` derives) · `libs/prj/src/service.ts` (`setProjectArchetype`) · `apps/web/app/p/[id]/page.tsx` (picker) · `libs/shared/src/config/archetypes.ts` **deleted**
+- **Log:** see LOG 2026-07-26
+- **Deferred / notes:** the `card` input is plumbed through prompt assembly but the executor does not yet pass the project's card to frame/take generation, and compiled cards are still not persisted (SR-DIR-008) — so today only the six seeds are reachable, via the existing archetype picker. Animation renders still read accent/background from the plan rather than the card directly; the plan bias pins them, which closes SR-DIR-007 at the planning layer only.
 
 ### REQ-GEN-025 — Style-card compiler: free-form brief → craft primitives
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should

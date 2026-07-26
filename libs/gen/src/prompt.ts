@@ -1,5 +1,6 @@
 // REQ-GEN-013 — deterministic prompt assembly (docs/14-generation.md §5).
-import { config, fullFrameAnimationTemplates, shotDurationPolicy } from "@avd/shared/config"; // REQ-STB-029 route palette · REQ-AST-012 profile cap · REQ-STB-036 template set
+import { config, fullFrameAnimationTemplates, shotDurationPolicy } from "@avd/shared/config";
+import { toVisualStyle, type StyleCard } from "@avd/shared/contracts"; // SR-DIR-005 card-driven look // REQ-STB-029 route palette · REQ-AST-012 profile cap · REQ-STB-036 template set
 
 export const PROMPT_TEMPLATE_VERSION = 3; // v3: model prompt guidelines (USER 2026-07-23) — single-scene pin, explicit audio intent, ref preservation, inpainting formula
 
@@ -40,6 +41,17 @@ export interface TakePromptInput {
   background?: string | undefined;
   /** v3: number of reference images attached to the request (drives preservation phrasing). */
   referenceImageCount?: number | undefined;
+  /**
+   * SR-DIR-005: the project's Style Card. Only its craft axes are used — `provenance` (the brief
+   * and any reference director) never reaches a visual model, which is the governing constraint of
+   * EPIC-STB-001.
+   */
+  card?: StyleCard | undefined;
+}
+
+/** The card's look, for visual prompts. Empty when no card is selected. */
+function cardLook(card?: StyleCard): string {
+  return card ? toVisualStyle(card).trim() : "";
 }
 
 function sentence(text: string): string {
@@ -54,7 +66,8 @@ const BRAND_SAFETY = `Use only this project's own named brands; never depict rea
 /** Natural-prose video prompt (template v2). Custom text is verbatim + safety rail + format tail. */
 export function assembleTakePrompt(i: TakePromptInput): string {
   if (i.customPrompt?.trim()) {
-    return `${i.customPrompt.trim()}\n${BRAND_SAFETY}\n${i.aspectRatio} video, ${i.durationSeconds} seconds.`;
+    const look = cardLook(i.card);
+    return `${i.customPrompt.trim()}\n${look ? `${look}\n` : ""}${BRAND_SAFETY}\n${i.aspectRatio} video, ${i.durationSeconds} seconds.`;
   }
   const d = i.direction;
   const parts: string[] = [];
@@ -67,6 +80,8 @@ export function assembleTakePrompt(i: TakePromptInput): string {
     parts.push(sentence(`Featuring ${e.name}${desc}`)); // skip echo descriptions ("Pasi, Pasi")
   }
   parts.push(BRAND_SAFETY); // unconditional rail — drift happened with kind "character" and no product cast
+  const takeLook = cardLook(i.card);
+  if (takeLook) parts.push(takeLook); // SR-DIR-005 — before the style kit, which may refine it
   if (i.stylePrompt) parts.push(sentence(i.stylePrompt));
   // v3 guideline: our takes are single shots — pin it so the model doesn't invent cuts.
   parts.push(`A single continuous shot, no scene cuts. No on-screen text, timestamps, or interface graphics.`);
@@ -164,7 +179,8 @@ export function assembleEditPrompt(i: EditPromptInput): string {
 /** Natural-prose still-image prompt (template v2). Custom text is verbatim + safety rail + format tail. */
 export function assembleFramePrompt(i: Omit<TakePromptInput, "durationSeconds">): string {
   if (i.customPrompt?.trim()) {
-    return `${i.customPrompt.trim()}\n${BRAND_SAFETY}\n${i.aspectRatio} still image.`;
+    const look = cardLook(i.card);
+    return `${i.customPrompt.trim()}\n${look ? `${look}\n` : ""}${BRAND_SAFETY}\n${i.aspectRatio} still image.`;
   }
   const d = i.direction;
   const parts: string[] = [];
@@ -176,6 +192,8 @@ export function assembleFramePrompt(i: Omit<TakePromptInput, "durationSeconds">)
     const desc = e.description.trim().toLowerCase() === e.name.trim().toLowerCase() ? "" : `, ${e.description}`;
     parts.push(sentence(`Featuring ${e.name}${desc}`)); // skip echo descriptions ("Pasi, Pasi")
   }
+  const frameLook = cardLook(i.card);
+  if (frameLook) parts.push(frameLook); // SR-DIR-005
   if (i.stylePrompt) parts.push(sentence(i.stylePrompt));
   if (i.referenceImageCount) {
     // v3 guideline: high-fidelity detail preservation when composing from reference images.

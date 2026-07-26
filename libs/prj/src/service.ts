@@ -3,7 +3,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
-import { archetypes, config } from "@avd/shared/config";
+import { config, styleCards } from "@avd/shared/config";
 import { project } from "./schema";
 
 export async function createProject(
@@ -78,7 +78,7 @@ export async function setProjectStyleKit(db: Db, input: { projectId: string; sty
 
 /** REQ-STB-026/027: select the directing archetype (docs/87); null = freeform. Applies recipe defaults. */
 export async function setProjectArchetype(db: Db, input: { projectId: string; archetype: string | null }): Promise<void> {
-  const recipe = input.archetype ? archetypes[input.archetype] : undefined;
+  const recipe = input.archetype ? styleCards[input.archetype] : undefined; // TASK-DIR-004
   await db.update(project).set({
     archetype: input.archetype,
     ...(recipe?.defaults?.audioMode ? { audioMixMode: recipe.defaults.audioMode } : {}), // REQ-STB-027

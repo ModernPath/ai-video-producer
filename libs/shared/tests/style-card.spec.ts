@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  styleCardSchema, toDirectingBlock, toGrammarConstraints, toVisualStyle,
+  styleCardSchema, toDirectingBlock, toGrammarConstraints, toMusicBias, toPlanBias, toVisualStyle,
   type StyleCard,
 } from "../src/contracts/style-card";
 import { styleCards } from "../src/config/style-cards";
@@ -46,6 +46,41 @@ describe("REQ-STB-042: Style Card contract", () => {
 
   it("rejects a card that allows no camera movement at all", () => {
     expect(() => styleCardSchema.parse({ ...kaurismaki, camera: { ...kaurismaki.camera, allowedMovements: [] } })).toThrow();
+  });
+});
+
+describe("REQ-STB-042: a card drives planning, music and project defaults", () => {
+  it("derives a plan bias from the pacing window and shot-count hint", () => {
+    const bias = toPlanBias(kaurismaki);
+    expect(bias).toMatch(/6–8/);
+    expect(bias).toMatch(/7–9 shots/);
+  });
+
+  it("puts the palette in the plan bias so animation shots match the footage (SR-DIR-007)", () => {
+    expect(toPlanBias(kaurismaki)).toContain("#c8202a");
+    expect(toPlanBias(kaurismaki)).toContain("#4a4a32");
+  });
+
+  it("derives a music bias from the card's own sound axis", () => {
+    expect(toMusicBias(kaurismaki)).toMatch(/melancholy rock or tango/);
+  });
+
+  it("keeps the reference name out of the plan and music biases too", () => {
+    for (const block of [toPlanBias(kaurismaki), toMusicBias(kaurismaki)]) {
+      expect(block.toLowerCase()).not.toContain("kaurism");
+    }
+  });
+
+  it("omits a 'None' humour register instead of instructing the music model to be none", () => {
+    const bias = toMusicBias(styleCards["cinematic-mood"]!);
+    expect(bias).toContain("Sparse ambient instrumental");
+    expect(bias).not.toMatch(/Tone: None/);
+  });
+
+  it("carries the audio-mode default the archetype recipes used to hold", () => {
+    expect(styleCards["brand-pulse"]!.defaults?.audioMode).toBe("music");
+    expect(styleCards["product-launch"]!.defaults?.audioMode).toBe("mix");
+    expect(styleCards["character-story"]!.defaults?.audioMode).toBe("mix");
   });
 });
 

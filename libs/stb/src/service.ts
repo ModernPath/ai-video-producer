@@ -2,7 +2,8 @@
 import { and, asc, eq, inArray, isNull, max } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
-import { archetypes, config, shotDurationPolicy, type FullFrameAnimationTemplate } from "@avd/shared/config";
+import { config, shotDurationPolicy, styleCards, type FullFrameAnimationTemplate } from "@avd/shared/config";
+import { toDirectingBlock, toMusicBias, toPlanBias } from "@avd/shared/contracts"; // TASK-DIR-004
 import { asset } from "@avd/ast/schema";
 import { listProjectEntities, projectStylePrompt } from "@avd/ast";
 import { enqueueGeneration } from "@avd/gen";
@@ -288,9 +289,13 @@ export async function requestRetake(
 
 // ---- Script studio (REQ-STB-008 / REQ-STB-011) ----
 
+// TASK-DIR-004: the prose recipes are gone — the three prompt blocks are DERIVED from the
+// project's Style Card, so editing an axis changes the prompts (REQ-STB-042).
 function recipeFor(p: { archetype?: string | null }) {
-  const r = p.archetype ? archetypes[p.archetype] : undefined; // REQ-STB-026
-  return r ? { directing: r.directing, planBias: r.planBias, musicBias: r.musicBias } : {};
+  const card = p.archetype ? styleCards[p.archetype] : undefined; // REQ-STB-026
+  return card
+    ? { directing: toDirectingBlock(card), planBias: toPlanBias(card), musicBias: toMusicBias(card) }
+    : {};
 }
 
 async function getProjectOrThrow(db: Db, projectId: string) {

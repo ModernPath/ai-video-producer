@@ -30,7 +30,7 @@ Ledger requirements (`libs/<ctx>/REQUIREMENTS.md`) use a **separate** status set
 
 | Epic | Epic record | User requirements | Acceptance scenarios | System requirements | Tasks | Upper status | Lower status | Overall status | Human approval | Evidence / gaps |
 |---|---|---|---|---|---|---|---|---|---|---|
-| EPIC-STB-001 — Director briefs | `epics/EPIC-STB-001-director-briefs.md` | UR-DIR-001/002/003 | SCN-DIR-001…004 | SR-DIR-001…008 | TASK-DIR-001…005 | PROPOSED | IN_PROGRESS (3/5 tasks LOWER_VERIFIED) | IN_PROGRESS | — | Explainer family deferred to a sibling epic (GAP-108 voice-over) |
+| EPIC-STB-001 — Director briefs | `epics/EPIC-STB-001-director-briefs.md` | UR-DIR-001/002/003 | SCN-DIR-001…004 | SR-DIR-001…008 | TASK-DIR-001…005 | PROPOSED | IN_PROGRESS (4/5 tasks LOWER_VERIFIED) | IN_PROGRESS | — | Explainer family deferred to a sibling epic (GAP-108 voice-over) |
 
 ## Work Rows
 
@@ -39,7 +39,7 @@ Ledger requirements (`libs/<ctx>/REQUIREMENTS.md`) use a **separate** status set
 | TASK-DIR-001 shot grammar + grader | EPIC-STB-001 | `epics/EPIC-STB-001-director-briefs.md` | UR-DIR-003 | SCN-DIR-003 | SR-DIR-001, SR-DIR-002 | Typed vocabulary in shared config; `gradeShotGrammar()` in STB | LOWER_VERIFIED | `libs/stb/tests/grammar.spec.ts` (11) | — | `libs/shared/src/config/grammar.ts`, `libs/stb/src/grammar.ts` | REQ-STB-041 |
 | TASK-DIR-002 Style Card contract | EPIC-STB-001 | `epics/EPIC-STB-001-director-briefs.md` | UR-DIR-001 | SCN-DIR-001 | SR-DIR-003 | Card shape incl. anti-notes; 6 archetypes as seed cards | LOWER_VERIFIED | `libs/shared/tests/style-card.spec.ts` (18) | — | `libs/shared/src/contracts/style-card.ts`, `libs/shared/src/config/style-cards.ts` | REQ-STB-042 · archetypes.ts call sites migrate in TASK-DIR-004 |
 | TASK-DIR-003 brief → card compiler | EPIC-STB-001 | `epics/EPIC-STB-001-director-briefs.md` | UR-DIR-001 | SCN-DIR-001 | SR-DIR-004 | Grounded research → structured card | LOWER_VERIFIED | `libs/gen/tests/style-compiler.spec.ts` (25) + 2 live grounded compiles | — | `libs/gen/src/style-compiler.ts` | REQ-GEN-025 · SCN-DIR-002 name-exclusion verified live |
-| TASK-DIR-004 card-driven prompts | EPIC-STB-001 | `epics/EPIC-STB-001-director-briefs.md` | UR-DIR-001 | SCN-DIR-002 | SR-DIR-005 | Primitives into prompts; reference name provably excluded | PROPOSED | — | — | — | Governing constraint of the epic |
+| TASK-DIR-004 card-driven prompts | EPIC-STB-001 | `epics/EPIC-STB-001-director-briefs.md` | UR-DIR-001 | SCN-DIR-002 | SR-DIR-005 | Primitives into prompts; reference name provably excluded | LOWER_VERIFIED | `libs/gen/tests/prompt.spec.ts` REQ-GEN-026 (5) | — | `libs/gen/src/prompt.ts`, stb `recipeFor`, prj `setProjectArchetype`, web picker | REQ-GEN-026 · `archetypes.ts` deleted |
 | TASK-DIR-005 director's pass | EPIC-STB-001 | `epics/EPIC-STB-001-director-briefs.md` | UR-DIR-003 | SCN-DIR-003 | SR-DIR-006 | Grade draft plan vs card, propose revision, surface notes | PROPOSED | — | — | — | Must run before any paid generation |
 
 ## Blocked / Deferred

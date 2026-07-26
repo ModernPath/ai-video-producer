@@ -7,7 +7,7 @@ import { ZoomImage } from "../../../components/ZoomImage";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { archetypes, config, fullFrameAnimationTemplates, priceTable } from "@avd/shared/config";
+import { config, fullFrameAnimationTemplates, priceTable, styleCards } from "@avd/shared/config";
 import { project } from "@avd/prj/schema";
 import { generation } from "@avd/gen/schema";
 import { exportJob, shareLink, storyboardSnapshot } from "@avd/asm/schema";
@@ -675,7 +675,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <input type="hidden" name="projectId" value={id} />
           <select name="archetype" defaultValue={p.archetype ?? ""} className="mono" title="Directing archetype (docs/87) — injects the recipe into script, shot plan and music prompts" style={{ ...tiny, flex: 1 }}>
             <option value="">directing: freeform</option>
-            {Object.entries(archetypes).map(([k, a]) => <option key={k} value={k}>directing: {a.name}</option>)}
+            {Object.entries(styleCards).map(([k, a]) => <option key={k} value={k}>directing: {a.name}</option>)}
           </select>
           <SubmitButton small pendingLabel="…">Set</SubmitButton>
         </form>
