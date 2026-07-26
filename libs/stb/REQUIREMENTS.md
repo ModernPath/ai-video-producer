@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -25,6 +25,7 @@ Totals: 30 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-039 | Music timeline: clips on the track's time axis, drift + off-beat cuts | P8 | IN_REVIEW | USER 2026-07-25 ("see the music timing within the clips… if I add a new clip it might outsync") | tests/timeline.spec.ts (9) + browser (Neon Rivers 5 clips, boundary ticks, 3/5→5/5 off-beat after a length edit) | libs/stb/src/timeline.ts, components/Timeline.tsx, ast/src/probe.ts (ffprobe), upload+music duration recording |
 | REQ-STB-040 | Edit clip length: free crop vs regenerate, stated per shot | P8 | IN_REVIEW | USER 2026-07-25 ("edit the length of clips (+regenerate or crop)") | tests/timeline.spec.ts crop/shortfall block + browser (5s→6s persisted, ⚠ 1s short, take price 0.51→0.61) | updateShotDurationAction, stage length editor, trimmedS/shortfallS in timeline.ts |
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
+| REQ-STB-041 | Shot grammar: typed craft vocabulary + plan grader | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-001/002 (USER 2026-07-26 "improve the artistic director skills… directed by Aki Kaurismäki") | tests/grammar.spec.ts (11) | shared/config/grammar.ts · libs/stb/src/grammar.ts |
 | REQ-STB-034 | First take auto-selects (export never silently empty) | P8 | IN_REVIEW | USER 2026-07-24 "why can't I export" (5 takes bought, 0 selected → Export 0 ready) | tests/take-binding.int.spec.ts REQ-STB-034 + browser (5/5 generated) | materializeGenerationOutput take branch |
 | REQ-STB-033 | Cast visibility everywhere (bar with refs + profile badges; library from home) | P8 | IN_REVIEW | USER 2026-07-24 usability screenshots | browser E2E ×3 views | components/CastBar.tsx, script page wiring, home library link |
 | REQ-STB-032 | Lyric-shot alignment (text appears when the line is sung) | P8 | BLOCKED | Neon Rivers 2026-07-24 · blocked on OQ-115 (strategy: fill-to-timestamp vs track offset vs both) | — | — |
@@ -464,6 +465,25 @@ Totals: 30 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Code:** `libs/stb/src/timeline.ts`, `apps/web/components/Timeline.tsx`, `apps/web/components/Workspace.tsx`, `libs/ast/src/probe.ts` (ffprobe duration), `libs/ast/src/uploads.ts` + `libs/gen/src/executor.ts` (record audio duration), `apps/web/scripts/backfill-audio-durations.ts`
 - **Log:** LOG 2026-07-25
 - **Deferred / notes:** `asset.duration_s` was NULL for every audio row, so drift could never render — now probed at upload/generate and backfilled (17/17 existing tracks). Waveform rendering, a scrubbing playhead across clips, and drag-the-edge trimming are not built; ticks come from section stamps, not beat detection.
+
+### REQ-STB-041 — Shot grammar: typed craft vocabulary + plan grader
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Raised-by:** USER 2026-07-26: "Can we further improve the artistic director skills of our video scripting… Like saying I want a 1-minute feature film of ModernPath AI directed by Aki Kaurismäki, a bit humoristic." — EPIC-STB-001, SR-DIR-001 + SR-DIR-002.
+- **Source:** `docs/87-directing-playbook.md` §"Directing principles" (2, 4, 6); `epics/EPIC-STB-001-director-briefs.md`
+- **Statement:** Craft direction shall be expressible as typed data and gradable as such. A versioned vocabulary (shot size, angle, movement, plus grader thresholds) lives in `@avd/shared/config`, and a pure `gradeShotGrammar(shots, constraints)` returns structured, director-readable notes — so the playbook's principles are checked rather than merely injected into a prompt string. `direction.camera` free text could not express or verify any of this.
+- **Acceptance criteria:**
+  - GIVEN a plan already following the principles THEN no notes are returned.
+  - GIVEN two adjacent shots of the same size AND angle THEN a `contrast-cut` error names both (principle 4); GIVEN the angle differs THEN no note — the composition genuinely changed.
+  - GIVEN a final shot far shorter than the longest THEN a `held-ending` warning (principle 6); GIVEN the final shot is a graphic end-card THEN none — an end-card IS the held ending.
+  - GIVEN a style constraint `allowedMovements` THEN every shot outside it is a `forbidden-movement` error (the Style Card anti-notes axis).
+  - GIVEN a style `durationWindowS` THEN shots outside it are a `duration-window` warning naming the window.
+  - GIVEN an action line chaining more than two beats THEN a `one-idea` warning (principle 2); noun conjunctions ("a man and a woman sit") must not trip it.
+  - GIVEN ≥3 shots all framed identically THEN a `coverage` warning.
+  - GIVEN mixed severities THEN errors sort before warnings.
+- **Tests:** `tests/grammar.spec.ts` (11)
+- **Code:** `libs/shared/src/config/grammar.ts` (vocabulary + `grammarPolicy` thresholds) · `libs/stb/src/grammar.ts` (`gradeShotGrammar`)
+- **Log:** see LOG 2026-07-26
+- **Deferred / notes:** enabler slice — the grammar is not yet emitted by the planner or shown in the UI. Consuming it is TASK-DIR-004 (card-driven prompts) and TASK-DIR-005 (director's pass); the plan schema gains the typed fields with TASK-DIR-002. Grader is pure and synchronous by design so a draft plan can be graded before any generation is billed (SCN-DIR-003).
 
 ### REQ-STB-040 — Edit clip length: free crop vs regenerate
 - **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
