@@ -28,6 +28,7 @@ export const styleCards: Record<string, StyleCard> = {
     humour: "None — conviction, not jokes.",
     sound: "High-BPM instrumental, hard sections, a clear peak two-thirds in.",
     typography: "Bold kinetic type for the mid-video interstitial; a held end-card to close.",
+    continuity: "The product appears in identical packaging, colour and finish in every shot; the same brand accent colour throughout.",
     antiNotes: ["no slow drifting atmosphere", "never cut away from the climax instantly", "no shot without the product"],
   },
 
@@ -50,6 +51,7 @@ export const styleCards: Record<string, StyleCard> = {
     humour: "None — the lyric sets the tone.",
     sound: "Vocal-forward song with clear, singable lyrics; verses and choruses strongly differentiated.",
     typography: "The lyric IS the visual. Exact sung lines, never invented text, never the project title.",
+    continuity: "The same typeface, weight and type placement for every lyric card; performers keep one silhouette and wardrobe throughout.",
     antiNotes: ["no burned captions — the type is the picture", "no invented lyrics", "no filmed shot that competes with a sung line"],
   },
 
@@ -72,6 +74,7 @@ export const styleCards: Record<string, StyleCard> = {
     humour: "None — this style is sincere.",
     sound: "Sparse ambient instrumental; long swells, no drums until the final third.",
     typography: "At most one quiet closing title.",
+    continuity: "One location, one time of day, one weather state across the whole film; any figure keeps identical clothing.",
     antiNotes: ["no dialogue", "no fast cutting", "no handheld", "no animation shots beyond a closing title"],
   },
 
@@ -94,6 +97,7 @@ export const styleCards: Record<string, StyleCard> = {
     humour: "None — restraint reads as premium.",
     sound: "Minimal, precise, percussive; silence is allowed.",
     typography: "The product name lands last, with the key word highlighted.",
+    continuity: "The product is the same unit shot to shot — same colour, finish, labelling and state of wear; hands are the same hands.",
     antiNotes: ["no clutter in frame", "no handheld", "no stock-footage energy", "no extreme close-up of printed text"],
   },
 
@@ -116,6 +120,7 @@ export const styleCards: Record<string, StyleCard> = {
     humour: "Warm and character-led where the beat invites it; never at the character's expense.",
     sound: "Score follows the emotional arc; understate, never overpower dialogue.",
     typography: "Captions on for dialogue; graphics otherwise stay out of the way.",
+    continuity: "The main character keeps identical wardrobe, hair and props from shot to shot unless the story explicitly changes them.",
     antiNotes: ["no shot without a story beat", "no montage filler", "never break character consistency"],
   },
 
@@ -140,6 +145,7 @@ export const styleCards: Record<string, StyleCard> = {
     humour: "None — pure adrenaline.",
     sound: "Driving high-BPM track building to a drop at the reveal moment.",
     typography: "Kinetic numbers and words counting toward the reveal; end-card to close.",
+    continuity: "The same subject, wardrobe and location recur between number cards; only energy escalates.",
     antiNotes: ["no shot that lingers", "no soft transitions", "no reveal before the drop"],
   },
 };

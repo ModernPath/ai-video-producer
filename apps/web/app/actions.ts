@@ -387,6 +387,16 @@ export async function setArchetypeAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`); // the script route redirects here now (REQ-STB-037)
 }
 
+/** REQ-PRJ-006: set the film's target runtime — it was displayed but never editable. */
+export async function setTargetDurationAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const seconds = Number(formData.get("seconds"));
+  if (!Number.isFinite(seconds) || seconds <= 0) return;
+  const { setProjectTargetDuration } = await import("@avd/prj/service");
+  await setProjectTargetDuration(db(), { projectId, targetDurationS: seconds });
+  revalidatePath(`/p/${projectId}`);
+}
+
 /**
  * SR-DIR-008 (USER 2026-07-26: "how do I test my Kaurismäki shortfilm?") — compile the project's
  * own prompt into a Style Card via grounded research and store it. One text call, no generation
@@ -397,9 +407,14 @@ export async function compileStyleCardAction(formData: FormData) {
   const brief = String(formData.get("brief") ?? "").trim();
   if (!brief) return;
   const { compileStyleCard } = await import("@avd/gen/style-compiler");
-  const { setProjectStyleCard } = await import("@avd/prj/service");
+  const { setProjectStyleCard, setProjectTargetDuration } = await import("@avd/prj/service");
+  const { parseRequestedDurationS } = await import("@avd/prj/brief-duration");
   const card = await compileStyleCard(brief);
   await setProjectStyleCard(db(), { projectId, card });
+  // REQ-PRJ-006: "1-minute feature film" is a runtime request, not just style — honour it here
+  // rather than leaving the project on the 30s it was created with.
+  const requested = parseRequestedDurationS(brief);
+  if (requested !== null) await setProjectTargetDuration(db(), { projectId, targetDurationS: requested });
   revalidatePath(`/p/${projectId}`);
 }
 

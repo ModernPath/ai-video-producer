@@ -103,6 +103,13 @@ export async function setProjectStyleCard(db: Db, input: { projectId: string; ca
   }).where(eq(project.id, input.projectId));
 }
 
+/** REQ-PRJ-006: set the runtime the user asked for, clamped to what the product can build. */
+export async function setProjectTargetDuration(db: Db, input: { projectId: string; targetDurationS: number }): Promise<void> {
+  const { minTargetSeconds, maxTargetSeconds } = config.project;
+  const s = Math.round(Math.min(Math.max(input.targetDurationS, minTargetSeconds), maxTargetSeconds));
+  await db.update(project).set({ targetDurationS: String(s) }).where(eq(project.id, input.projectId));
+}
+
 /** The project's compiled card, or null when it uses a built-in archetype (or nothing). */
 export async function getProjectStyleCard(db: Db, projectId: string): Promise<StyleCard | null> {
   const [p] = await db.select().from(project).where(eq(project.id, projectId));

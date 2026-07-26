@@ -1,7 +1,7 @@
 # Requirements Ledger — PRJ (Projects)
 
 ## Dashboard — PRJ (Projects)
-Totals: 4 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 4 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -10,6 +10,7 @@ Totals: 4 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 | REQ-PRJ-003 | Archive lifecycle | P2 | DONE | BR-PRJ-003 (`docs/11` §4) | tests/archive.int.spec.ts | src/service.ts, ../gen/src/service.ts (enqueue guard) |
 | REQ-PRJ-004 | Cost meter read model | P2 | DONE | INV-PRJ-004 (`docs/11` §3) | tests/cost-meter.int.spec.ts | src/service.ts (costMeterUsd) |
 | REQ-PRJ-005 | Compiled Style Card stored on the project | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-008 (USER 2026-07-26 "how do I test my Kaurismäki shortfilm?") | tests/style-card-store.int.spec.ts (9) | src/service.ts (setProjectStyleCard/getProjectStyleCard), migration 0023, web compileStyleCardAction |
+| REQ-PRJ-006 | Film runtime: settable, and read from the prompt when stated | P9 | IN_REVIEW | USER 2026-07-26 "it's only 30seconds instead of minute that I was asking for" | tests/brief-duration.spec.ts (8) + style-card-store.int.spec.ts | src/brief-duration.ts, setProjectTargetDuration, web runtime field |
 
 ---
 
@@ -72,3 +73,19 @@ Totals: 4 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 - **Code:** `src/service.ts` (`setProjectStyleCard`, `getProjectStyleCard`, `setProjectArchetype` clearing) · `migrations/0023_project_style_card.sql` · `apps/web/app/actions.ts` (`compileStyleCardAction`) · `apps/web/app/p/[id]/page.tsx` (compile button + card panel) · `libs/stb/src/service.ts` (`recipeFor` prefers the compiled card)
 - **Log:** see LOG 2026-07-26
 - **Deferred / notes:** the card is not yet editable axis-by-axis in the UI (UR-DIR-002) — recompiling replaces it. Compiling is a blocking server action taking ~25s; it is not routed through the generation ledger because, like `research.ts`, it is a single near-free text call.
+
+### REQ-PRJ-006 — Film runtime: settable, and read from the prompt when stated
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Raised-by:** USER 2026-07-26: "Also it's only 30seconds instead of minute that I was asking for."
+- **Statement:** A project's target runtime shall be editable, and a runtime stated in the user's own prompt shall be honoured when a Style Card is compiled from it. Investigation showed two separate causes: the runtime was displayed in the header but editable NOWHERE, and nothing ever read a duration out of the brief.
+- **Acceptance criteria:**
+  - GIVEN "1-minute feature film" THEN 60 is parsed; likewise plain minutes, worded numbers ("two minutes"), seconds in every spelling ("30s", "45-second", "90 secs"), and M:SS ("1:30" → 90).
+  - GIVEN a prompt that says nothing about length THEN null — the existing target stands rather than being guessed at.
+  - GIVEN a number that is plainly not a runtime ("the 1980s", "3 dancers", "16mm") THEN null.
+  - GIVEN a runtime outside what the product can build ("3 hour epic", "2 second flash") THEN null rather than a clamp, because that was not a runtime request.
+  - GIVEN several runtimes THEN the first wins ("a 1-minute film, cut down from a 3 minute version" → 60).
+  - GIVEN `setProjectTargetDuration` THEN the value is clamped into `config.project.min/maxTargetSeconds`.
+  - GIVEN the workspace THEN the runtime is editable beside the directing controls.
+- **Tests:** `tests/brief-duration.spec.ts` (8) · `tests/style-card-store.int.spec.ts` (runtime block)
+- **Code:** `src/brief-duration.ts` (`parseRequestedDurationS`) · `src/service.ts` (`setProjectTargetDuration`) · `apps/web/app/actions.ts` (`setTargetDurationAction`, and `compileStyleCardAction` applying a parsed runtime) · `apps/web/app/p/[id]/page.tsx` (runtime field) · `libs/shared/src/config/limits.ts` (`project.min/maxTargetSeconds`)
+- **Deferred / notes:** changing the runtime does not re-plan existing shots — the target guides the NEXT shot plan. The user's own saved prompt reads "ModernPath short film…" with no runtime in it, so the parser correctly returns null there; the editable field is what fixes their case.

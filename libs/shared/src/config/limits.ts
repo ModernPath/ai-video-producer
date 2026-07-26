@@ -48,6 +48,10 @@ export const config = {
     defaultAspectRatio: "16:9" as const,
     defaultTargetDurationSeconds: 30,
     defaultResolutionTier: "1080p" as const,
+    // REQ-PRJ-006: a runtime read out of the user's own prompt is honoured only inside this range —
+    // shorter than one shot, or longer than the product can assemble, was not a runtime request.
+    minTargetSeconds: 5,
+    maxTargetSeconds: 300,
   },
   quota: { defaultUsdPerMonth: 50 }, // BR-PLT-002
   upload: {

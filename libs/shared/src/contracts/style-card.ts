@@ -55,6 +55,12 @@ export const styleCardSchema = z.object({
   humour: z.string().default(""),
   sound: z.string().default(""),
   typography: z.string().default(""),
+  /**
+   * What must stay IDENTICAL from shot to shot — wardrobe, props, location, hair. Each frame is
+   * generated independently, so anything not restated drifts: the same character came back in a
+   * grey suit, then navy, then an olive shirt (USER 2026-07-26).
+   */
+  continuity: z.string().default(""),
 
   /** What this style refuses to do. Required — a style with no refusals has no point of view. */
   antiNotes: z.array(z.string()),
@@ -87,6 +93,7 @@ export function toDirectingBlock(card: StyleCard): string {
     card.humour ? `Humour: ${card.humour}` : "",
     card.sound ? `Sound: ${card.sound}` : "",
     card.typography ? `Typography: ${card.typography}` : "",
+    card.continuity ? `Continuity — identical in EVERY shot: ${card.continuity}` : "",
     card.antiNotes.length ? `AVOID — this style refuses: ${card.antiNotes.join("; ")}.` : "",
     // The planner writes imagePrompt/videoPrompt itself, so the rail has to sit here too, or a
     // name would reach the visual models by the back door.
@@ -106,6 +113,8 @@ export function toPlanBias(card: StyleCard): string {
     // SR-DIR-007: graphics stop inventing their own colours and match the footage.
     `Any animation shot MUST use accent "${card.palette.accent}" and background "${card.palette.background}" so graphics match the footage.`,
     card.typography ? `Typography: ${card.typography}` : "",
+    // Every imagePrompt is generated in isolation, so continuity has to be restated in each one.
+    card.continuity ? `Repeat this continuity verbatim in EVERY shot's imagePrompt and videoPrompt: ${card.continuity}` : "",
     card.antiNotes.length ? `Never plan: ${card.antiNotes.join("; ")}.` : "",
   ].filter(Boolean).join("\n");
 }
@@ -120,8 +129,16 @@ export function toMusicBias(card: StyleCard): string {
 
 /** VISUAL prompts (frame + take). Craft axes only — never `provenance`. */
 export function toVisualStyle(card: StyleCard): string {
-  return [card.camera.notes, card.light, card.palette.notes, card.performance, card.typography]
-    .map((s) => s.trim())
+  return [
+    card.camera.notes, card.light, card.palette.notes, card.performance, card.typography,
+    card.continuity,
+    // The refusals belong in the picture prompt too: "no cartoon or illustrated rendering" has to
+    // be said to be obeyed — one shot of the user's film came back as an illustration.
+    card.antiNotes?.length ? `Do not use: ${card.antiNotes.join("; ")}.` : "",
+  ]
+    // `?? ""` because a card can reach here as a plain literal that never went through the schema
+    // (tests, and any caller building one by hand) — the axes are optional-with-default there.
+    .map((s) => (s ?? "").trim())
     .filter(Boolean)
     .join(" ");
 }

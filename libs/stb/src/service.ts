@@ -105,6 +105,7 @@ export async function requestFrame(
   const cast = await resolveCast(db, s.projectId);
   const refAssetIds = resolveShotRefs(s.refAssetIds, cast.entityRefAssetIds); // REQ-STB-016
   const stylePrompt = await projectStylePrompt(db, s.projectId); // REQ-AST-007
+  const card = await projectCard(db, s.projectId); // REQ-STB-044
   return enqueueGeneration(db, {
     organizationId: s.organizationId,
     projectId: s.projectId,
@@ -118,6 +119,7 @@ export async function requestFrame(
       durationSeconds: Number(s.durationS),
       entities: cast.entities,
       stylePrompt: stylePrompt ?? undefined, // REQ-AST-007
+      ...(card ? { card } : {}), // REQ-STB-044: the film's look reaches every picture
       referenceImageCount: refAssetIds.length || undefined, // v3 preservation phrasing
       customPrompt: s.imagePrompt ?? undefined, // REQ-STB-013
       direction: {
@@ -155,6 +157,7 @@ export async function requestTake(
   }
   if (refAssetIds.length) refs = { ...(refs ?? {}), entityRefAssetIds: refAssetIds };
   const stylePrompt = await projectStylePrompt(db, s.projectId); // REQ-AST-007
+  const card = await projectCard(db, s.projectId); // REQ-STB-044
   return enqueueGeneration(db, {
     organizationId: s.organizationId,
     projectId: s.projectId,
@@ -168,6 +171,7 @@ export async function requestTake(
       durationSeconds: Number(s.durationS),
       entities: cast.entities,
       stylePrompt: stylePrompt ?? undefined, // REQ-AST-007
+      ...(card ? { card } : {}), // REQ-STB-044: the film's look reaches every picture
       customPrompt: s.videoPrompt ?? undefined, // REQ-STB-013
       direction: {
         synopsis: d.synopsis, subject: d.subject, action: d.action,
@@ -187,8 +191,11 @@ export async function requestAnimationTake(
   const planAnim = s.animation as { subtext?: string; accent?: string; background?: string } | null;
   const planSubtext = planAnim?.subtext; // REQ-STB-024 deferred item
   // REQ-ANM-005: explicit input wins; otherwise the plan's authored palette flows through
-  const accent = input.accent ?? planAnim?.accent;
-  const background = input.background ?? planAnim?.background;
+  // SR-DIR-007: user > plan > the film's own palette. Before, a graphic with no plan colour fell
+  // back to the renderer's warm default and read as bolted on next to the footage.
+  const animCard = await projectCard(db, s.projectId);
+  const accent = input.accent ?? planAnim?.accent ?? animCard?.palette.accent;
+  const background = input.background ?? planAnim?.background ?? animCard?.palette.background;
   return enqueueGeneration(db, {
     organizationId: s.organizationId,
     projectId: s.projectId,
@@ -293,6 +300,22 @@ export async function requestRetake(
 // project's Style Card, so editing an axis changes the prompts (REQ-STB-042).
 // SR-DIR-008: a card compiled from the user's own brief wins over a built-in key. The two are
 // mutually exclusive in the DB, so this is belt-and-braces ordering, not arbitration.
+/**
+ * REQ-STB-044 (USER 2026-07-26: "styling was not held in the images"): the card that decides how
+ * the film looks, for a VISUAL prompt. `assembleFramePrompt` has accepted a card since REQ-GEN-026,
+ * but nothing passed one — so the look reached a frame only when the planner happened to write it
+ * into that shot's imagePrompt, and one shot came back as a cartoon.
+ */
+async function projectCard(db: Db, projectId: string) {
+  const [p] = await db.select().from(project).where(eq(project.id, projectId));
+  if (!p) return undefined;
+  if (p.styleCard) {
+    const parsed = styleCardSchema.safeParse(p.styleCard);
+    if (parsed.success) return parsed.data; // SR-DIR-008 compiled card wins
+  }
+  return p.archetype ? styleCards[p.archetype] : undefined;
+}
+
 function recipeFor(p: { archetype?: string | null; styleCard?: unknown }) {
   const compiled = p.styleCard ? styleCardSchema.safeParse(p.styleCard) : undefined;
   const card = compiled?.success ? compiled.data : p.archetype ? styleCards[p.archetype] : undefined; // REQ-STB-026

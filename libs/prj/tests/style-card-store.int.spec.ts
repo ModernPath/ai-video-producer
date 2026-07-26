@@ -5,7 +5,7 @@ import { createDb } from "@avd/shared/db";
 import { organization } from "@avd/plt/schema";
 import { styleCards } from "@avd/shared/config";
 import type { StyleCard } from "@avd/shared/contracts";
-import { getProjectStyleCard, setProjectArchetype, setProjectStyleCard } from "../src/service";
+import { getProjectStyleCard, setProjectArchetype, setProjectStyleCard, setProjectTargetDuration } from "../src/service";
 import { project } from "../src/schema";
 
 // SR-DIR-008 (EPIC-STB-001, USER 2026-07-26: "how do I test my Kaurismäki shortfilm?" — the
@@ -36,6 +36,25 @@ beforeAll(async () => {
 afterAll(async () => {
   await db.delete(project).where(eq(project.id, projectId));
   await db.delete(organization).where(eq(organization.id, orgId));
+});
+
+// REQ-PRJ-006 (USER 2026-07-26: "it's only 30seconds instead of minute that I was asking for").
+describe("REQ-PRJ-006: the film's runtime is settable", () => {
+  it("sets the runtime the user asked for", async () => {
+    await setProjectTargetDuration(db, { projectId, targetDurationS: 60 });
+    const [p] = await db.select().from(project).where(eq(project.id, projectId));
+    expect(Number(p!.targetDurationS)).toBe(60);
+  });
+
+  it("clamps rather than storing a runtime the product cannot build", async () => {
+    await setProjectTargetDuration(db, { projectId, targetDurationS: 99999 });
+    const [long] = await db.select().from(project).where(eq(project.id, projectId));
+    expect(Number(long!.targetDurationS)).toBe(300);
+    await setProjectTargetDuration(db, { projectId, targetDurationS: 1 });
+    const [short] = await db.select().from(project).where(eq(project.id, projectId));
+    expect(Number(short!.targetDurationS)).toBe(5);
+    await setProjectTargetDuration(db, { projectId, targetDurationS: 60 });
+  });
 });
 
 describe("REQ-PRJ-013: a compiled Style Card is stored on the project", () => {

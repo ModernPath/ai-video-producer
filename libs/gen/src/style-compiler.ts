@@ -25,7 +25,7 @@ export function assembleStyleCardPrompt(brief: string): string {
     `"references" lists ARTISTIC sources you researched — directors, cinematographers, films, movements. It must NEVER contain the subject of the video, the brand, the company or the product being advertised: those are what the film is ABOUT, not what it looks like.`,
     ``,
     `Return ONLY a JSON object, no markdown fences, no commentary, exactly shaped:`,
-    `{"name":string,"references":string[],"structure":{"arc":string,"shotCountHint":[int,int]},"camera":{"allowedMovements":string[],"preferredSizes":string[],"angles":string[],"notes":string},"pacing":{"durationWindowS":[number,number]},"palette":{"accent":"#rrggbb","background":"#rrggbb","notes":string},"light":string,"performance":string,"humour":string,"sound":string,"typography":string,"antiNotes":string[]}`,
+    `{"name":string,"references":string[],"structure":{"arc":string,"shotCountHint":[int,int]},"camera":{"allowedMovements":string[],"preferredSizes":string[],"angles":string[],"notes":string},"pacing":{"durationWindowS":[number,number]},"palette":{"accent":"#rrggbb","background":"#rrggbb","notes":string},"light":string,"performance":string,"humour":string,"sound":string,"typography":string,"continuity":string,"antiNotes":string[]}`,
     ``,
     `Field rules:`,
     `- allowedMovements from: static, pan, tilt, push-in, pull-out, tracking, handheld, crane. List ONLY what this style genuinely uses — a style that never moves the camera gets ["static"] alone.`,
@@ -33,6 +33,7 @@ export function assembleStyleCardPrompt(brief: string): string {
     `- pacing.durationWindowS is the [min,max] length of a single shot in seconds, between 4 and 10.`,
     `- palette accent/background are #rrggbb hex sampled from the look itself, not generic brand colours.`,
     `- humour: the comic register and its timing, or how the piece treats tone if it is not funny. Honour any tone the brief asks for.`,
+    `- continuity: one sentence naming what must look IDENTICAL in every shot — the main subject's exact wardrobe, hair and recurring props. Every frame is generated separately, so anything left unsaid drifts between shots. Be concrete ("a grey wool suit and knitted tie"), never vague ("consistent styling").`,
     `- antiNotes: what this style REFUSES to do — the shots, moves and rhythms that would break it. At least three, as a JSON array of separate short strings (one refusal per item), never one joined sentence. A style with no refusals has no point of view.`,
   ].join("\n");
 }
@@ -51,7 +52,7 @@ export function extractReferences(raw: string): string[] {
   }
 }
 
-const CRAFT_TEXT_PATHS = ["light", "performance", "humour", "sound", "typography"] as const;
+const CRAFT_TEXT_PATHS = ["light", "performance", "humour", "sound", "typography", "continuity"] as const;
 
 /**
  * Film and series titles are made of ordinary words, and those same words are craft vocabulary.
