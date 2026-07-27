@@ -17,6 +17,7 @@ import { boardProgress, shotStatus } from "@avd/stb/board";
 import { buildTimeline } from "@avd/stb/timeline";
 import { normalizePlannedShots } from "@avd/stb/plan-normalize";
 import { castingGaps, normalizePlannedCast } from "@avd/stb/casting"; // REQ-STB-048
+import { chainFor, generationBlocker } from "@avd/stb/chain"; // REQ-STB-055
 import { assembleFramePrompt, assembleTakePrompt, estimateTake } from "@avd/gen";
 import { listEntities, listProjectEntities, listStyleKits } from "@avd/ast";
 import { asset } from "@avd/ast/schema";
@@ -28,7 +29,7 @@ import {
   generateMusicTrackAction, generateTakeAction, moveShotTo, musicBriefAction, overlayTakeAction, proposePlanAction,
   removeCandidateAction, removeShotAction, retakeAction, retryExportAction,
   retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction,
-  castMemberAction, compileStyleCardAction, critiquePlanAction, critiqueScriptAction, setArchetypeAction, setContinuityAction, setProjectStyleAction, setTargetDurationAction, transcribeTrackAction,
+  castMemberAction, compileStyleCardAction, critiquePlanAction, critiqueScriptAction, generateChainAction, setArchetypeAction, setContinuityAction, setProjectStyleAction, setTargetDurationAction, transcribeTrackAction,
   updateBriefAction, updateShotDurationAction, updateShotRefsAction, uploadTrackAction,
 } from "../../actions";
 import { CastBar } from "../../../components/CastBar";
@@ -259,6 +260,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     const autoVideo = assembleTakePrompt({ aspectRatio: p.aspectRatio, durationSeconds: Number(s.durationS), entities, direction: dirIn, stylePrompt: activeStylePrompt });
     const castRefs = cast.flatMap((e) => e.refAssetIds);
     const effectiveRefs = s.refAssetIds ?? castRefs;
+    // REQ-STB-055: where this shot sits in its continuity chain, and whether it can be generated yet.
+    const chainShots = shots.map((x) => ({ id: x.id, title: x.title, position: x.position, continuesFromShotId: x.continuesFromShotId, selectedTakeId: x.selectedTakeId }));
+    const chain = chainFor(chainShots, s.id);
+    const blocked = generationBlocker(chainShots, s.id);
     const est = estimateTake(Number(s.durationS));
     const estDiffers = est.effectiveSeconds !== Number(s.durationS);
 
@@ -513,7 +518,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             <form action={setContinuityAction} style={{ ...sub, marginTop: 12, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", borderColor: continues ? "var(--accent)" : "var(--line)" }}>
               <input type="hidden" name="projectId" value={id} />
               <input type="hidden" name="shotId" value={s.id} />
-              <p className="mono muted" style={{ ...label, margin: 0 }}>CONTINUITY</p>
+              <p className="mono muted" style={{ ...label, margin: 0 }}>
+                CONTINUITY{chain ? ` · ${chain.index + 1} of ${chain.length}` : ""}
+              </p>
               {continues ? (
                 <>
                   <span style={{ fontSize: 11.5 }}>
@@ -526,6 +533,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                   </span>
                   <input type="hidden" name="continuesFromShotId" value="" />
                   <SubmitButton small pendingLabel="…">✕ break the chain</SubmitButton>
+                  {blocked && (
+                    <span className="mono" style={{ fontSize: 10, color: "#e0763a", flexBasis: "100%" }}>{blocked}</span>
+                  )}
                 </>
               ) : (
                 <>
@@ -536,6 +546,15 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                   <input type="hidden" name="continuesFromShotId" value={prev!.id} />
                   <SubmitButton small pendingLabel="…">↳ continue that shot</SubmitButton>
                 </>
+              )}
+              {/* REQ-STB-055: only the HEAD offers this — a chain must be generated from its start,
+                  because each shot's first frame is the previous take's last. */}
+              {chain && chain.index === 0 && (
+                <SubmitButton small primary formAction={generateChainAction}
+                  title="Generates each shot in order, choosing each take so the next starts from its last frame"
+                  pendingLabel={`Generating ${chain.length} shots…`}>
+                  ▸ Generate the chain ({chain.length} shots)
+                </SubmitButton>
               )}
             </form>
           );
@@ -603,7 +622,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <button type="submit" name="generate" value="none" style={btn}>Save</button>
             <button type="submit" name="generate" value="frame" disabled={busy.frame > 0} style={{ ...btnPrimary, opacity: busy.frame > 0 ? 0.45 : 1 }}>Save &amp; generate frame</button>
-            <button type="submit" name="generate" value="take" disabled={busy.take > 0} style={{ ...btnPrimary, opacity: busy.take > 0 ? 0.45 : 1 }}>Save &amp; generate take</button>
+            <button type="submit" name="generate" value="take" disabled={busy.take > 0 || Boolean(blocked)} title={blocked ?? undefined} style={{ ...btnPrimary, opacity: busy.take > 0 || blocked ? 0.45 : 1 }}>Save &amp; generate take</button>
             <span className="mono muted" style={{ fontSize: 9 }}>empty = auto · custom text sent verbatim</span>
           </div>
           {cast.length > 0 && (

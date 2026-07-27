@@ -153,6 +153,19 @@ export async function requestTake(
 ) {
   const s = await getShotOrThrow(db, input.shotId);
   const d = s.direction as DirectionJson;
+  // REQ-STB-055: a chained shot generated before its source has no last frame to start from — the
+  // take is bought and the chain is silently defeated. Refuse HERE, where the cost is incurred; a
+  // disabled button is guidance, this is the guarantee.
+  if (s.continuesFromShotId) {
+    const { generationBlocker } = await import("./chain");
+    const siblings = await listShots(db, s.projectId);
+    const blocked = generationBlocker(
+      siblings.map((x) => ({ id: x.id, title: x.title, position: x.position, continuesFromShotId: x.continuesFromShotId, selectedTakeId: x.selectedTakeId })),
+      s.id
+    );
+    if (blocked) throw new StbValidationError("validation_failed", blocked);
+  }
+
   // REQ-GEN-009: attach the selected start frame for image conditioning (BR-STB-002).
   const cast = await resolveCast(db, s.projectId, d.entityIds); // REQ-STB-049
   const refAssetIds = resolveShotRefs(s.refAssetIds, cast.entityRefAssetIds); // REQ-STB-016
@@ -899,6 +912,28 @@ export async function handoffTailFrame(
     done.push(f.id);
   }
   return done;
+}
+
+/**
+ * REQ-STB-055 — request takes for a whole continuity chain, in order.
+ *
+ * Returns the generation ids in the order they must RUN. It deliberately does not run them: the
+ * caller drains them one at a time and selects each take, because each shot's start frame only
+ * exists once the shot before it has a chosen take. Enqueuing them all up front would hand every
+ * follower an empty frame — the exact failure this requirement exists to prevent.
+ */
+export async function chainGenerationPlan(
+  db: Db,
+  input: { shotId: string }
+): Promise<Array<{ shotId: string; title: string }>> {
+  const s = await getShotOrThrow(db, input.shotId);
+  const siblings = await listShots(db, s.projectId);
+  const { chainOrder } = await import("./chain");
+  const chain = chainOrder(
+    siblings.map((x) => ({ id: x.id, title: x.title, position: x.position, continuesFromShotId: x.continuesFromShotId, selectedTakeId: x.selectedTakeId })),
+    input.shotId
+  );
+  return chain.map((c) => ({ shotId: c.id, title: c.title }));
 }
 
 // ---- Casting (REQ-STB-048, USER 2026-07-27) ----

@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 23 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 24 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -27,6 +27,7 @@ Totals: 30 DONE · 23 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
 | REQ-STB-049 | Per-shot cast: only who is in the shot conditions it | P9 | IN_REVIEW | USER 2026-07-27 "modernpath logo is put to almost every scene… AI to decide which of the cast scene by scene" | tests/casting.spec.ts resolveShotCast (7) | stb/casting.ts, applyShotPlan, resolveCast(entityIds) |
 | REQ-STB-050 | Shots long enough for what happens in them | P9 | IN_REVIEW | USER 2026-07-27 "video/audio is cut… time understanding in scene planning is poor" | tests/grammar.spec.ts REQ-STB-050 (5) | speechSeconds, line-too-long rule, plan TIME BUDGET |
+| REQ-STB-055 | Chains generate in order; out-of-order takes refused | P9 | IN_REVIEW | USER 2026-07-27 "continue as the video for first is generated" | tests/chain.spec.ts (12) + continuity.int.spec.ts (3) | src/chain.ts, requestTake guard, generateChainAction |
 | REQ-STB-054 | Continuity chains: a shot continues another from its last frame | P9 | IN_REVIEW | USER 2026-07-27 "clothing and positions of persons sitting are changing… sub-clips for the main clip" | tests/continuity.int.spec.ts (11) | shot.continues_from_shot_id, setShotContinuity, handoffTailFrame |
 | REQ-STB-053 | A scene is cast: locations get a reference plate | P9 | IN_REVIEW | USER 2026-07-27 "the cafe setting all the time changes… generate a scene reference image for clips that belong at same scene?" | tests/casting.spec.ts REQ-STB-053 (4) + style-card.spec.ts plate (4) | entityKinds location, migration 0024, toScenePlateStyle, plan prompt |
 | REQ-STB-052 | Critique the SCRIPT, before it becomes shots | P9 | IN_REVIEW | USER 2026-07-27 "shouldn't it be run for the script?" | tests/script-critique.spec.ts (11) | stb/critique.ts SCRIPT_LENSES, critiqueAndRedraftScript, script Critique & improve |
@@ -508,6 +509,22 @@ Totals: 30 DONE · 23 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 - **Code:** `libs/shared/src/config/grammar.ts` (`wordsPerSecond`, `speechHeadroom`) · `src/grammar.ts` (`speechSeconds`, `line-too-long`) · `src/director-pass.ts` (passes dialogue) · `libs/gen/src/prompt.ts` (TIME BUDGET)
 - **Log:** see LOG 2026-07-27
 - **Deferred / notes:** speech rate is one global constant; a style card could carry its own (deadpan is slower than hype). Physical-action duration is guidance to the planner, not measured — only dialogue is checkable.
+
+### REQ-STB-055 — Chains generate in order; out-of-order takes refused
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-27, describing continuity chains: "so we can see the dependency and **continue as the video for first is generated**."
+- **Statement:** A shot that continues another shall not be generated before its source has a chosen take. Its start frame IS that take's last frame (REQ-STB-054), so generating out of order buys a take with nothing to start from — the chain is silently defeated and the money is spent. Order is part of the feature.
+- **Acceptance criteria:**
+  - GIVEN a chain THEN it can be ordered head-first from ANY member, unrelated chains are ignored, and corrupt cycles terminate instead of hanging.
+  - GIVEN a shot THEN its place in the chain is reported (`2 of 3`), and a lone shot is in no chain.
+  - GIVEN a shot whose source has no chosen take THEN generation is refused with a message NAMING that shot — "waiting for X" is answerable, "blocked" is not.
+  - GIVEN the head, or an unchained shot THEN never blocked.
+  - GIVEN the refusal THEN it is enforced in `requestTake`, where the cost is incurred — a disabled button is guidance, the service is the guarantee.
+  - GIVEN a chain head THEN one action generates the whole chain strictly in order, selecting each take before requesting the next, skipping shots that already have one, and stopping at the first failure rather than burning the rest on a broken start.
+- **Tests:** `tests/chain.spec.ts` (12) · `tests/continuity.int.spec.ts` (REQ-STB-055, 3)
+- **Code:** `src/chain.ts` (`chainOrder`, `chainFor`, `generationBlocker`) · `src/service.ts` (`requestTake` guard, `chainGenerationPlan`) · `apps/web` (`generateChainAction`, chain position + blocked reason + "Generate the chain")
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** the chain action auto-selects each take to hand the frame on; a user wanting to choose between takes mid-chain should generate shot by shot instead. Frame generation is not ordered — only takes carry the continuity.
 
 ### REQ-STB-054 — Continuity chains: a shot continues another from its last frame
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must

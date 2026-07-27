@@ -7,6 +7,7 @@ import { v7 as uuidv7 } from "uuid";
 import { config, fullFrameAnimationTemplates, type FullFrameAnimationTemplate } from "@avd/shared/config";
 import { organization } from "@avd/plt/schema";
 import { project } from "@avd/prj/schema";
+import { shot } from "@avd/stb/schema";
 import { runNextGeneration } from "@avd/gen";
 import {
   createShot, materializeGenerationOutput, requestFrame, requestTake, selectFrame, selectTake,
@@ -310,6 +311,35 @@ export async function castMemberAction(formData: FormData) {
     const { runGenerationById } = await import("@avd/gen");
     await runGenerationById(db(), genId);
     await castFromPortrait(db(), { projectId, generationId: genId, name, kind, description });
+  }
+  revalidatePath(`/p/${projectId}`);
+}
+
+/**
+ * REQ-STB-055: generate a whole continuity chain in order.
+ *
+ * Strictly sequential, and each take is auto-selected before the next shot is requested — the next
+ * shot's start frame only exists once the one before it has a CHOSEN take. Stops at the first
+ * failure rather than burning the rest of the chain on a broken start.
+ */
+export async function generateChainAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const [p] = await db().select().from(project).where(eq(project.id, projectId));
+  if (!p) return;
+  const { chainGenerationPlan, listCandidates } = await import("@avd/stb");
+  const steps = await chainGenerationPlan(db(), { shotId: String(formData.get("shotId")) });
+  for (const step of steps) {
+    const [shotRow] = await db().select().from(shot).where(eq(shot.id, step.shotId));
+    if (shotRow?.selectedTakeId) continue; // already has one — do not re-buy it
+    try {
+      const genId = await requestTake(db(), { shotId: step.shotId, principal: PRINCIPAL, aspectRatio: p.aspectRatio });
+      await drainQueueAndMaterialize([genId]);
+      const takes = (await listCandidates(db(), step.shotId)).takes;
+      const latest = takes[takes.length - 1];
+      if (latest) await selectTake(db(), { shotId: step.shotId, takeId: latest.id }); // hands the frame on
+    } catch {
+      break; // a broken link stops the chain; the rest would start from nothing
+    }
   }
   revalidatePath(`/p/${projectId}`);
 }

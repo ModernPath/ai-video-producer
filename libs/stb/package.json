@@ -14,7 +14,8 @@
     "./grammar": "./src/grammar.ts",
     "./director-pass": "./src/director-pass.ts",
     "./casting": "./src/casting.ts",
-    "./critique": "./src/critique.ts"
+    "./critique": "./src/critique.ts",
+    "./chain": "./src/chain.ts"
   },
   "dependencies": {
     "@avd/shared": "workspace:*",

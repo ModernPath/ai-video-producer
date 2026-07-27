@@ -6,7 +6,7 @@ import { organization } from "@avd/plt/schema";
 import { project } from "@avd/prj/schema";
 import { generation } from "@avd/gen/schema";
 import { asset } from "@avd/ast/schema";
-import { createShot, handoffTailFrame, setShotContinuity } from "../src/service";
+import { createShot, handoffTailFrame, requestTake, setShotContinuity } from "../src/service";
 import { frameCandidate, shot, take } from "../src/schema";
 
 // USER 2026-07-27: "the clothing and positions of persons sitting are changing… store the last
@@ -158,5 +158,30 @@ describe("REQ-STB-054: the tail frame hands off to the next shot", () => {
     const frames = await db.select().from(frameCandidate)
       .where(and(eq(frameCandidate.shotId, b), isNull(frameCandidate.deletedAt)));
     expect(frames.length).toBe(1);
+  });
+});
+
+// REQ-STB-055 — the refusal has to live where the money is spent, not only in the UI. A button can
+// be bypassed; `requestTake` is the thing that actually costs.
+describe("REQ-STB-055: a take cannot be bought out of chain order", () => {
+  it("refuses a take for a shot whose source has no chosen take", async () => {
+    const head = await createShot(db, { organizationId: orgId, projectId, title: "Head", direction: dir, durationS: 6 });
+    const follower = await createShot(db, { organizationId: orgId, projectId, title: "Follower", direction: dir, durationS: 6 });
+    await setShotContinuity(db, { shotId: follower, continuesFromShotId: head });
+    await expect(requestTake(db, { shotId: follower, principal: "user:test", aspectRatio: "16:9" }))
+      .rejects.toThrow(/Head/);
+  });
+
+  it("allows the head itself — it is what unblocks the rest", async () => {
+    const [head] = await db.select().from(shot).where(and(eq(shot.projectId, projectId), eq(shot.title, "Head")));
+    await expect(requestTake(db, { shotId: head!.id, principal: "user:test", aspectRatio: "16:9" })).resolves.toBeTruthy();
+  });
+
+  it("allows the follower once the source has a chosen take", async () => {
+    const [head] = await db.select().from(shot).where(and(eq(shot.projectId, projectId), eq(shot.title, "Head")));
+    const [follower] = await db.select().from(shot).where(and(eq(shot.projectId, projectId), eq(shot.title, "Follower")));
+    await db.update(shot).set({ selectedTakeId: (await db.select().from(take).where(eq(take.shotId, a)))[0]!.id })
+      .where(eq(shot.id, head!.id));
+    await expect(requestTake(db, { shotId: follower!.id, principal: "user:test", aspectRatio: "16:9" })).resolves.toBeTruthy();
   });
 });
