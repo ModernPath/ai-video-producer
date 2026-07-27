@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 21 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 21 DONE · 7 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -26,6 +26,7 @@ Totals: 21 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | DONE | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
 | REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | DONE | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
 | REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
+| REQ-GEN-029 | Live refresh coalesced — SSE no longer races a form action's commit | P9 | IN_REVIEW | USER 2026-07-27 runtime TypeError "fiber.reset is not a function" | apps/web/tests/refresh-coalesce.spec.ts (5) | apps/web/lib/coalesce.ts, LiveRefresh |
 | REQ-GEN-028 | Spoken lines survive from script to video model | P9 | IN_REVIEW | USER 2026-07-27 "Pasi is talking something… in video prompt all of that is missing" | tests/prompt.spec.ts REQ-GEN-028 (7) | prompt.ts dialogue in plan schema + custom-prompt path |
 | REQ-GEN-027 | Stuck runs recover on page load, and failed pictures are visible | P9 | IN_REVIEW | USER 2026-07-26 "two videos seem stuck" | tests/stale-sweep.int.spec.ts (5) | executor sweepStuckGenerations, page.tsx sweep + per-shot failure banner |
 | REQ-GEN-026 | Card-driven prompts: the pipeline reads Style Cards, not prose recipes | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-005 | tests/prompt.spec.ts REQ-GEN-026 (5) + style-card.spec.ts | src/prompt.ts (card look) · stb recipeFor · prj setProjectArchetype · web picker · archetypes.ts deleted |
@@ -248,6 +249,22 @@ Totals: 21 DONE · 6 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a 5s omni take through the real pipeline THEN it succeeds, keeps durationS=5 (no {4,6,8} snap), and records cost 5×5792×$17.50/M ≈ $0.5068 (real E2E, RUN_REAL_OMNI).
 - **Tests:** `tests/omni-video.spec.ts` (7) · real E2E `tests/real-api.e2e.spec.ts` RUN_REAL_OMNI ($0.5068 verified) · **Code:** `src/provider.ts` (buildOmniVideoRequest + interactions branch), `src/routing.ts`, `src/cost.ts`, `src/executor.ts` (refs + model cost), shared config (omniVideoModel, priceTable omni rates, gen.videoRoute) · **Log:** LOG 2026-07-24
 - **Deferred / notes:** STB still snaps shot durations to {4,6,8} at plan level — exposing free durations (9–10s shots) in the UI is a follow-up STB slice. Conversational multi-turn retake untested. No UI switch — route is config/env by design (taste iteration without deploy, Tips #5).
+
+### REQ-GEN-029 — Live refresh coalesced so SSE cannot race a form action
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-27: runtime `TypeError: fiber.reset is not a function`, thrown from react-dom's `recursivelyResetForms`; reproducing it also surfaced `Cannot read properties of null (reading 'removeChild')` from `commitDeletionEffectsOnFiber`.
+- **Statement:** A live-update refresh shall not tear down the tree while React is committing a form action. `LiveRefresh` (REQ-GEN-017) called `router.refresh()` on EVERY SSE `changed` event, and a server action's own `revalidatePath` write emits one — so the refresh replaced the subtree at the moment React ran its post-action form-reset pass over the just-submitted form. React then found a host fiber flagged for form reset whose DOM node was no longer a form (`fiber.reset` undefined), and a deletion whose parent node was already detached.
+- **Acceptance criteria:**
+  - GIVEN a change event THEN no refresh fires synchronously with it.
+  - GIVEN a quiet period THEN exactly one refresh fires.
+  - GIVEN a burst of twelve events THEN one refresh, not twelve — a generation moving queued → running → succeeded is one re-render.
+  - GIVEN a later change after things settle THEN it refreshes again.
+  - GIVEN teardown with a refresh pending THEN it is cancelled, so an unmounted view never refreshes.
+  - GIVEN a submit followed immediately by switching shots THEN neither error recurs.
+- **Tests:** `apps/web/tests/refresh-coalesce.spec.ts` (5)
+- **Code:** `apps/web/lib/coalesce.ts` (`createCoalescer`) · `apps/web/components/LiveRefresh.tsx` (coalesced + `startTransition`)
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** 350ms is a judgement call — long enough for an action to commit, short enough to feel live. The refresh also runs inside `startTransition` so it is a non-urgent update and cannot pre-empt the action's commit. This is a pre-existing race in REQ-GEN-017, not a regression from the recent work, but the stage-panel keying (REQ-STB-045) makes remounts more frequent and so made it easier to hit.
 
 ### REQ-GEN-028 — Spoken lines survive from script to video model
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
