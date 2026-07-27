@@ -5,8 +5,9 @@ import { createDb } from "@avd/shared/db";
 import { organization } from "@avd/plt/schema";
 import { project } from "@avd/prj/schema";
 import { asset, entity, projectEntity } from "../src/schema";
-import { AstValidationError, addEntityRefs, archiveEntity, attachEntities, createEntity, listEntities, listProjectEntities, removeEntityRef, updateEntityRef } from "../src/entities";
-import { migrate } from "../../../scripts/migrate";
+import { AstValidationError } from "../src/uploads";
+import { addEntityRefs, archiveEntity, attachEntities, createEntity, listEntities, listProjectEntities, removeEntityRef, updateEntityRef } from "../src/entities";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-AST-006 — entity library (requires compose pg).
 describe("AST entities", () => {

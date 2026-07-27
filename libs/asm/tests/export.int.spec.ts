@@ -14,7 +14,7 @@ import {
 import { frameCandidate, shot, take } from "@avd/stb/schema";
 import { AsmValidationError, createSnapshot, runNextExport } from "../src/service";
 import { exportJob, storyboardSnapshot } from "../src/schema";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-ASM-001..003 — requires compose postgres + minio + docker (ffmpeg image).
 describe("ASM: snapshot -> export -> downloadable asset", () => {

@@ -12,7 +12,7 @@ import {
   removeFrameCandidate, removeTake, requestFrame, requestTake, selectFrame, selectTake,
 } from "../src/service";
 import { frameCandidate, shot, take } from "../src/schema";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-STB-009 — user requirement #4 removal arm.
 describe("STB candidate removal", () => {

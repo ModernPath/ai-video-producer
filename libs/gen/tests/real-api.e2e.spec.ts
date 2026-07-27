@@ -5,6 +5,7 @@ import { v7 as uuidv7 } from "uuid";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb } from "@avd/shared/db";
 import { config, modelRoutes, omniVideoModel, priceTable } from "@avd/shared/config";
+import { configForTest } from "@avd/shared/config/testing";
 import { organization } from "@avd/plt/schema";
 import { project } from "@avd/prj/schema";
 import { asset } from "@avd/ast/schema";
@@ -13,7 +14,7 @@ import { generation } from "../src/schema";
 import { enqueueGeneration } from "../src/service";
 import { runNextGeneration } from "../src/executor";
 import { createGeminiProvider } from "../src/provider";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // Real-API E2E ring (Definition of Done §9.8). Opt-in: RUN_REAL_API=1, key from root .env.
 // Budget per run: ≈ $0.04 (one draft image + one short text) — keep it that way.
@@ -184,14 +185,14 @@ describe.skipIf(!omniEnabled)("REAL API e2e: omni Interactions take (≈$0.54/ru
 
   beforeAll(async () => {
     await migrate();
-    config.gen.videoRoute = "omni";
+    configForTest.gen.videoRoute = "omni";
     await db.insert(organization).values({ id: orgId, name: "Real Omni Org" });
     await db.insert(project).values({
       id: projectId, organizationId: orgId, title: "Real Omni E2E", aspectRatio: "16:9", targetDurationS: "10",
     });
   }, 30_000);
   afterAll(async () => {
-    config.gen.videoRoute = originalRoute;
+    configForTest.gen.videoRoute = originalRoute;
     await db.delete(asset).where(eq(asset.organizationId, orgId));
     await db.delete(generation).where(eq(generation.organizationId, orgId));
     await db.delete(project).where(eq(project.id, projectId));

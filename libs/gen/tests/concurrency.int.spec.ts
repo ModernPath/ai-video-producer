@@ -10,7 +10,7 @@ import { generation } from "../src/schema";
 import { enqueueGeneration } from "../src/service";
 import { runGenerationById, runNextGeneration } from "../src/executor";
 import { resolveModel } from "../src/routing";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // Requires docker-compose postgres. MOCK_GEN path. BR-GEN-005 per-org video concurrency cap.
 describe("REQ-GEN-011: per-org video concurrency cap (BR-GEN-005)", () => {

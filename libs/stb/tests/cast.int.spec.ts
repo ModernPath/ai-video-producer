@@ -11,7 +11,7 @@ import { generation } from "@avd/gen/schema";
 import { runNextGeneration, type GenProvider, type ImageRequest } from "@avd/gen";
 import { createShot, requestFrame, requestTake } from "../src/service";
 import { frameCandidate, shot, take } from "../src/schema";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-AST-006 acceptance: attached cast flows into generation (text blocks + frame ref images).
 describe("STB cast -> generation", () => {
@@ -28,6 +28,10 @@ describe("STB cast -> generation", () => {
     async generateText() { return { text: "x" }; },
     async generateImage(r) { capturedImages.push(r); return { bytes: new Uint8Array([1]), mime: "image/png" }; },
     async generateVideo(r) { return { bytes: new Uint8Array(1000), mime: "video/mp4", durationS: r.durationSeconds }; },
+    // REQ-GEN-019 arrived after these doubles were written; this path is not under test here.
+    async generateMusic(): Promise<{ bytes: Uint8Array; mime: string }> {
+      throw new Error("generateMusic not stubbed in this spec");
+    },
   };
 
   beforeAll(async () => {

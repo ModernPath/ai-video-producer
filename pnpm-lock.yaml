@@ -12,6 +12,9 @@ importers:
 
   .:
     devDependencies:
+      '@types/node':
+        specifier: 26.1.1
+        version: 26.1.1
       postgres:
         specifier: ^3.4.5
         version: 3.4.9

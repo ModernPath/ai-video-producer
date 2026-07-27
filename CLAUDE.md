@@ -415,7 +415,11 @@ A ledger requirement is **`DONE`** only when **all** hold:
 
 1. Every acceptance criterion maps to a passing, `REQ`-tagged test.
 2. All covered `INV-*` enforced in code and annotated.
-3. Architecture/lint checks pass.
+3. **`pnpm check` passes — typecheck AND tests, not tests alone.** *Named as a command 2026-07-27
+   (REQ-GEN-033): this line used to read "architecture/lint checks pass", which named no command, so
+   nothing ran one. `pnpm typecheck` had carried 45 errors across 11 files for weeks — including the
+   compiler error for the duplicate `config.project` key that made every threshold read `undefined`.
+   A green `pnpm test` says nothing about types; the suite does not typecheck.*
 4. Contract tests pass (no schema drift).
 5. Human sign-off where business logic requires it.
 6. Ledger updated, `LOG.md` entry written, deferrals recorded.

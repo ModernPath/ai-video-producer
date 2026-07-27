@@ -13,7 +13,7 @@ import { frameCandidate, shot, take } from "@avd/stb/schema";
 import { AsmValidationError, createSnapshot, queueExport, runExportById } from "../src/service";
 import { createShareLink, resolveShareToken, revokeShareLink } from "../src/share";
 import { exportJob, shareLink, storyboardSnapshot } from "../src/schema";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-ASM-007 / INV-ASM-005 — share links grant access only to the linked export's
 // output: token-scoped, revocable, optional expiry.

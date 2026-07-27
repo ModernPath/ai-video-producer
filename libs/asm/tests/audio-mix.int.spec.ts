@@ -18,7 +18,7 @@ import {
 import { frameCandidate, musicBrief, shot, take } from "@avd/stb/schema";
 import { createSnapshot, queueExport, runExportById } from "../src/service";
 import { exportJob, storyboardSnapshot } from "../src/schema";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 const exec = promisify(execFile);
 

@@ -10,7 +10,7 @@ import { enqueueGeneration } from "../src/service";
 import { retryGeneration } from "../src/retry";
 import { runNextGeneration } from "../src/executor";
 import { ProviderError, type GenProvider } from "../src/provider";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-GEN-005 / INV-GEN-005 — terminal-failure retry with provenance.
 describe("GEN retry", () => {
@@ -23,6 +23,10 @@ describe("GEN retry", () => {
     async generateText() { return { text: "x" }; },
     async generateImage() { throw new ProviderError("provider_unavailable", "boom"); },
     async generateVideo() { throw new ProviderError("provider_unavailable", "boom"); },
+    // REQ-GEN-019 arrived after these doubles were written; this path is not under test here.
+    async generateMusic(): Promise<{ bytes: Uint8Array; mime: string }> {
+      throw new Error("generateMusic not stubbed in this spec");
+    },
   };
 
   beforeAll(async () => {

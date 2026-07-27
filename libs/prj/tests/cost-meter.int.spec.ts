@@ -6,7 +6,7 @@ import { organization } from "@avd/plt/schema";
 import { generation } from "@avd/gen/schema";
 import { project } from "../src/schema";
 import { costMeterUsd, createProject } from "../src/service";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-PRJ-004 / INV-PRJ-004 — cost meter = sum of succeeded+running generation costs for the project.
 describe("REQ-PRJ-004: cost meter read model", () => {

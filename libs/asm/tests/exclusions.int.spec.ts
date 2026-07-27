@@ -11,7 +11,7 @@ import { createShot, materializeGenerationOutput, requestTake, selectTake } from
 import { frameCandidate, shot, take } from "@avd/stb/schema";
 import { AsmValidationError, createSnapshot } from "../src/service";
 import { exportJob, storyboardSnapshot } from "../src/schema";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-ASM-008 — exclusions are explicit, recorded, and the only path around INV-ASM-002.
 describe("ASM snapshot exclusions", () => {

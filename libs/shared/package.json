@@ -8,7 +8,9 @@
     "./config": "./src/config/index.ts",
     "./db": "./src/db.ts",
     "./queue": "./src/queue.ts",
-    "./contracts": "./src/contracts/index.ts"
+    "./contracts": "./src/contracts/index.ts",
+    "./migrate": "./src/migrate.ts",
+    "./config/testing": "./src/config/testing.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",

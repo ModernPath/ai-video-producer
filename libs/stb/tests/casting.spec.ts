@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { entityKinds } from "@avd/shared/config";
 import { castingGaps, normalizePlannedCast, resolveShotCast } from "../src/casting";
 import { normalizePlannedShots } from "../src/plan-normalize";
 
@@ -125,19 +126,19 @@ describe("REQ-STB-049: each shot is conditioned on the cast that is actually in 
   });
 
   it("keeps the logo out of a shot the brand is not in — the whole point", () => {
-    expect(resolveShotCast(["Pasi", "Colleague"], cast).refAssetIds).not.toContain("a-logo");
+    expect(resolveShotCast(["Pasi", "Colleague"], cast)!.refAssetIds).not.toContain("a-logo");
   });
 
   it("carries every reference image a named member has", () => {
-    expect(resolveShotCast(["Colleague"], cast).refAssetIds).toEqual(["a-col1", "a-col2"]);
+    expect(resolveShotCast(["Colleague"], cast)!.refAssetIds).toEqual(["a-col1", "a-col2"]);
   });
 
   it("matches names case- and space-insensitively, as the planner writes them loosely", () => {
-    expect(resolveShotCast([" modernpath ", "PASI"], cast).entityIds).toEqual(["e-pasi", "e-mp"]);
+    expect(resolveShotCast([" modernpath ", "PASI"], cast)!.entityIds).toEqual(["e-pasi", "e-mp"]);
   });
 
   it("ignores a name nobody has been cast under, rather than failing the shot", () => {
-    expect(resolveShotCast(["Pasi", "A Passing Dog"], cast).entityIds).toEqual(["e-pasi"]);
+    expect(resolveShotCast(["Pasi", "A Passing Dog"], cast)!.entityIds).toEqual(["e-pasi"]);
   });
 
   it("returns null for a shot that named nobody — a graphic card needs no references at all", () => {
@@ -146,7 +147,7 @@ describe("REQ-STB-049: each shot is conditioned on the cast that is actually in 
   });
 
   it("de-duplicates a member the planner listed twice", () => {
-    expect(resolveShotCast(["Pasi", "pasi"], cast).refAssetIds).toEqual(["a-pasi"]);
+    expect(resolveShotCast(["Pasi", "pasi"], cast)!.refAssetIds).toEqual(["a-pasi"]);
   });
 });
 
@@ -186,5 +187,19 @@ describe("REQ-STB-053: a scene is cast like a character", () => {
       { id: "e-corridor", name: "The Corridor", refAssetIds: ["a-corridor"] },
     ];
     expect(resolveShotCast(["Pasi", "The Corridor"], cast)!.refAssetIds).not.toContain("a-canteen");
+  });
+});
+
+// REQ-GEN-033 / CLAUDE.md §1.11 — the vocabulary is DERIVED, not copied.
+// Regression: this module kept its own ["company","product","person","character"], so when
+// `location` was added to the shared list, casting silently returned `character` for it.
+describe("REQ-GEN-033: entity kinds have one definition and casting derives from it", () => {
+  it("accepts every kind the shared vocabulary declares, including ones added later", () => {
+    expect(entityKinds).toContain("location");
+    const cast = normalizePlannedCast({
+      cast: entityKinds.map((kind, i) => ({ name: `E${i}`, kind, description: "d", appearance: "a" })),
+      shots: [],
+    });
+    expect(cast.map((c) => c.kind)).toEqual([...entityKinds]);
   });
 });

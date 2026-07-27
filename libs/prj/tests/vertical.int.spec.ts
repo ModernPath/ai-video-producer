@@ -5,7 +5,7 @@ import { createDb } from "@avd/shared/db";
 import { config } from "@avd/shared/config";
 import { organization } from "@avd/plt/schema";
 import { project } from "../src/schema.js";
-import { migrate } from "../../../scripts/migrate.js";
+import { migrate } from "@avd/shared/migrate";
 
 // Prompt 0B exit gate: trivial vertical slice — create tenant + project, persist, query.
 // Requires docker-compose postgres (pnpm compose:up).

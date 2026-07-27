@@ -12,7 +12,7 @@ import {
   applyShotPlan, draftScript, listShots, materializeGenerationOutput, proposeShotPlan, requestFrame,
 } from "../src/service";
 import { frameCandidate, scriptVersion, shot, shotPlanProposal, take } from "../src/schema";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 import { normalizePlannedShots } from "../src/plan-normalize";
 
 // REQ-STB-014 — the plan authors ready image/video prompts per shot.

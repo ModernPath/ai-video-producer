@@ -10,7 +10,7 @@ import { generation } from "../src/schema";
 import { enqueueGeneration } from "../src/service";
 import { runNextGeneration } from "../src/executor";
 import type { GenProvider, ImageRequest } from "../src/provider";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-GEN-012 — AI image editing with provenance lineage.
 describe("GEN image_edit", () => {
@@ -27,6 +27,10 @@ describe("GEN image_edit", () => {
     async generateText() { return { text: "x" }; },
     async generateImage(r) { captured.push(r); return { bytes: new Uint8Array([7, 7, 7]), mime: "image/png" }; },
     async generateVideo(r) { return { bytes: new Uint8Array(10), mime: "video/mp4", durationS: r.durationSeconds }; },
+    // REQ-GEN-019 arrived after these doubles were written; this path is not under test here.
+    async generateMusic(): Promise<{ bytes: Uint8Array; mime: string }> {
+      throw new Error("generateMusic not stubbed in this spec");
+    },
   };
 
   beforeAll(async () => {

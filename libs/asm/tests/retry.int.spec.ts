@@ -12,7 +12,7 @@ import { createShot, materializeGenerationOutput, requestTake, selectTake } from
 import { frameCandidate, shot, take } from "@avd/stb/schema";
 import { AsmValidationError, createSnapshot, queueExport, retryExport, runExportById } from "../src/service";
 import { exportJob, storyboardSnapshot } from "../src/schema";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

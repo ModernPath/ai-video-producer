@@ -9,7 +9,7 @@ import { generation } from "@avd/gen/schema";
 import { runNextGeneration } from "@avd/gen";
 import { attachMusicTrack, getMusicBrief, materializeGenerationOutput, requestMusicBrief } from "../src/service";
 import { musicBrief } from "../src/schema";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-STB-010 — Suno brief generation (mock provider).
 describe("STB music brief", () => {

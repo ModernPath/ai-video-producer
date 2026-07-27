@@ -1,19 +1,20 @@
 // REQ-GEN-023 — Omni video take route (OQ-112 resolution 2026-07-24).
 import { afterEach, describe, expect, it } from "vitest";
 import { config, omniVideoModel, modelRoutes, priceTable } from "@avd/shared/config";
+import { configForTest } from "@avd/shared/config/testing";
 import { resolveModel } from "../src/routing";
 import { buildOmniVideoRequest } from "../src/provider";
 import { computeCostUsd, estimateTake } from "../src/cost";
 
 const originalRoute = config.gen.videoRoute;
-afterEach(() => { config.gen.videoRoute = originalRoute; });
+afterEach(() => { configForTest.gen.videoRoute = originalRoute; });
 
 describe("REQ-GEN-023: route selection (config, not literals)", () => {
   it("takes route to Veo by default", () => {
     expect(resolveModel("take")).toBe(modelRoutes.take);
   });
   it("videoRoute=omni routes take + retake to the Interactions model", () => {
-    config.gen.videoRoute = "omni";
+    configForTest.gen.videoRoute = "omni";
     expect(resolveModel("take")).toBe(omniVideoModel);
     expect(resolveModel("retake")).toBe(omniVideoModel);
     expect(resolveModel("frame")).toBe(modelRoutes.frame.standard); // untouched
@@ -73,7 +74,7 @@ describe("REQ-STB-030: route-aware take estimate (UI split-brain fix 2026-07-24)
     expect(five.usd).toBeCloseTo(0.6, 6);
   });
   it("omni: free-form clamped to the cap, token-rate priced", () => {
-    config.gen.videoRoute = "omni";
+    configForTest.gen.videoRoute = "omni";
     expect(estimateTake(10).effectiveSeconds).toBe(10);
     expect(estimateTake(10).usd).toBeCloseTo(1.0136, 4);
     expect(estimateTake(5).usd).toBeCloseTo(0.5068, 4);

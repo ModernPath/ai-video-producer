@@ -10,7 +10,7 @@ import { generation } from "@avd/gen/schema";
 import { createShot, requestFrame } from "@avd/stb";
 import { frameCandidate, shot } from "@avd/stb/schema";
 import { handleGeneration } from "../src/handlers";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-GEN-016 — worker handler + queue round-trip (requires compose postgres).
 describe("worker: gen-execute handler", () => {

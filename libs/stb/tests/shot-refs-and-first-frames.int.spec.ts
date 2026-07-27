@@ -12,7 +12,7 @@ import {
   applyShotPlan, draftScript, materializeGenerationOutput, proposeShotPlan, requestFrame, updateShotRefs,
 } from "../src/service";
 import { frameCandidate, scriptVersion, shot, shotPlanProposal, take } from "../src/schema";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-STB-016 (per-shot refs) + REQ-STB-017 (first frames on apply).
 describe("STB per-shot refs + first frames on apply", () => {

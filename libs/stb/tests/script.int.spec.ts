@@ -12,7 +12,7 @@ import {
   applyShotPlan, draftScript, listShots, materializeGenerationOutput, proposeShotPlan,
 } from "../src/service";
 import { frameCandidate, scriptVersion, shot, shotPlanProposal, take } from "../src/schema";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 import { normalizePlannedShots } from "../src/plan-normalize";
 
 // REQ-STB-008 + REQ-STB-011 — mock-mode script studio flow.

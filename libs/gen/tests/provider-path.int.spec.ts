@@ -10,7 +10,7 @@ import { generation } from "../src/schema";
 import { enqueueGeneration } from "../src/service";
 import { runNextGeneration } from "../src/executor";
 import { ProviderError, type GenProvider } from "../src/provider";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-GEN-010 + REQ-GEN-006 — provider port, stub-injected (no API key, no cost).
 describe("GEN provider path (stub-injected)", () => {
@@ -30,6 +30,10 @@ describe("GEN provider path (stub-injected)", () => {
     },
     async generateVideo(r) {
       return { bytes: new Uint8Array(200_000).fill(7), mime: "video/mp4", durationS: r.durationSeconds };
+    },
+    // REQ-GEN-019 arrived after these doubles were written; this path is not under test here.
+    async generateMusic(): Promise<{ bytes: Uint8Array; mime: string }> {
+      throw new Error("generateMusic not stubbed in this spec");
     },
   };
 

@@ -22,7 +22,7 @@ const card: StyleCard = {
   pacing: { durationWindowS: [6, 8] },
   palette: { accent: "#c8202a", background: "#4a4a32", notes: "Saturated primaries on drab olive." },
   light: "Hard practical sources.", performance: "Deadpan.", humour: "Understatement.",
-  sound: "Sparse.", typography: "Plain.", antiNotes: ["no handheld"],
+  sound: "Sparse.", typography: "Plain.", continuity: "Same jacket, same table.", antiNotes: ["no handheld"],
   defaults: { audioMode: "mix" },
 };
 

@@ -7,7 +7,7 @@ import { generation } from "@avd/gen/schema";
 import { enqueueGeneration } from "@avd/gen";
 import { project } from "../src/schema";
 import { archiveProject, createProject, unarchiveProject } from "../src/service";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-PRJ-003 — archive lifecycle; BR-PRJ-003: archived projects block new generation enqueue.
 describe("REQ-PRJ-003: archive lifecycle", () => {

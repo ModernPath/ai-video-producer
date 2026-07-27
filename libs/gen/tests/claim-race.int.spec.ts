@@ -12,7 +12,7 @@ import { generation } from "../src/schema";
 import { resolveModel } from "../src/routing";
 import { claimGeneration, runNextGeneration } from "../src/executor";
 import type { GenProvider } from "../src/provider";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 describe("REQ-GEN-018: race-safe claim across parallel runners", () => {
   const { db, client } = createDb();

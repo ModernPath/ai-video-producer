@@ -9,7 +9,7 @@ import { attachEntities, createEntity } from "@avd/ast";
 import { generation } from "@avd/gen/schema";
 import { draftScript, proposeShotPlan, requestMusicBrief } from "../src/service";
 import { scriptVersion } from "../src/schema";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-STB-012 — the video prompt + cast reach the script model's context.
 describe("STB video prompt -> script/plan prompts with cast", () => {

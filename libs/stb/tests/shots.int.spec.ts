@@ -12,7 +12,7 @@ import {
   requestFrame, requestTake, selectTake,
 } from "../src/service";
 import { frameCandidate, shot, take } from "../src/schema";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 describe("STB golden-thread slice (REQ-STB-001..004)", () => {
   const { db, client } = createDb();

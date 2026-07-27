@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 31 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 32 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -28,7 +28,7 @@ Totals: 31 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 | REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
 | REQ-GEN-034 | Stuck work recovers: queued rows nothing will claim, and cancel | P9 | DONE | USER 2026-07-27 "2 (video) and 3 (image) are stuck… how to restart?" | tests/stuck-recovery.int.spec.ts (8) | executor reapStale queued branch + cancelGeneration, in-flight panel |
 | REQ-GEN-032 | One prompt pipeline; golden-file tests on assembled output | P10 | DONE | `docs/88-architecture-review.md` §2 · four shipped defects | tests/prompt-pipeline.spec.ts (12) + prompt-golden.spec.ts (5) | src/prompt.ts (subjectStage/lookStages/soundStages/assemble) |
-| REQ-GEN-033 | Lint + config hardening: no-dupe-keys, derived vocabularies | P10 | PROPOSED | `docs/88-architecture-review.md` §5 | — | — |
+| REQ-GEN-033 | Lint + config hardening: no-dupe-keys, derived vocabularies | P10 | DONE | `docs/88-architecture-review.md` §5 | — | — |
 | REQ-GEN-031 | Filmed prompts carry no typography and forbid on-screen text | P9 | DONE | USER 2026-07-27 "where these gibberish texts in middle of video come from?" | prompt.spec.ts REQ-GEN-031 (4) + style-card.spec.ts (4) | style-card toVisualStyle, prompt.ts NO_ON_SCREEN_TEXT |
 | REQ-GEN-029 | Live refresh coalesced — SSE no longer races a form action's commit | P9 | DONE | USER 2026-07-27 runtime TypeError "fiber.reset is not a function" | apps/web/tests/refresh-coalesce.spec.ts (5) | apps/web/lib/coalesce.ts, LiveRefresh |
 | REQ-GEN-028 | Spoken lines survive from script to video model | P9 | DONE | USER 2026-07-27 "Pasi is talking something… in video prompt all of that is missing" | tests/prompt.spec.ts REQ-GEN-028 (7) | prompt.ts dialogue in plan schema + custom-prompt path |
@@ -286,14 +286,16 @@ Totals: 31 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 - **Deferred / notes:** four shipped defects traced to the split (REQ-GEN-028, REQ-GEN-031, REQ-STB-044, and the reference leak fixed in REQ-STB-045). **Two deliberate behaviour changes**, both recorded: (a) planner-authored prompts now receive the composed format tail ("A cinematic 16:9 video clip, 6 seconds, natural motion.") rather than the terser custom one; (b) the v3 decision "guidelines only shape auto prompts" (USER 2026-07-23) is REVERSED for rails — the verbatim half stands, the rails now apply, and the reversal is recorded in the v3 test itself. `prompt.ts` went 262 → 278 lines while removing a whole branch, because the stages are now named and commented.
 
 ### REQ-GEN-033 — Lint + config hardening
-- **Status:** PROPOSED · **Stage:** P10 · **Priority:** should
+- **Status:** DONE · **Stage:** P10 · **Priority:** should
 - **Raised-by:** `docs/88-architecture-review.md` §5 — three hazards the type system did not catch, each of which cost real debugging time.
 - **Statement:** Classes of silent error that already occurred shall be made impossible: duplicate object keys in config, vocabulary lists copied instead of derived, and structurally-typed payloads passed whole where a field was meant.
 - **Acceptance criteria:**
   - GIVEN a duplicated key in a config literal THEN lint fails (`no-dupe-keys`). Regression: `config.project` was declared twice and the later literal silently won, so every threshold read `undefined`.
   - GIVEN a vocabulary (entity kinds, shot sizes, templates) THEN exactly one `as const` defines it and all consumers derive from it. Regression: `casting.ts` held its own copy and returned `character` for `location`.
   - GIVEN `getObject` THEN callers cannot pass the whole `{ bytes, mime }` where bytes are meant without a type error. Regression: ffmpeg received the object and silently produced nothing.
-- **Deferred / notes:** no behaviour change; each item is a guard against a defect that has already happened once.
+- **Tests:** `libs/shared/tests/type-gate.spec.ts` (5, incl. 2 positive controls) · `libs/stb/tests/casting.spec.ts` (vocabulary)
+- **Code:** `tsconfig.base.json` (`types: [node]`) · `libs/shared/src/migrate.ts` · `libs/shared/src/config/testing.ts` · `package.json` (`pnpm check`) · `CLAUDE.md` §9.3
+- **Deferred / notes:** REVISED IN BUILD. The row assumed three missing lint rules; measurement showed TypeScript already rejects all three (TS1117, TS2740, TS2769) and the real defect was that `pnpm typecheck` carried **45 errors across 11 files**, so no new one could be seen and no gate ran it. Fixed the gate (45 → 0), pinned it with tests that assert the compiler's OUTPUT, and named it as a command in the DoD. No linter was added — it would have been a fourth unrun gate.
 
 ### REQ-GEN-031 — Filmed prompts carry no typography and forbid on-screen text
 - **Status:** DONE · **Stage:** P9 · **Priority:** must

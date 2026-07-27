@@ -8,7 +8,7 @@ import { asset } from "@avd/ast/schema";
 import { generation } from "@avd/gen/schema";
 import { enqueueGeneration, runNextGeneration } from "@avd/gen";
 import { projectActivityFingerprint } from "../src/activity";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-GEN-017 — the SSE bridge fires when this fingerprint moves.
 describe("project activity fingerprint", () => {

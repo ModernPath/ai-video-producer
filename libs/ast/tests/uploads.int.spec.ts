@@ -5,7 +5,7 @@ import { createDb } from "@avd/shared/db";
 import { organization } from "@avd/plt/schema";
 import { asset, uploadSession } from "../src/schema";
 import { AstValidationError, completeUpload, createUploadSession, uploadBytesDirect } from "../src/uploads";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-AST-004 — validated uploads, presigned + direct (requires compose minio+pg).
 describe("AST uploads", () => {

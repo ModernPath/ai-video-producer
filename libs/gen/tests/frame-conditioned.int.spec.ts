@@ -10,7 +10,7 @@ import { generation } from "../src/schema";
 import { enqueueGeneration } from "../src/service";
 import { runNextGeneration } from "../src/executor";
 import type { GenProvider, VideoRequest } from "../src/provider";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-GEN-009 — selected start frame flows to the provider as image conditioning.
 describe("GEN frame-conditioned takes", () => {
@@ -29,6 +29,10 @@ describe("GEN frame-conditioned takes", () => {
     async generateVideo(r) {
       captured.push(r);
       return { bytes: new Uint8Array(200_000).fill(3), mime: "video/mp4", durationS: r.durationSeconds };
+    },
+    // REQ-GEN-019 arrived after these doubles were written; this path is not under test here.
+    async generateMusic(): Promise<{ bytes: Uint8Array; mime: string }> {
+      throw new Error("generateMusic not stubbed in this spec");
     },
   };
 

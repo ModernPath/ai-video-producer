@@ -5,7 +5,7 @@ import { createDb } from "@avd/shared/db";
 import { organization } from "@avd/plt/schema";
 import { project } from "../src/schema";
 import { createProject } from "../src/service";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-PRJ-002 — double-submits must not duplicate projects.
 describe("PRJ idempotent creation", () => {

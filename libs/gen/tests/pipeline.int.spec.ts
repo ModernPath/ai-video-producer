@@ -8,7 +8,7 @@ import { asset } from "@avd/ast/schema";
 import { generation } from "../src/schema";
 import { enqueueGeneration } from "../src/service";
 import { runNextGeneration } from "../src/executor";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // Requires docker-compose postgres. MOCK_GEN path (REQ-GEN-015).
 describe("GEN pipeline: enqueue -> execute (mock) -> asset", () => {

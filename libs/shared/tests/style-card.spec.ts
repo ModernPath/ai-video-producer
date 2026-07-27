@@ -23,6 +23,7 @@ const kaurismaki: StyleCard = {
   humour: "Understatement — the joke is the hold, that nothing happens and nobody reacts.",
   sound: "Sparse diegetic room tone; one melancholy rock or tango cue.",
   typography: "Plain, unglamorous, no kinetic flourish.",
+  continuity: "Same brown corduroy jacket, same corner table, same overcast light.",
   antiNotes: ["no handheld", "no push-ins", "no montage", "no crowd energy", "no upbeat corporate cutting"],
 };
 

@@ -14,7 +14,7 @@ import { createShot, materializeGenerationOutput, requestTake, selectTake } from
 import { frameCandidate, musicBrief, shot, take } from "@avd/stb/schema";
 import { exportJob, storyboardSnapshot } from "../src/schema";
 import { createSnapshot, queueExport, runNextExport } from "../src/service";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 describe.skipIf(!process.env.RUN_RENDER)("REQ-ANM-003 slice 2: animated captions in the export", () => {
   const { db, client } = createDb();

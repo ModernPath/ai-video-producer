@@ -8,7 +8,7 @@ import { enqueueGeneration, runNextGeneration } from "@avd/gen";
 import { generation } from "@avd/gen/schema";
 import { asset } from "../src/schema";
 import { getObject } from "../src/storage";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-AST-002 — mock generations must store real media bytes (no fixture:// keys).
 describe("REQ-AST-002: generated assets carry real bytes", () => {

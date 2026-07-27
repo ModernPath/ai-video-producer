@@ -9,7 +9,7 @@ import { attachEntities, createEntity } from "@avd/ast";
 import { generation } from "@avd/gen/schema";
 import { createShot, requestFrame, requestTake, updateShotScripts } from "../src/service";
 import { frameCandidate, shot, take } from "../src/schema";
-import { migrate } from "../../../scripts/migrate";
+import { migrate } from "@avd/shared/migrate";
 
 // REQ-STB-013 — USER: every clip has an editable image script and video script; refs still attach.
 describe("STB per-shot scripts", () => {
