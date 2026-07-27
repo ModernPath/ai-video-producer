@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 32 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 32 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -27,6 +27,7 @@ Totals: 32 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | DONE | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
 | REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
 | REQ-GEN-034 | Stuck work recovers: queued rows nothing will claim, and cancel | P9 | DONE | USER 2026-07-27 "2 (video) and 3 (image) are stuck… how to restart?" | tests/stuck-recovery.int.spec.ts (8) | executor reapStale queued branch + cancelGeneration, in-flight panel |
+| REQ-GEN-035 | CI runs `pnpm check` on every push | P10 | PROPOSED | REQ-GEN-033 | — | — |
 | REQ-GEN-032 | One prompt pipeline; golden-file tests on assembled output | P10 | DONE | `docs/88-architecture-review.md` §2 · four shipped defects | tests/prompt-pipeline.spec.ts (12) + prompt-golden.spec.ts (5) | src/prompt.ts (subjectStage/lookStages/soundStages/assemble) |
 | REQ-GEN-033 | Lint + config hardening: no-dupe-keys, derived vocabularies | P10 | DONE | `docs/88-architecture-review.md` §5 | — | — |
 | REQ-GEN-031 | Filmed prompts carry no typography and forbid on-screen text | P9 | DONE | USER 2026-07-27 "where these gibberish texts in middle of video come from?" | prompt.spec.ts REQ-GEN-031 (4) + style-card.spec.ts (4) | style-card toVisualStyle, prompt.ts NO_ON_SCREEN_TEXT |
@@ -404,3 +405,13 @@ Totals: 32 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN the real model THEN a grounded, accurate profile returns (verified 2026-07-24 on LastBot + lastbot.com — LastBot ONE, Switchbot, GDPR positioning all correct).
 - **Tests:** `tests/research.spec.ts` + real verification · **Code:** `src/research.ts`, `apps/web` action + UI · **Log:** LOG 2026-07-24
 - **Deferred / notes:** grounding citations not stored (profile is user-editable text); search-grounding billing has a free daily tier — revisit if usage grows.
+
+### REQ-GEN-035 — CI runs `pnpm check` on every push
+- **Status:** PROPOSED · **Stage:** P10 · **Priority:** should
+- **Raised-by:** REQ-GEN-033 (2026-07-27) — the typecheck gate was repaired from 45 errors to 0 and named in `CLAUDE.md` §9.3, but nothing automated runs it. That is exactly how it rotted the first time: a gate that depends on someone remembering to type it is not a gate.
+- **Statement:** Every push shall run `pnpm check` (typecheck + tests), and a red result shall block merge.
+- **Acceptance criteria:**
+  - GIVEN a push introducing a type error THEN CI fails and names the file.
+  - GIVEN a push introducing a failing test THEN CI fails.
+  - GIVEN the workflow THEN it does NOT run the real-API ring (`pnpm test:real`), which spends money — that stays manual per §9.8.
+- **Deferred / notes:** needs decisions the ledger cannot make: which runner, whether integration specs get a Postgres+MinIO service (they need both), and whether the flaky `ast` derivative specs are quarantined first. Integration specs already flake at load ≥ 7 locally, so a naive CI run will be noisy.
