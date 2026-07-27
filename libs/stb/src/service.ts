@@ -658,6 +658,22 @@ export async function updateShotScripts(
   if (Object.keys(patch).length) await db.update(shot).set(patch).where(eq(shot.id, input.shotId));
 }
 
+/**
+ * REQ-STB-046 (USER 2026-07-27) — set the words a character speaks in this shot.
+ *
+ * `direction` is one JSON column, so this merges rather than replaces: the planner's synopsis,
+ * subject, action, camera and mood must survive an edit to the spoken line. Emptying it clears the
+ * key entirely, which is what makes a shot silent again.
+ */
+export async function updateShotDialogue(db: Db, input: { shotId: string; dialogue: string }): Promise<void> {
+  const s = await getShotOrThrow(db, input.shotId);
+  const direction = { ...(s.direction as DirectionJson) };
+  const line = input.dialogue.trim();
+  if (line) direction.dialogue = line;
+  else delete direction.dialogue;
+  await db.update(shot).set({ direction }).where(eq(shot.id, input.shotId));
+}
+
 // ---- Per-shot reference images (REQ-STB-016) ----
 
 /** Sets which reference images attach to this shot's generations; null clears back to the whole-cast default. */

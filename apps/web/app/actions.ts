@@ -609,12 +609,16 @@ export async function saveScriptsAndGenerateAction(formData: FormData) {
   const kind = String(formData.get("generate")); // "frame" | "take"
   const [p] = await db().select().from(project).where(eq(project.id, projectId));
   if (!p) return;
-  const { updateShotScripts } = await import("@avd/stb");
+  const { updateShotScripts, updateShotDialogue } = await import("@avd/stb");
   await updateShotScripts(db(), {
     shotId,
     imagePrompt: String(formData.get("imagePrompt") ?? ""),
     videoPrompt: String(formData.get("videoPrompt") ?? ""),
   });
+  // REQ-STB-046: the spoken line saves with the scripts it belongs to, so one Save covers the shot.
+  if (formData.has("dialogue")) {
+    await updateShotDialogue(db(), { shotId, dialogue: String(formData.get("dialogue") ?? "") });
+  }
   if (kind === "frame") {
     const genId = await requestFrame(db(), { shotId, slot: "start", principal: PRINCIPAL, aspectRatio: p.aspectRatio });
     await drainQueueAndMaterialize([genId]);

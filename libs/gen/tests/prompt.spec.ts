@@ -311,3 +311,70 @@ describe("REQ-GEN-026: card-driven visual prompts exclude the reference name", (
     expect(assembleFramePrompt({ ...input, card: plain, customPrompt: text } as never)).toContain(text);
   });
 });
+
+// USER 2026-07-27: "video script still has no details in it, at original video I see Pasi is
+// talking something ('follow the modern path'), but in video prompt all of that is missing."
+//
+// Two faults. (a) The shot-plan schema never asked for `dialogue`, so the planner dropped every
+// spoken line the script had written — all 11 shots came back with it empty. (b) Even when a shot
+// HAS dialogue, `assembleTakePrompt` short-circuits on a custom prompt and returns before the
+// `Spoken line:` clause is ever added — and the planner always writes a custom videoPrompt, so the
+// line could never reach the video model by any path.
+describe("REQ-GEN-028: spoken lines survive from script to video model", () => {
+  it("asks the planner for each shot's dialogue, verbatim from the script", () => {
+    const p = assembleShotPlanPrompt({ projectTitle: "T", brief: {}, targetDurationSeconds: 30, scriptText: "s" });
+    expect(p).toMatch(/"dialogue"/);
+    expect(p).toMatch(/verbatim|exact/i);
+  });
+
+  it("adds the spoken line to a custom video prompt, which is the only kind the planner writes", () => {
+    const out = assembleTakePrompt({
+      ...input, durationSeconds: 6,
+      customPrompt: "Static medium close-up on Pasi, flat solemn expression.",
+      direction: { ...input.direction, dialogue: "The legacy code lacks discipline." },
+    });
+    expect(out).toContain("Static medium close-up on Pasi");
+    expect(out).toContain('Spoken line: "The legacy code lacks discipline."');
+  });
+
+  it("does not repeat the line when the prompt already quotes it", () => {
+    const line = "We need structure.";
+    const out = assembleTakePrompt({
+      ...input, durationSeconds: 6,
+      customPrompt: `Pasi says "${line}" to camera.`,
+      direction: { ...input.direction, dialogue: line },
+    });
+    expect(out.match(/We need structure/g)).toHaveLength(1);
+  });
+
+  it("does not double-punctuate a line that already ends in a full stop", () => {
+    for (const out of [
+      assembleTakePrompt({ ...input, durationSeconds: 6, customPrompt: "A close-up.", direction: { ...input.direction, dialogue: "We need structure." } }),
+      assembleTakePrompt({ ...input, durationSeconds: 6, direction: { ...input.direction, dialogue: "We need structure." } }),
+    ]) {
+      expect(out).toContain('Spoken line: "We need structure."');
+      expect(out).not.toMatch(/"\.\s*\./);
+    }
+  });
+
+  it("still ends the clause when the line has no punctuation of its own", () => {
+    const out = assembleTakePrompt({ ...input, durationSeconds: 6, direction: { ...input.direction, dialogue: "Follow the modern path" } });
+    expect(out).toContain('Spoken line: "Follow the modern path".');
+  });
+
+  it("leaves a silent shot silent", () => {
+    const out = assembleTakePrompt({
+      ...input, durationSeconds: 6, customPrompt: "An empty tram interior.",
+      direction: { ...input.direction, dialogue: undefined },
+    });
+    expect(out).not.toMatch(/Spoken line/);
+  });
+
+  it("still carries dialogue on the non-custom path", () => {
+    const out = assembleTakePrompt({
+      ...input, durationSeconds: 6,
+      direction: { ...input.direction, dialogue: "ModernPath. Production ready." },
+    });
+    expect(out).toContain('Spoken line: "ModernPath. Production ready."');
+  });
+});

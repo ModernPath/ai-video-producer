@@ -1,5 +1,11 @@
 # Build Log — STB
 
+## 2026-07-27 — REQ-STB-046 a shot's spoken line is editable (→ IN_REVIEW)
+**Done:** REQ-GEN-028 fixed the pipeline so dialogue reaches the video model, but the user's 11 existing shots still stored none, and the only route to lines was a re-plan that would have discarded takes they had already paid for. Added `updateShotDialogue` and a SPOKEN LINE field beside the image and video scripts, saved by the same Save.
+**Decisions:** `direction` is a single JSON column, so the setter MERGES — an edit to the line must not wipe the planner's synopsis, subject, action and mood. Emptying the field deletes the key rather than storing "", so a shot becomes genuinely silent instead of carrying an empty quote into the prompt.
+**Deferred:** one line per shot. A two-hander like `Synchronized Drink` cannot give each character their own line yet.
+**Gate:** 5/5 `tests/dialogue.int.spec.ts` (red first — `updateShotDialogue is not a function`); tsc clean. Live: typed the line on Pasi Close-Up in the browser, confirmed it persisted to `direction.dialogue`, and re-assembled that shot's real take prompt to see it carried.
+
 ## 2026-07-26 — REQ-STB-045 per-shot prompt identity · reference scrub at the boundary (→ IN_REVIEW)
 **Done:** USER: "the image prompt is not retained." The stage swaps ONE panel in place (`stagePanels[focus]`) and every panel has the same element shape, so React reused the DOM; `defaultValue` is uncontrolled and only applies on mount, leaving the previous shot's text in the box. Saving would have written it to the wrong shot and bought a frame from it. Fixed with `key={s.id}` on the panel root. Verified in the browser across a 0→1→2→1→0 shot walk: every box now shows its own text.
 **Decisions:** the guard test is source-level, and says so in its own comment — the panel is built inside an async server component that reads the database, so there is nothing to render in a unit test. I first wrote a test that built its own fixture and asserted on that; it passed while the bug was live, which makes it worse than no test, so I replaced it with one that reads `page.tsx` and fails if the key is removed.

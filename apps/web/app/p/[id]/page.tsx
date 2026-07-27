@@ -551,6 +551,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 style={{ width: "100%", background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "6px 8px", color: "var(--ink)", fontSize: 11, fontFamily: "var(--mono)", resize: "vertical" }} />
             </div>
           </div>
+          {/* REQ-GEN-028 / REQ-STB-046: the words spoken in this shot. The video model performs
+              them; without this the plan described someone speaking but never said what. */}
+          <div style={{ marginTop: 10 }}>
+            <p className="mono muted" style={{ ...label, marginBottom: 4 }}>SPOKEN LINE {dd.dialogue ? "" : "· none"}</p>
+            <input name="dialogue" defaultValue={dd.dialogue ?? ""} placeholder="the exact words spoken in this shot — leave empty for a silent shot"
+              style={{ width: "100%", background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "6px 8px", color: "var(--ink)", fontSize: 11, fontFamily: "var(--mono)" }} />
+          </div>
+
           <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <button type="submit" name="generate" value="none" style={btn}>Save</button>
             <button type="submit" name="generate" value="frame" disabled={busy.frame > 0} style={{ ...btnPrimary, opacity: busy.frame > 0 ? 0.45 : 1 }}>Save &amp; generate frame</button>

@@ -67,6 +67,12 @@ function guard(prompt: string, card?: StyleCard): string {
   return card ? stripReferences(prompt, card.provenance?.references ?? []) : prompt;
 }
 
+/** `Spoken line: "We need structure."` — the quoted line already carries its own full stop. */
+function spokenLine(line: string): string {
+  const quoted = `Spoken line: "${line}"`;
+  return /[.!?]"$/.test(quoted) ? quoted : `${quoted}.`;
+}
+
 function sentence(text: string): string {
   const t = text.trim();
   return /[.!?]$/.test(t) ? t : `${t}.`;
@@ -80,7 +86,13 @@ const BRAND_SAFETY = `Use only this project's own named brands; never depict rea
 export function assembleTakePrompt(i: TakePromptInput): string {
   if (i.customPrompt?.trim()) {
     const look = cardLook(i.card);
-    return guard(`${i.customPrompt.trim()}\n${look ? `${look}\n` : ""}${BRAND_SAFETY}\n${i.aspectRatio} video, ${i.durationSeconds} seconds.`, i.card);
+    // A custom videoPrompt is what the PLANNER writes for every shot, so returning here dropped
+    // dialogue on every single take — the line could not reach the video model by any path
+    // (USER 2026-07-27: "Pasi is talking something… in video prompt all of that is missing").
+    // Skipped when the prompt already quotes the line, so it is never said twice.
+    const line = i.direction.dialogue?.trim();
+    const spoken = line && !i.customPrompt.includes(line) ? `${spokenLine(line)}\n` : "";
+    return guard(`${i.customPrompt.trim()}\n${spoken}${look ? `${look}\n` : ""}${BRAND_SAFETY}\n${i.aspectRatio} video, ${i.durationSeconds} seconds.`, i.card);
   }
   const d = i.direction;
   const parts: string[] = [];
@@ -98,7 +110,7 @@ export function assembleTakePrompt(i: TakePromptInput): string {
   if (i.stylePrompt) parts.push(sentence(i.stylePrompt));
   // v3 guideline: our takes are single shots — pin it so the model doesn't invent cuts.
   parts.push(`A single continuous shot, no scene cuts. No on-screen text, timestamps, or interface graphics.`);
-  if (d.dialogue) parts.push(sentence(`Spoken line: "${d.dialogue}"`));
+  if (d.dialogue) parts.push(spokenLine(d.dialogue));
   if (d.audioNotes) parts.push(sentence(`Sound design: ${d.audioNotes}`));
   if (!d.dialogue && !d.audioNotes) parts.push(`No dialogue; natural ambient sound only.`);
   parts.push(`A cinematic ${i.aspectRatio} video clip, ${i.durationSeconds} seconds, natural motion.`);
@@ -148,7 +160,9 @@ export function assembleShotPlanPrompt(i: TextPromptInput): string {
     i.transcript
       ? `TRANSCRIPT of the attached track (align shot boundaries to these [MM:SS] sections; where the direction calls for animation shots, put the matching lyric lines into their text):\n${i.transcript}`
       : "",
-    `Return ONLY a JSON object exactly shaped: {"shots":[{"title":string,"durationS":${shotDurationPolicy().allowedS.join("|")},"shotSize":${shotSizes.map((v) => `"${v}"`).join("|")},"angle":${shotAngles.map((v) => `"${v}"`).join("|")},"movement":${shotMovements.map((v) => `"${v}"`).join("|")},"direction":{"synopsis":string,"subject":string,"action":string,"camera":string,"mood":string},"imagePrompt":string,"videoPrompt":string,"animation":{"template":${fullFrameAnimationTemplates.map((t) => `"${t}"`).join("|")},"text":string,"subtext":string,"accent":"#rrggbb","background":"#rrggbb"}|null}]} — no markdown fences, no commentary.`,
+    `Return ONLY a JSON object exactly shaped: {"shots":[{"title":string,"durationS":${shotDurationPolicy().allowedS.join("|")},"shotSize":${shotSizes.map((v) => `"${v}"`).join("|")},"angle":${shotAngles.map((v) => `"${v}"`).join("|")},"movement":${shotMovements.map((v) => `"${v}"`).join("|")},"direction":{"synopsis":string,"subject":string,"action":string,"camera":string,"mood":string,"dialogue":string},"imagePrompt":string,"videoPrompt":string,"animation":{"template":${fullFrameAnimationTemplates.map((t) => `"${t}"`).join("|")},"text":string,"subtext":string,"accent":"#rrggbb","background":"#rrggbb"}|null}]} — no markdown fences, no commentary.`,
+    // REQ-GEN-028: the script writes spoken lines and the plan used to drop every one of them.
+    `direction.dialogue is the words a character SPEAKS in this shot, copied verbatim from the script — exact wording, no paraphrase, no stage directions. Use "" for a silent shot. When a shot has dialogue, the videoPrompt must also describe the delivery (who speaks, how) so the line is performed rather than merely captioned.`,
     // SR-DIR-001: the plan states its own craft so the director's pass can grade it (REQ-STB-043).
     `shotSize/angle/movement are the shot's craft: EWS…ECU framing, the camera angle, and how the camera moves ("static" when it does not). Alternate framing between adjacent shots — never two identical shotSize+angle pairs in a row — and end on the longest, calmest shot or a held graphic.`,
     `Animation accent/background are OPTIONAL hex colors — set them to match the video's visual palette (e.g. neon piece → cyan/magenta on near-black); omit for the default warm look. Hex only, no color names.`,
