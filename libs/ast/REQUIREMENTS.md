@@ -1,14 +1,14 @@
 # Requirements Ledger — AST (Asset Library)
 
 ## Dashboard — AST (Asset Library)
-Totals: 8 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED · 1 OBSOLETE
+Totals: 12 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED · 1 OBSOLETE
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-AST-001 | Object storage put/get round-trip | P1 | DONE | INV-AST-002 | tests/storage.int.spec.ts | src/storage.ts |
-| REQ-AST-012 | Long-form brand/company profile (feeds text prompts) | P8 | IN_REVIEW | USER 2026-07-24 (marketing-video context) | gen prompt.spec REQ-AST-012 block + browser | migration 0022, schema, updateEntityProfile, resolveCast+castBlock, library UI |
-| REQ-AST-011 | Add refs to an existing entity (upload, cap-guarded) | P7 | IN_REVIEW | REQ-AST-010 deferral (ref-less Pasi needs a way back) | tests/entities.int.spec.ts REQ-AST-011 block + browser (control renders) | entities.ts addEntityRefs, addEntityRefsAction, library ＋ Add refs UI |
-| REQ-AST-010 | Entity deletion: remove refs (incl. dangling) + soft archive | P7 | IN_REVIEW | USER 2026-07-24 "please allow me deleting assets" (library screenshot, broken Pasi ref) | tests/entities.int.spec.ts REQ-AST-010 block + browser (real click removed the dangling ref) | entities.ts removeEntityRef/archiveEntity + cast filter, library UI ✕ buttons, actions |
+| REQ-AST-012 | Long-form brand/company profile (feeds text prompts) | P8 | DONE | USER 2026-07-24 (marketing-video context) | gen prompt.spec REQ-AST-012 block + browser | migration 0022, schema, updateEntityProfile, resolveCast+castBlock, library UI |
+| REQ-AST-011 | Add refs to an existing entity (upload, cap-guarded) | P7 | DONE | REQ-AST-010 deferral (ref-less Pasi needs a way back) | tests/entities.int.spec.ts REQ-AST-011 block + browser (control renders) | entities.ts addEntityRefs, addEntityRefsAction, library ＋ Add refs UI |
+| REQ-AST-010 | Entity deletion: remove refs (incl. dangling) + soft archive | P7 | DONE | USER 2026-07-24 "please allow me deleting assets" (library screenshot, broken Pasi ref) | tests/entities.int.spec.ts REQ-AST-010 block + browser (real click removed the dangling ref) | entities.ts removeEntityRef/archiveEntity + cast filter, library UI ✕ buttons, actions |
 | REQ-AST-002 | Generated assets carry real validated bytes | P1 | DONE | INV-AST-002 | tests/generated-bytes.int.spec.ts | ../gen/src/executor.ts, ../gen/src/fixtures.ts |
 | REQ-AST-003 | Assets served to UI via streaming route | P1 | DONE | `docs/12` §5 | browser E2E (LOG 2026-07-23) | apps/web/app/api/assets/[id]/route.ts |
 | REQ-AST-004 | Uploads (presigned + direct) with validation | P3 | DONE | INV-AST-005 | tests/uploads.int.spec.ts + browser E2E | src/uploads.ts |
@@ -17,7 +17,7 @@ Totals: 8 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 | REQ-AST-006 | Entity library: org entities, refs, project cast | P4 | DONE | INV-AST-004/006, BR-AST-001/003 | tests/entities.int.spec.ts, ../stb/tests/cast.int.spec.ts + browser | src/entities.ts, apps/web (library, cast) |
 | REQ-AST-007 | Style kits org-scoped + project attachment | P4 | DONE | INV-AST-006, BR-AST-001 | tests/style-kits.int.spec.ts + stb/tests/style-in-prompts + browser E2E | migration 0015, entities.ts, prj setProjectStyleKit, library + storyboard UI |
 | REQ-AST-008 | Soft-delete protection for referenced assets | P2 | OBSOLETE | INV-AST-003 · superseded: REQ-AST-010 (no hard-delete path exists) | — | — |
-| REQ-AST-013 | Last frame of a take, as an image | P9 | IN_REVIEW | USER 2026-07-27 "store the last frame of video as reference starting image for next clip" | tests/tail-frame.int.spec.ts (3) | src/tail-frame.ts |
+| REQ-AST-013 | Last frame of a take, as an image | P9 | DONE | USER 2026-07-27 "store the last frame of video as reference starting image for next clip" | tests/tail-frame.int.spec.ts (3) | src/tail-frame.ts |
 
 ---
 
@@ -102,7 +102,7 @@ Totals: 8 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 *(PROPOSED 008: statement in `docs/12-asset-library.md`; elaborate when promoted.)*
 
 ### REQ-AST-010 — Entity deletion (refs + archive)
-- **Status:** IN_REVIEW  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
+- **Status:** DONE  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
 - **Raised-by:** USER 2026-07-24: "please allow me deleting assets" — library screenshot showed the broken Pasi ref with no removal affordance
 - **Source:** INV-AST-003 (originals immortal — deletion is reference removal / soft archive, never asset destruction)
 - **Statement:** Each entity ref thumb carries a ✕ that removes it from the entity (dangling ids included — no asset validation, that's the cleanup case); each entity card carries "✕ archive" which soft-archives it out of the library AND all project casts; asset rows are never deleted; removing the last ref is allowed with a "designs will drift" hint.
@@ -114,7 +114,7 @@ Totals: 8 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 - **Deferred / notes:** adding refs to an EXISTING entity (re-upload) not yet built — Pasi currently has zero refs until the user uploads a photo via a new entity or we ship add-ref; unarchive UI also deferred (DB flag only).
 
 ### REQ-AST-011 — Add refs to an existing entity
-- **Status:** IN_REVIEW  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
+- **Status:** DONE  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
 - **Raised-by:** REQ-AST-010 deferral — removal shipped without re-add, leaving cleaned-up entities (Pasi) permanently ref-less
 - **Source:** INV-AST-004 (1–5 refs; cap applies to the combined set)
 - **Statement:** Entity cards below the cap offer "＋ Add refs": uploaded images append to refAssetIds; a ref-less entity regains its design anchor; exceeding the cap or non-ready assets are rejected.
@@ -131,7 +131,7 @@ Totals: 8 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 - **Why obsolete:** the product has NO asset hard-delete path to protect — every "deletion" is reference removal or soft archive (INV-AST-003 originals-immortal, enforced in REQ-AST-010's removeEntityRef/archiveEntity and REQ-STB-009's soft candidate removal). A protection guard would guard nothing.
 
 ### REQ-AST-012 — Long-form brand/company profile
-- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** should
+- **Status:** DONE · **Stage:** P8 · **Priority:** should
 - **Raised-by:** USER 2026-07-24: "separate, long description field for a brand/company… for marketing videos"
 - **Statement:** Company/product entities carry an optional long-form `profile`; it feeds TEXT prompts (script/plan/music) as a BACKGROUND block capped at config.entity.profilePromptMaxChars — never visual prompts, where the short description continues to apply.
 - **Acceptance criteria:**
@@ -142,7 +142,7 @@ Totals: 8 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 - **Deferred / notes:** person/character profiles (bios) excluded until a use case shows up.
 
 ### REQ-AST-013 — Last frame of a take, as an image
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27: "store the last frame of video as reference starting image for next clip?"
 - **Statement:** The final frame of a clip shall be extractable as a JPEG. Takes could already be CONDITIONED on a start frame (REQ-GEN-009); nothing could produce one from the END of a previous take, which is the missing link for continuous action.
 - **Acceptance criteria:**

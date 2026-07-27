@@ -1,16 +1,16 @@
 # ANM — Requirements Ledger
 
 ## Dashboard — ANM (Animations)
-Totals: 3 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 6 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-ANM-001 | Title-card animation takes (pure Remotion scenes) | P6 | DONE | USER Remotion epic 2026-07-23 | tests/render.int.spec.ts (RUN_RENDER) + real chain + browser | src/*, gen executor branch, migration 0018, ✦ Animate UI |
 | REQ-ANM-002 | Animation overlays on generated shots | P6 | DONE | USER Remotion epic | anm render test (alpha webm) + stb overlay.int + real composite frame | LowerThird.tsx, composite.ts, executor overlay path, ✦ per-take UI |
 | REQ-ANM-004 | Effects library (noise, light leaks, text highlights, …) | P6 | DONE | USER 2026-07-23 | render test + frame proof | src/effects.tsx, TitleCard composition, render prop passthrough |
-| REQ-ANM-005 | Plan-driven animation palette (accent + background through the chain) | P8 | IN_REVIEW | Neon Rivers 2026-07-24 | plan-normalize spec REQ-ANM-005 + $0 render proof | normalize hex validation, plan schema, requestAnimationTake fallback, executor forwarding |
-| REQ-ANM-003 | Caption/lyric overlays from MM:SS transcripts (slices 1+2) | P6 | IN_REVIEW | USER Remotion epic + REQ-GEN-020 | render.int + asm/tests/animated-captions.int.spec.ts (full export) + captions.spec cues | Captions.tsx + asm transcriptToCues/captionStyle path + UI option |
-| REQ-ANM-006 | Template variety: stat, quote, checklist | P8 | IN_REVIEW | USER 2026-07-24 "always repeating one" | render.int REQ-ANM-006 (3 real renders) + frame proofs | StatPunch.tsx, QuoteCard.tsx, Checklist.tsx, Root/render wiring |
+| REQ-ANM-005 | Plan-driven animation palette (accent + background through the chain) | P8 | DONE | Neon Rivers 2026-07-24 | plan-normalize spec REQ-ANM-005 + $0 render proof | normalize hex validation, plan schema, requestAnimationTake fallback, executor forwarding |
+| REQ-ANM-003 | Caption/lyric overlays from MM:SS transcripts (slices 1+2) | P6 | DONE | USER Remotion epic + REQ-GEN-020 | render.int + asm/tests/animated-captions.int.spec.ts (full export) + captions.spec cues | Captions.tsx + asm transcriptToCues/captionStyle path + UI option |
+| REQ-ANM-006 | Template variety: stat, quote, checklist | P8 | DONE | USER 2026-07-24 "always repeating one" | render.int REQ-ANM-006 (3 real renders) + frame proofs | StatPunch.tsx, QuoteCard.tsx, Checklist.tsx, Root/render wiring |
 
 ### REQ-ANM-001 — Title-card animation takes
 - **Status:** DONE · **Stage:** P6 · **Priority:** should · **Owner:** —
@@ -50,7 +50,7 @@ Totals: 3 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 - **Deferred / notes:** remaining primitives — transforms suite, html-in-canvas compositions, effects on LowerThird — follow-up slices under this REQ before DONE.
 
 ### REQ-ANM-003 — Caption/lyric overlays from MM:SS transcripts
-- **Status:** IN_REVIEW  ·  **Stage:** P6  ·  **Priority:** should  ·  **Owner:** —
+- **Status:** DONE  ·  **Stage:** P6  ·  **Priority:** should  ·  **Owner:** —
 - **Raised-by:** USER Remotion epic 2026-07-23 (captions pair with REQ-GEN-020 transcripts)
 - **Source:** docs/features/animations.md; REQ-ANM-002 alpha-composite recipe
 - **Statement (slice 1):** A `captions` Remotion template renders cue-timed animated caption lines ({startS,endS,text}[] props — spring pop-in, fade-out, bottom pill) as a transparent alpha webm, composable onto any take/export via the existing compositeOverlay.
@@ -62,7 +62,7 @@ Totals: 3 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 - **Deferred / notes:** per-take overlay UI; word-level karaoke timing (needs word timestamps).
 
 ### REQ-ANM-005 — Plan-driven animation palette
-- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** should
+- **Status:** DONE · **Stage:** P8 · **Priority:** should
 - **Source:** Neon Rivers production 2026-07-24 — plan authored "cyan kinetic"/"magenta typography"; templates rendered default gold because nothing threads color props.
 - **Statement:** PlannedAnimation carries optional accent/background (strict #rrggbb — names/gradients from real models are dropped); the plan prompt schema advertises them with palette-matching guidance; requestAnimationTake prefers explicit input then the shot's plan palette; the executor forwards both to renderAnimation. Defaults apply when absent.
 - **Acceptance criteria:**
@@ -72,7 +72,7 @@ Totals: 3 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 - **Deferred / notes:** style-kit-derived fallback palette + archetype palette defaults (config) — next taste pass; UI color inputs not exposed (plan/AI-first by design).
 
 ### REQ-ANM-006 — Template variety: stat, quote, checklist
-- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Status:** DONE · **Stage:** P8 · **Priority:** must
 - **Raised-by:** USER 2026-07-24 ("animations are really limited, always repeating one")
 - **Statement:** Three new full-frame compositions with genuinely distinct looks — `stat` (first number in text counts up eased, tabular accent digits, label + subtext), `quote` (serif italic quote, oversized quote mark, accent attribution from subtext), `checklist` (heading + subtext items split on "|"/newlines, sequential accent-check reveals). All honor accent/background palette (REQ-ANM-005), light-leak/grain effects, duration/aspect metadata, and fade-out.
 - **Acceptance criteria:**

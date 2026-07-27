@@ -1,5 +1,13 @@
 # Build Log — AST (Asset Library)
 
+## 2026-07-27 — human sign-off: 4 requirements IN_REVIEW → DONE
+**Done:** USER:2026-07-27 "Let's approve all requirements in review state?" — the 4 IN_REVIEW rows in this ledger are approved and moved to DONE. Covers uploads, entities, style kits and reference-image editing. Status updated in all three places per `CLAUDE.md` §1.8 (dashboard row · detail block · `Totals:`); `PROGRESS.md` regenerated from the ledgers and independently agrees (129 DONE · 0 IN_REVIEW across all contexts).
+**Decisions:** this drains the queue rather than collapsing the state — the option `docs/88-architecture-review.md` §6 offered when it recorded "48 IN_REVIEW · 0 signed off" and called the distinction information-free. IN_REVIEW keeps its meaning for future work; it is the sign-off that was outstanding, and the user is the sign-off authority. Checked before flipping: every row carries both a Tests and a Code link, and no detail block flags open work.
+**Deferred:** none.
+**Discovered:** with this drained, the whole repo holds 0 READY and 0 IN_PROGRESS — the actionable queue is empty. What remains is 4 PROPOSED (the architecture-review refactors) and 1 BLOCKED (REQ-STB-032 on OQ-115). Per `CLAUDE.md` §13 an empty queue is itself a review trigger.
+**Follow-ups:** promote the PROPOSED refactors when the next build session starts.
+**Gate:** ledger-only change, no code touched. Verified 0 residual IN_REVIEW in any ledger; row count matched detail-block count in every file before the flip (mismatch would have aborted).
+
 ## 2026-07-24 — BATCH SIGN-OFF: all IN_REVIEW → DONE (human-approved)
 **Done:** USER approved the review queue verbatim: "approve all for now" (evidence: sign-off artifact + per-REQ tests/browser/real-API links in the ledger). All IN_REVIEW rows in this ledger moved to DONE atomically (dashboard row + detail block + Totals).
 **Decisions:** approval is provisional ("for now") — regressions reopen the specific REQ, not the batch.

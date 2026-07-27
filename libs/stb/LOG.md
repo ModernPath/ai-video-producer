@@ -1,5 +1,13 @@
 # Build Log — STB
 
+## 2026-07-27 — human sign-off: 28 requirements IN_REVIEW → DONE
+**Done:** USER:2026-07-27 "Let's approve all requirements in review state?" — the 28 IN_REVIEW rows in this ledger are approved and moved to DONE. Covers script, shot plan, casting, continuity chains, critique passes and the script studio. Status updated in all three places per `CLAUDE.md` §1.8 (dashboard row · detail block · `Totals:`); `PROGRESS.md` regenerated from the ledgers and independently agrees (129 DONE · 0 IN_REVIEW across all contexts).
+**Decisions:** this drains the queue rather than collapsing the state — the option `docs/88-architecture-review.md` §6 offered when it recorded "48 IN_REVIEW · 0 signed off" and called the distinction information-free. IN_REVIEW keeps its meaning for future work; it is the sign-off that was outstanding, and the user is the sign-off authority. Checked before flipping: every row carries both a Tests and a Code link, and no detail block flags open work.
+**Deferred:** none.
+**Discovered:** with this drained, the whole repo holds 0 READY and 0 IN_PROGRESS — the actionable queue is empty. What remains is 4 PROPOSED (the architecture-review refactors) and 1 BLOCKED (REQ-STB-032 on OQ-115). Per `CLAUDE.md` §13 an empty queue is itself a review trigger.
+**Follow-ups:** promote the PROPOSED refactors when the next build session starts.
+**Gate:** ledger-only change, no code touched. Verified 0 residual IN_REVIEW in any ledger; row count matched detail-block count in every file before the flip (mismatch would have aborted).
+
 ## 2026-07-27 — docs reconcile: music has two routes, Lyria is the default (no code change)
 **Done:** consolidating `AGENTS.md` into a routing map surfaced stale text — it described the pipeline as "assembly + music (Suno round-trip)" after REQ-GEN-019 moved generation in-house. The drift was wider than that one file: `docs/00` (×3), `docs/06`, `docs/13` (×2) and `docs/02` all named Suno as the ONLY route, while `docs/17` — the doc that owns the topic — had documented both correctly since 2026-07-23. All six now state both routes with Lyria 3 as the default; the Lyria section is numbered `docs/17` §4.
 **Decisions:** USER:2026-07-27: "Lyria is the preference, but having prompts to suno is relevant still." Both routes are supported; Suno is NOT deprecated. The **brief is the shared artifact** — the same text either renders in-app or travels to Suno — which is why BR-STB-007 (freely editable) still governs both. `docs/17` §1 kept its number despite Lyria being the default, because four places cite `docs/17 §1` meaning Suno (`libs/asm/REQUIREMENTS.md`, `libs/stb/REQUIREMENTS.md` ×2, `src/service.ts:414`); renumbering would have broken them for cosmetic ordering.

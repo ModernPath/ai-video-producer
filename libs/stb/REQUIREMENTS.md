@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 58 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -19,38 +19,38 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 | REQ-STB-027 | Archetype defaults (audio mode) | P7 | DONE | docs/87 | E2E (product-launch → mix) | archetypes defaults, setProjectArchetype |
 | REQ-STB-028 | Music-led planning (transcript in plan prompt) | P7 | DONE | docs/87 | prompt.spec REQ-STB-028 + snapshot E2E | prompt transcript block, proposeShotPlan wiring |
 | REQ-STB-029 | Route-aware shot durations (omni unlocks 4–10s) | P7 | DONE | REQ-GEN-023 follow-up | tests/duration-policy.spec.ts (7) | shared shotDurationPolicy; plan-normalize, music-sync, assertDuration, plan prompt schema |
-| REQ-STB-035 | Script-studio generation indicators + lane lockouts | P8 | IN_REVIEW | USER 2026-07-24 "this view does not show any generation indicators" | rendered-HTML check (synthetic queued row → banner) | script page activeGens query, pulse banner, 5 button lockouts |
-| REQ-STB-037 | One workspace: rail + focused shot + script/music/cast/output drawer | P8 | IN_REVIEW | USER 2026-07-25 UX review ("controls and flow does not seem intuitive… cant control easily the music etc on editor") | tests/board.spec.ts (6) + browser walkthrough (rail, drawer tabs, film, 2-take compare) | components/Workspace.tsx, libs/stb/src/board.ts, p/[id]/page.tsx rewrite, script route → redirect |
-| REQ-STB-038 | Reorder shots by drag or ▲▼ | P9 | IN_REVIEW | USER 2026-07-25 "how can I actually change the order of the clips?" | tests/move-shot.int.spec.ts | stb/service.ts · components/Workspace.tsx · components/Timeline.tsx |
-| REQ-STB-039 | Music timeline: clips on the track's time axis, drift + off-beat cuts | P8 | IN_REVIEW | USER 2026-07-25 ("see the music timing within the clips… if I add a new clip it might outsync") | tests/timeline.spec.ts (9) + browser (Neon Rivers 5 clips, boundary ticks, 3/5→5/5 off-beat after a length edit) | libs/stb/src/timeline.ts, components/Timeline.tsx, ast/src/probe.ts (ffprobe), upload+music duration recording |
-| REQ-STB-040 | Edit clip length: free crop vs regenerate, stated per shot | P8 | IN_REVIEW | USER 2026-07-25 ("edit the length of clips (+regenerate or crop)") | tests/timeline.spec.ts crop/shortfall block + browser (5s→6s persisted, ⚠ 1s short, take price 0.51→0.61) | updateShotDurationAction, stage length editor, trimmedS/shortfallS in timeline.ts |
-| REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
-| REQ-STB-049 | Per-shot cast: only who is in the shot conditions it | P9 | IN_REVIEW | USER 2026-07-27 "modernpath logo is put to almost every scene… AI to decide which of the cast scene by scene" | tests/casting.spec.ts resolveShotCast (7) | stb/casting.ts, applyShotPlan, resolveCast(entityIds) |
-| REQ-STB-050 | Shots long enough for what happens in them | P9 | IN_REVIEW | USER 2026-07-27 "video/audio is cut… time understanding in scene planning is poor" | tests/grammar.spec.ts REQ-STB-050 (5) | speechSeconds, line-too-long rule, plan TIME BUDGET |
+| REQ-STB-035 | Script-studio generation indicators + lane lockouts | P8 | DONE | USER 2026-07-24 "this view does not show any generation indicators" | rendered-HTML check (synthetic queued row → banner) | script page activeGens query, pulse banner, 5 button lockouts |
+| REQ-STB-037 | One workspace: rail + focused shot + script/music/cast/output drawer | P8 | DONE | USER 2026-07-25 UX review ("controls and flow does not seem intuitive… cant control easily the music etc on editor") | tests/board.spec.ts (6) + browser walkthrough (rail, drawer tabs, film, 2-take compare) | components/Workspace.tsx, libs/stb/src/board.ts, p/[id]/page.tsx rewrite, script route → redirect |
+| REQ-STB-038 | Reorder shots by drag or ▲▼ | P9 | DONE | USER 2026-07-25 "how can I actually change the order of the clips?" | tests/move-shot.int.spec.ts | stb/service.ts · components/Workspace.tsx · components/Timeline.tsx |
+| REQ-STB-039 | Music timeline: clips on the track's time axis, drift + off-beat cuts | P8 | DONE | USER 2026-07-25 ("see the music timing within the clips… if I add a new clip it might outsync") | tests/timeline.spec.ts (9) + browser (Neon Rivers 5 clips, boundary ticks, 3/5→5/5 off-beat after a length edit) | libs/stb/src/timeline.ts, components/Timeline.tsx, ast/src/probe.ts (ffprobe), upload+music duration recording |
+| REQ-STB-040 | Edit clip length: free crop vs regenerate, stated per shot | P8 | DONE | USER 2026-07-25 ("edit the length of clips (+regenerate or crop)") | tests/timeline.spec.ts crop/shortfall block + browser (5s→6s persisted, ⚠ 1s short, take price 0.51→0.61) | updateShotDurationAction, stage length editor, trimmedS/shortfallS in timeline.ts |
+| REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | DONE | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
+| REQ-STB-049 | Per-shot cast: only who is in the shot conditions it | P9 | DONE | USER 2026-07-27 "modernpath logo is put to almost every scene… AI to decide which of the cast scene by scene" | tests/casting.spec.ts resolveShotCast (7) | stb/casting.ts, applyShotPlan, resolveCast(entityIds) |
+| REQ-STB-050 | Shots long enough for what happens in them | P9 | DONE | USER 2026-07-27 "video/audio is cut… time understanding in scene planning is poor" | tests/grammar.spec.ts REQ-STB-050 (5) | speechSeconds, line-too-long rule, plan TIME BUDGET |
 | REQ-STB-059 | Split stb/service.ts by aggregate | P10 | PROPOSED | `docs/88-architecture-review.md` §3 (1,136 lines · 42 exports) | — | — |
 | REQ-STB-060 | Decompose p/[id]/page.tsx into panel components | P10 | PROPOSED | `docs/88-architecture-review.md` §3 (1,180 lines · 29% of apps/web) | — | — |
 | REQ-STB-061 | Render harness for apps/web + tests for the three UI escapes | P10 | PROPOSED | `docs/88-architecture-review.md` §4b | — | — |
-| REQ-STB-062 | A sub-clip never buys a start frame | P9 | IN_REVIEW | USER 2026-07-27 "are we still generating images for sub-scenes in the beginning when approving the script?" | tests/continuity.int.spec.ts REQ-STB-062 (4) | requestFrame guard, applyPlanAction + generateMissingFramesAction skip |
-| REQ-STB-058 | A sub-clip admits when its start frame is not the real last frame | P9 | IN_REVIEW | USER 2026-07-27 "there was already a generated image, so I can't actually go to real last frame of previous video" | tests/handoff-state.spec.ts (6) | handoffState, refreshHandoffAction, honest START FRAME heading |
-| REQ-STB-056 | Linked clips numbered as sub-clips (4, 4.1, 4.2) | P9 | IN_REVIEW | USER 2026-07-27 "indicate at timeline which clips are linked, e.g. 4, 4.1, 4.2" | tests/chain-labels.spec.ts (7) | chainLabels, rail + timeline + shot header |
-| REQ-STB-057 | A sub-clip's start frame is given, not chosen or bought | P9 | IN_REVIEW | USER 2026-07-27 "show only the last frame and hide other starting images? skip the starting frame creation for subclips?" | verified live on both a sub-clip and an ordinary shot | page.tsx start-frame + GENERATE panel |
-| REQ-STB-055 | Chains generate in order; out-of-order takes refused | P9 | IN_REVIEW | USER 2026-07-27 "continue as the video for first is generated" | tests/chain.spec.ts (12) + continuity.int.spec.ts (3) | src/chain.ts, requestTake guard, generateChainAction |
-| REQ-STB-054 | Continuity chains: a shot continues another from its last frame | P9 | IN_REVIEW | USER 2026-07-27 "clothing and positions of persons sitting are changing… sub-clips for the main clip" | tests/continuity.int.spec.ts (11) | shot.continues_from_shot_id, setShotContinuity, handoffTailFrame |
-| REQ-STB-053 | A scene is cast: locations get a reference plate | P9 | IN_REVIEW | USER 2026-07-27 "the cafe setting all the time changes… generate a scene reference image for clips that belong at same scene?" | tests/casting.spec.ts REQ-STB-053 (4) + style-card.spec.ts plate (4) | entityKinds location, migration 0024, toScenePlateStyle, plan prompt |
-| REQ-STB-052 | Critique the SCRIPT, before it becomes shots | P9 | IN_REVIEW | USER 2026-07-27 "shouldn't it be run for the script?" | tests/script-critique.spec.ts (11) | stb/critique.ts SCRIPT_LENSES, critiqueAndRedraftScript, script Critique & improve |
-| REQ-STB-051 | Multi-angle critique of the plan, then revise | P9 | IN_REVIEW | USER 2026-07-27 "critique steps from few angles and improve" | tests/critique.spec.ts (11) | stb/critique.ts, critiqueAndRevise, Critique & improve |
-| REQ-STB-048 | The plan casts the film; missing characters get a portrait | P9 | IN_REVIEW | USER 2026-07-27 "other characters than Pasi are not kept… director should think of cast and list them" | tests/casting.spec.ts (14) + casting-portrait.int.spec.ts (5) + prompt.spec.ts REQ-GEN-030 (5) | stb/casting.ts, requestEntityPortrait/castFromPortrait, toPortraitStyle, casting UI |
-| REQ-STB-047 | Prompt drift audit + restore from plan | P9 | IN_REVIEW | USER 2026-07-27 "this does not sound like the prompt that was used for this image / video?" | manual audit + restore verified on the live project | scripts/audit-prompts.ts, pnpm audit:prompts |
-| REQ-STB-046 | A shot's spoken line is editable without re-planning | P9 | IN_REVIEW | USER 2026-07-27 (dialogue missing from every shot) | tests/dialogue.int.spec.ts (5) | stb updateShotDialogue, saveScriptsAndGenerateAction, SPOKEN LINE field |
-| REQ-STB-045 | Per-shot prompt identity + reference scrub at the prompt boundary | P9 | IN_REVIEW | USER 2026-07-26 "the image prompt is not retained, so I could actually generate alternative images" | apps/web/tests/stage-panel-identity.spec.tsx (3) + prompt.spec.ts (4) | page.tsx key={s.id}, prompt.ts guard(), shared/reference-scrub.ts |
-| REQ-STB-044 | The film's look reaches every picture (card → frame/take/animation) | P9 | IN_REVIEW | USER 2026-07-26 "styling was not held in the images… also character clothing changes" | tests/card-prompts.int.spec.ts (5) | stb/service.ts projectCard, shared continuity axis, style-compiler |
-| REQ-STB-043 | Director's pass: plans graded against the active card before anything is billed | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-006 (USER 2026-07-26 "Director's pass would be quite cool") | tests/director-pass.spec.ts (13) + live plan run | src/director-pass.ts · plan-normalize grammar fields · gen/prompt.ts plan schema |
-| REQ-STB-042 | Style Card contract: archetypes become data, refusals become expressible | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-003 (USER 2026-07-26 "further styling options… a bit humoristic") | shared/tests/style-card.spec.ts (18) | shared/contracts/style-card.ts · shared/config/style-cards.ts |
-| REQ-STB-041 | Shot grammar: typed craft vocabulary + plan grader | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-001/002 (USER 2026-07-26 "improve the artistic director skills… directed by Aki Kaurismäki") | tests/grammar.spec.ts (11) | shared/config/grammar.ts · libs/stb/src/grammar.ts |
-| REQ-STB-034 | First take auto-selects (export never silently empty) | P8 | IN_REVIEW | USER 2026-07-24 "why can't I export" (5 takes bought, 0 selected → Export 0 ready) | tests/take-binding.int.spec.ts REQ-STB-034 + browser (5/5 generated) | materializeGenerationOutput take branch |
-| REQ-STB-033 | Cast visibility everywhere (bar with refs + profile badges; library from home) | P8 | IN_REVIEW | USER 2026-07-24 usability screenshots | browser E2E ×3 views | components/CastBar.tsx, script page wiring, home library link |
+| REQ-STB-062 | A sub-clip never buys a start frame | P9 | DONE | USER 2026-07-27 "are we still generating images for sub-scenes in the beginning when approving the script?" | tests/continuity.int.spec.ts REQ-STB-062 (4) | requestFrame guard, applyPlanAction + generateMissingFramesAction skip |
+| REQ-STB-058 | A sub-clip admits when its start frame is not the real last frame | P9 | DONE | USER 2026-07-27 "there was already a generated image, so I can't actually go to real last frame of previous video" | tests/handoff-state.spec.ts (6) | handoffState, refreshHandoffAction, honest START FRAME heading |
+| REQ-STB-056 | Linked clips numbered as sub-clips (4, 4.1, 4.2) | P9 | DONE | USER 2026-07-27 "indicate at timeline which clips are linked, e.g. 4, 4.1, 4.2" | tests/chain-labels.spec.ts (7) | chainLabels, rail + timeline + shot header |
+| REQ-STB-057 | A sub-clip's start frame is given, not chosen or bought | P9 | DONE | USER 2026-07-27 "show only the last frame and hide other starting images? skip the starting frame creation for subclips?" | verified live on both a sub-clip and an ordinary shot | page.tsx start-frame + GENERATE panel |
+| REQ-STB-055 | Chains generate in order; out-of-order takes refused | P9 | DONE | USER 2026-07-27 "continue as the video for first is generated" | tests/chain.spec.ts (12) + continuity.int.spec.ts (3) | src/chain.ts, requestTake guard, generateChainAction |
+| REQ-STB-054 | Continuity chains: a shot continues another from its last frame | P9 | DONE | USER 2026-07-27 "clothing and positions of persons sitting are changing… sub-clips for the main clip" | tests/continuity.int.spec.ts (11) | shot.continues_from_shot_id, setShotContinuity, handoffTailFrame |
+| REQ-STB-053 | A scene is cast: locations get a reference plate | P9 | DONE | USER 2026-07-27 "the cafe setting all the time changes… generate a scene reference image for clips that belong at same scene?" | tests/casting.spec.ts REQ-STB-053 (4) + style-card.spec.ts plate (4) | entityKinds location, migration 0024, toScenePlateStyle, plan prompt |
+| REQ-STB-052 | Critique the SCRIPT, before it becomes shots | P9 | DONE | USER 2026-07-27 "shouldn't it be run for the script?" | tests/script-critique.spec.ts (11) | stb/critique.ts SCRIPT_LENSES, critiqueAndRedraftScript, script Critique & improve |
+| REQ-STB-051 | Multi-angle critique of the plan, then revise | P9 | DONE | USER 2026-07-27 "critique steps from few angles and improve" | tests/critique.spec.ts (11) | stb/critique.ts, critiqueAndRevise, Critique & improve |
+| REQ-STB-048 | The plan casts the film; missing characters get a portrait | P9 | DONE | USER 2026-07-27 "other characters than Pasi are not kept… director should think of cast and list them" | tests/casting.spec.ts (14) + casting-portrait.int.spec.ts (5) + prompt.spec.ts REQ-GEN-030 (5) | stb/casting.ts, requestEntityPortrait/castFromPortrait, toPortraitStyle, casting UI |
+| REQ-STB-047 | Prompt drift audit + restore from plan | P9 | DONE | USER 2026-07-27 "this does not sound like the prompt that was used for this image / video?" | manual audit + restore verified on the live project | scripts/audit-prompts.ts, pnpm audit:prompts |
+| REQ-STB-046 | A shot's spoken line is editable without re-planning | P9 | DONE | USER 2026-07-27 (dialogue missing from every shot) | tests/dialogue.int.spec.ts (5) | stb updateShotDialogue, saveScriptsAndGenerateAction, SPOKEN LINE field |
+| REQ-STB-045 | Per-shot prompt identity + reference scrub at the prompt boundary | P9 | DONE | USER 2026-07-26 "the image prompt is not retained, so I could actually generate alternative images" | apps/web/tests/stage-panel-identity.spec.tsx (3) + prompt.spec.ts (4) | page.tsx key={s.id}, prompt.ts guard(), shared/reference-scrub.ts |
+| REQ-STB-044 | The film's look reaches every picture (card → frame/take/animation) | P9 | DONE | USER 2026-07-26 "styling was not held in the images… also character clothing changes" | tests/card-prompts.int.spec.ts (5) | stb/service.ts projectCard, shared continuity axis, style-compiler |
+| REQ-STB-043 | Director's pass: plans graded against the active card before anything is billed | P9 | DONE | EPIC-STB-001 SR-DIR-006 (USER 2026-07-26 "Director's pass would be quite cool") | tests/director-pass.spec.ts (13) + live plan run | src/director-pass.ts · plan-normalize grammar fields · gen/prompt.ts plan schema |
+| REQ-STB-042 | Style Card contract: archetypes become data, refusals become expressible | P9 | DONE | EPIC-STB-001 SR-DIR-003 (USER 2026-07-26 "further styling options… a bit humoristic") | shared/tests/style-card.spec.ts (18) | shared/contracts/style-card.ts · shared/config/style-cards.ts |
+| REQ-STB-041 | Shot grammar: typed craft vocabulary + plan grader | P9 | DONE | EPIC-STB-001 SR-DIR-001/002 (USER 2026-07-26 "improve the artistic director skills… directed by Aki Kaurismäki") | tests/grammar.spec.ts (11) | shared/config/grammar.ts · libs/stb/src/grammar.ts |
+| REQ-STB-034 | First take auto-selects (export never silently empty) | P8 | DONE | USER 2026-07-24 "why can't I export" (5 takes bought, 0 selected → Export 0 ready) | tests/take-binding.int.spec.ts REQ-STB-034 + browser (5/5 generated) | materializeGenerationOutput take branch |
+| REQ-STB-033 | Cast visibility everywhere (bar with refs + profile badges; library from home) | P8 | DONE | USER 2026-07-24 usability screenshots | browser E2E ×3 views | components/CastBar.tsx, script page wiring, home library link |
 | REQ-STB-032 | Lyric-shot alignment (text appears when the line is sung) | P8 | BLOCKED | Neon Rivers 2026-07-24 · blocked on OQ-115 (strategy: fill-to-timestamp vs track offset vs both) | — | — |
-| REQ-STB-031 | Storyboard players audible (no forced mute) | P7 | IN_REVIEW | USER BUG 2026-07-24 "Kaiju video has no sound" | server-rendered markup + browser (mute icon gone) | page.tsx tile <video> unmuted |
+| REQ-STB-031 | Storyboard players audible (no forced mute) | P7 | DONE | USER BUG 2026-07-24 "Kaiju video has no sound" | server-rendered markup + browser (mute icon gone) | page.tsx tile <video> unmuted |
 | REQ-STB-030 | Route-aware UI (route badge + honest take estimates) | P7 | DONE | BACKLOG 2026-07-24 (10s omni shot showed veo-snapped $0.80) | libs/gen/tests/omni-video.spec.ts REQ-STB-030 block + browser | gen estimateTake, storyboard header badge, take-button estimate + effective-duration hint |
 | REQ-STB-025 | Lyric-synced cut suggestions (♪ MUSIC SYNC) | P6 | DONE | USER Lyria epic ("time the change of scene according to song timing") | tests/music-sync.spec.ts + update-duration.int + browser E2E | src/music-sync.ts, updateShotDuration, applySyncAction, SYNC panel |
 | REQ-STB-024 | Plan-authored animation shots (free, no frame spend) | P6 | DONE | USER Remotion epic ("purely remotion animations (prompt)") | plan-normalize spec + real E2E frame | migration 0020, normalize/apply, plan prompt, applyPlanAction branch, badge+prefill UI |
@@ -382,7 +382,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** route stays env-level (no per-project route picker yet — needs a product decision on mixed-route projects).
 
 ### REQ-STB-031 — Storyboard players audible
-- **Status:** IN_REVIEW  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
+- **Status:** DONE  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
 - **Raised-by:** USER BUG 2026-07-24: "Kaiju video has no sound"
 - **Source:** docs/06 (players surface real output); takes carry native Veo/Omni audio, exports carry the mix
 - **Statement:** Storyboard tile players are audible by default — diagnosis showed the media was never silent (take aac −, export mp3 mean −15.8 dB); a hard-coded `muted` on the tile <video> made the whole product seem soundless.
@@ -398,7 +398,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Options on the table (docs/08 OQ-115):** (a) fill-to-timestamp planning · (b) export-time track start-offset · (c) both, archetype-chosen. Recommendation recorded: (c), building (b) first. Unblocks on the human call.
 
 ### REQ-STB-033 — Cast visibility everywhere
-- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Status:** DONE · **Stage:** P8 · **Priority:** must
 - **Raised-by:** USER 2026-07-24: "library and selection of video cast should be more prominent and available from all the views. Now when going to script studio, I have no idea what content is being included in the prompt" + "you should be able to go to them from projects view"
 - **Statement:** A shared CastBar (checkbox chips with ref thumbnails, a `profile` badge for entities whose long-form background feeds text prompts, Save cast, library link) renders on BOTH the storyboard and script studio — the script-studio copy is labeled "these members (and their profiles) are included in script, shot-plan and music prompts". The projects home header links to the library.
 - **Acceptance criteria:**
@@ -409,7 +409,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** per-shot cast overrides UI (direction.entityIds) still storyboard-only.
 
 ### REQ-STB-034 — First take auto-selects
-- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Status:** DONE · **Stage:** P8 · **Priority:** must
 - **Raised-by:** USER 2026-07-24: "why can't I export / generate the video from here?" — all 5 takes existed but none selected; export honestly reported "0 ready · skip 5", which reads as broken
 - **Source:** INV-STB-003/004 (single selection, ready-only) — selection stays user-owned; this only fills the empty state
 - **Statement:** When a take materializes onto a shot with NO selected take, it auto-selects (one candidate = no creative choice yet). An existing selection is never overridden; users can reselect/deselect as before.
@@ -421,7 +421,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** refines slice-38's "never auto-select on the user's behalf": that decision covered AGENT-initiated repair takes; user-initiated takes filling an empty slot are the user's own action. Frames keep explicit selection (2 candidates arrive by design).
 
 ### REQ-STB-035 — Script-studio generation indicators
-- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Status:** DONE · **Stage:** P8 · **Priority:** must
 - **Raised-by:** USER 2026-07-24: the script studio gave zero signal while script/plan/brief/track/transcript generations ran (queue mode finishes AFTER the action returns; only the storyboard had indicators)
 - **Statement:** The script page queries active text/music generations and shows a pulsing accent banner naming what's generating ("updates live when it lands"); the five triggering buttons (Draft/Redraft, Break into shots, brief, ♫ track, ⏱ transcribe) lock and relabel while their kind is active — no signalless waits, no double-spend.
 - **Acceptance criteria:**
@@ -431,7 +431,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** storyboard already had per-shot pulses + RECENT GENERATIONS; this closes the gap for the text lanes.
 
 ### REQ-STB-036 — Animation template variety: plan varies, user chooses
-- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Status:** DONE · **Stage:** P8 · **Priority:** must
 - **Raised-by:** USER 2026-07-24: "the animations are really limited, always repeating one. Can we have some variability and even possibility to choose?"
 - **Statement:** The shot planner knows the full full-frame template set (`fullFrameAnimationTemplates` in shared config: title · kinetic · stat · quote · checklist), is instructed to VARY templates across animation shots, and its choice survives normalization, enqueue, and executor dispatch; the storyboard picker offers every template plus a subtext field (quote attribution / checklist items / stat subline). Root cause fixed: the executor collapsed every non-"kinetic" template to "title".
 - **Acceptance criteria:**
@@ -443,7 +443,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Log:** LOG 2026-07-24 · **Deferred / notes:** per-template prop editors (e.g. per-item checklist rows) later; REQ-ANM-006 owns the new compositions.
 
 ### REQ-STB-037 — One workspace: rail + focused shot + script/music/cast/output drawer
-- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Status:** DONE · **Stage:** P8 · **Priority:** must
 - **Raised-by:** USER 2026-07-25 UX review: "The controls and flow does not seem intuitive, I need to navigate between the screens, scroll up and down etc. Especially when I need to edit something, e.g. script or music, it's really bad experience as script view changes them, but I cant control easily the music etc on editor. Also going up to generate the video etc is quirky, looking and comparing videos difficult, cant add my own scenes or change their order etc. Weird animatic seems useful with music, but it's too separate etc. Maybe rather use some sidebar/floating stuff etc?"
 - **Statement:** The project is one workspace, not two scrolling pages. A sticky command bar keeps title · progress · spend · animatic · export always reachable; a left rail lists every shot (status dot, thumbnail, duration, live "working" pulse) and focuses one at a time; the stage shows that single shot with its selected take playing large, its takes side by side, frames, prompts and per-shot refs; a right drawer holds Script · Music · Cast · Output so the script, brief, track and export settings are editable without leaving the board. `/p/:id/script` redirects into the workspace. Layout state (focused shot, open panel, panel width) survives server-action re-renders via sessionStorage.
 - **Acceptance criteria:**
@@ -458,7 +458,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** drag-to-reorder in the rail (↑↓ per shot for now) → REQ-STB-038 PROPOSED; inserting a shot at a position (append + reorder today); floating/detachable panels and multi-select take compare beyond the existing A/B overlay.
 
 ### REQ-STB-038 — Reorder shots by drag or ▲▼
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Status:** DONE · **Stage:** P9 · **Priority:** should
 - **Raised-by:** USER 2026-07-25: "how can I actually change the order of the clips? I cant see up/down arrows?" — the ↑↓ pair existed only in the stage header, which scrolls off above the player, so from the rail the order looked fixed.
 - **Statement:** A shot's place in the cut shall be changeable from where the order is *shown*: every rail row carries a `⋮⋮` grip and an always-visible ▲/▼ pair (disabled at the ends), and clips on the timeline are draggable along the axis. Both paths issue ONE positional move (`moveShotToIndex`), not a chain of neighbour swaps, and the animatic, timeline and export order follow immediately.
 - **Acceptance criteria:**
@@ -474,7 +474,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** inserting a *new* shot at a position (still append-then-move); keyboard-only reorder (the ▲▼ buttons are focusable, but there is no alt+↑/↓ shortcut); dragging a clip's edge to resize → REQ-STB-040 notes. The old neighbour-swap `reorderShotAction` stays exported for the animatic/older callers.
 
 ### REQ-STB-039 — Music timeline: clips on the track's time axis
-- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Status:** DONE · **Stage:** P8 · **Priority:** must
 - **Raised-by:** USER 2026-07-25: "somehow it would be nice to see the music timing within the clips, like traditional video editors do? Because if I e.g. add new clip, it might outsync the video."
 - **Statement:** A timeline strip under the command bar puts the cut on a real time axis: every clip drawn to scale (status-tinted, click to focus), the track's section changes (MM:SS transcript, REQ-GEN-020) as ticks across the clips with a thinned ruler, `cut` vs `track` lengths, drift (`▲ cut runs Ns past the track` / `◂ Ns of track unused`) and an off-beat count (`3/5 cuts off the beat`). Each shot also states its own `0:08 → 0:12 in the cut` and `♪ on/off the beat`. The axis follows the CUT: leftover track is drawn to scale only up to a third of the cut, then collapses to a `⋯ +M:SS track` chip, because a 2:55 track against a 0:27 cut squeezed every clip into 15% of the width.
 - **Acceptance criteria:**
@@ -488,7 +488,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** `asset.duration_s` was NULL for every audio row, so drift could never render — now probed at upload/generate and backfilled (17/17 existing tracks). Waveform rendering, a scrubbing playhead across clips, and drag-the-edge trimming are not built; ticks come from section stamps, not beat detection.
 
 ### REQ-STB-049 — Per-shot cast: only who is in the shot conditions it
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27: "e.g. modernpath logo is put to almost every scene, I want AI to decide which of the cast should be placed as reference images scene by scene."
 - **Statement:** Each shot shall be conditioned only on the cast actually in it. `resolveShotRefs` fell back to the WHOLE cast whenever a shot had no explicit refs, so a close-up of a face in a tram carried the company logo as a reference image and named the brand in its prompt.
 - **Acceptance criteria:**
@@ -503,7 +503,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** shots applied before this keep whole-cast refs — re-plan or edit refs per shot. Verified live: the re-planned film lists ModernPath in NO shot's cast.
 
 ### REQ-STB-050 — Shots long enough for what happens in them
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27: "at some scenes, video/audio is cut, meaning that the time understanding in scene planning is poor, more emphasis should be put on how long certain things take."
 - **Statement:** A shot's length shall be checked against what has to happen in it, and the planner shall budget time explicitly rather than assuming. A shot given 4s and a 7s line ends mid-sentence, and nothing measured it because nothing knew how long speech takes.
 - **Acceptance criteria:**
@@ -549,7 +549,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** depends on REQ-STB-060 — panels must be extractable before they are renderable. These three tests are the specific escapes; the harness is the general fix.
 
 ### REQ-STB-062 — A sub-clip never buys a start frame
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27: "are we still generating images for sub-scenes in the beginning when approving the script?" — yes, we were. Five of the ten shots on their MP Burton project bought a start frame the tail-frame handoff discards.
 - **Statement:** A shot that continues another shall never generate a start frame. Its first frame IS the previous take's last frame (REQ-STB-054), so a generated one is money spent on an image that is thrown away. REQ-STB-057 hid the controls in the UI, but "Apply + frames" and "generate missing frames" are different paths and spent it anyway.
 - **Acceptance criteria:**
@@ -563,7 +563,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** the frames already bought on existing projects are not refunded or removed; they are simply replaced when the handoff runs. Skip-vs-refuse is deliberate: a single-shot request is a mistake worth naming, a batch is a bulk gesture where one ineligible shot must not abort the rest.
 
 ### REQ-STB-058 — A sub-clip admits when its start frame is not the real last frame
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27: "In my other video, there was already a generated image, so I can't actually go to real last frame of previous video."
 - **Statement:** A sub-clip shall state truthfully whether its start frame came from the source take, and shall offer to pull the real one. The automatic handoff refuses to overwrite a frame the user chose (REQ-STB-054) — correct, but the panel then claimed "starts from its last frame" over a frame generated before the chain existed, and nothing offered a way out. A safe default that lies on screen is worse than one that admits what it did.
 - **Acceptance criteria:**
@@ -578,7 +578,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** provenance is inferred from the frame candidate's generation id rather than stored explicitly — a frame cut from a take carries that take's generation, which is unambiguous today but would need a real column if frames ever gained other origins.
 
 ### REQ-STB-056 — Linked clips numbered as sub-clips
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Status:** DONE · **Stage:** P9 · **Priority:** should
 - **Raised-by:** USER 2026-07-27: "should we somehow indicate at timeline which clips are linked, e.g. with numbering, e.g. 4, 4.1, 4.2 etc or alignment."
 - **Statement:** A continuity chain shall be legible at a glance. It was previously invisible until a shot was focused, so the dependency the film depends on could not be seen while looking at the film.
 - **Acceptance criteria:**
@@ -594,7 +594,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** sub-clips of a sub-clip stay flat under the head (4.1, 4.2 — never 4.1.1); a chain is a sequence, not a tree. Indentation in the rail was considered and left out — the number already carries it and indentation would fight the drag-to-reorder affordance.
 
 ### REQ-STB-057 — A sub-clip's start frame is given, not chosen or bought
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27: "if we have continuity, should we show only the last frame and hide other starting images? Maybe even skip the starting frame creation at the beginning for subclips?"
 - **Statement:** A shot that continues another shall present its start frame as a given, not a choice. Its first frame IS the previous take's last frame (REQ-STB-054), so offering alternatives invites the user to break the chain, and offering paid frame generation sells them an image that will be discarded.
 - **Acceptance criteria:**
@@ -607,7 +607,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** UI-only, so guarded by live verification rather than a unit test — the service already refuses out-of-order takes (REQ-STB-055), and a frame generated on a sub-clip is wasteful rather than dangerous. Breaking the chain still restores the full picker, which is the intended escape hatch.
 
 ### REQ-STB-055 — Chains generate in order; out-of-order takes refused
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27, describing continuity chains: "so we can see the dependency and **continue as the video for first is generated**."
 - **Statement:** A shot that continues another shall not be generated before its source has a chosen take. Its start frame IS that take's last frame (REQ-STB-054), so generating out of order buys a take with nothing to start from — the chain is silently defeated and the money is spent. Order is part of the feature.
 - **Acceptance criteria:**
@@ -623,7 +623,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** the chain action auto-selects each take to hand the frame on; a user wanting to choose between takes mid-chain should generate shot by shot instead. Frame generation is not ordered — only takes carry the continuity.
 
 ### REQ-STB-054 — Continuity chains: a shot continues another from its last frame
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27: "the clothing and positions of persons sitting are changing? Maybe we should plan for continuity in some stages where it's required and store the last frame of video as reference starting image for next clip? They should be considered as sub-clips for the main clip, so we can see the dependency and continue as the video for first is generated."
 - **Statement:** A shot may CONTINUE another — the same unbroken moment — and shall then start from that shot's last frame. Reference images hold a face and a room, but a description cannot hold a pose or the exact drape of a coat; only the previous frame can. The dependency shall be explicit and visible.
 - **Acceptance criteria:**
@@ -639,7 +639,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** the chain conditions the START of the next take; the video model still drifts within a clip, so a long chain accumulates drift. Generation order is not enforced — a continuing shot generated before its source simply has no frame yet and says so. Shots already generated keep their frames until the chain is set explicitly.
 
 ### REQ-STB-053 — A scene is cast: locations get a reference plate
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27, across four takes of the same canteen — booth, bench, wall and table all different: "It's still a problem that the cafe setting all the time changes. Maybe we should also generate a scene reference image for clips that belong at same scene?"
 - **Statement:** A recurring PLACE shall be cast exactly as a character is: it becomes an entity of kind `location` with a reference plate, and every shot set there is conditioned on it. The character fix (REQ-STB-048/049) held faces still while the space behind them was re-invented shot to shot, because nothing held the space.
 - **Acceptance criteria:**
@@ -654,7 +654,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** shots generated before the plate existed keep their old references — regenerate them. A plate is one wide of the space; a scene shot from several angles may want more than one (INV-AST-004 allows 5). The plan decides scene boundaries; there is no explicit scene grouping in the data model (OQ-108 covers whether shots need scenes as a first-class concept).
 
 ### REQ-STB-052 — Critique the SCRIPT, before it becomes shots
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27, on a project with a script and no shots: "shouldn't it be run for the script?"
 - **Statement:** The script shall be critiqued and redrafted before it is broken into shots. Runtime, structure and who is in the film are decided in the SCRIPT; REQ-STB-051 caught those faults only in the shot plan, i.e. after each had already been split across ten shots.
 - **Acceptance criteria:**
@@ -670,7 +670,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** the redraft replaces the whole script rather than proposing a diff — OQ-109 covers diff UX and applies here too. Critique costs four text calls and stays off the generation ledger, matching `research.ts`. The script's own text is NOT scrubbed of reference names: it is the user's own writing going to a TEXT model, and SCN-DIR-002 governs visual prompts.
 
 ### REQ-STB-051 — Multi-angle critique of the plan, then revise
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Status:** DONE · **Stage:** P9 · **Priority:** should
 - **Raised-by:** USER 2026-07-27: "Maybe script planning could include some more iterations of adding critique steps from few angles and improve."
 - **Statement:** A draft plan shall be read by several independent reviewers with distinct briefs, and their findings plus the mechanical grade shall drive a revised proposal. The grader only catches what is checkable; it cannot see an unmotivated beat, a brand in a shot with no reason to hold it, or a film with no story.
 - **Acceptance criteria:**
@@ -686,7 +686,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** one pass, not a loop to convergence — the user can press it again. Critique costs four text calls and is not recorded in the generation ledger, matching the `research.ts` precedent for cheap text; if that becomes material it should get rows. The revised plan is not auto-applied.
 
 ### REQ-STB-048 — The plan casts the film; missing characters get a portrait
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27: "the other characters than Pasi in this movie are not kept. In the script planning, I think that director should think of cast and list them, allowing to generate images for other cast needed in this movie… Maybe allow either adding a image for character or generate it?"
 - **Statement:** The shot plan shall name every recurring body the film puts on screen, and anyone without a reference image shall be castable from the workspace — by generating a portrait from the planner's appearance line, or by uploading one. Reference images are the only mechanism of character consistency, so a character nobody casts is re-invented in every shot; in `Synchronized Drink` the model gave up and drew Pasi twice.
 - **Acceptance criteria:**
@@ -703,7 +703,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** casting does not retro-fit shots already generated — regenerate those a newly cast character appears in. One portrait per member (INV-AST-004 allows up to 5); more angles would strengthen consistency further.
 
 ### REQ-STB-047 — Prompt drift audit + restore from plan
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Status:** DONE · **Stage:** P9 · **Priority:** should
 - **Raised-by:** USER 2026-07-27, looking at shot 15 "Synchronized Drink": "this does not sound like the prompt that was used for this image / video?" It held shot 6's title-card text, character for character.
 - **Statement:** Prompts silently written to the wrong shot shall be detectable and recoverable. REQ-STB-045 stopped NEW corruption (the stage reused one shot's uncontrolled prompt boxes for another, so Save could write the wrong text) but did nothing about damage already done — and a prompt belonging to another shot still reads like a perfectly good prompt, so inspection alone will not find it. The planner's original text survives in `shot_plan_proposal` after the shot row is overwritten, which makes both detection and repair possible.
 - **Acceptance criteria:**
@@ -717,7 +717,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** an in-app "revert to planned" per shot would beat a CLI script, but it needs the proposal loaded per shot in the workspace; the script covers the damage that exists now. Only one shot was affected on the user's project — the blast radius was small, but it was real, and it had already produced paid media from a prompt that did not describe the shot.
 
 ### REQ-STB-046 — A shot's spoken line is editable without re-planning
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Status:** DONE · **Stage:** P9 · **Priority:** should
 - **Raised-by:** USER 2026-07-27 — with REQ-GEN-028 fixed, the 11 shots they had already generated still stored no dialogue, and the only way to get lines was a re-plan that would discard paid takes.
 - **Statement:** The words spoken in a shot shall be editable in place and saved with that shot's scripts.
 - **Acceptance criteria:**
@@ -732,7 +732,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** one line per shot. A two-hander like `Synchronized Drink` cannot yet give each character their own line; the field takes whatever should be heard in that shot.
 
 ### REQ-STB-045 — Per-shot prompt identity + reference scrub at the prompt boundary
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-26: "for some reason the image prompt is not retained, so I could actually generate alternative images if I'm not happy? Now having two Pasi's drinking is not what I was after." Focused on shot 15, the IMAGE SCRIPT box showed shot 7's title-card text.
 - **Statement:** Each shot's prompt editor shall show that shot's own text, and no reference name shall reach an image or video model through text the PLANNER wrote.
 - **Acceptance criteria:**
@@ -746,7 +746,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** "two Pasis" is a separate cast problem, not a prompt problem — the plan's `Synchronized Drink` shot has Pasi AND a colleague, but only Pasi is cast with reference images, so the model drew him twice. Casting a distinct second entity (or naming the colleague's appearance in the shot's prompt) is the fix; recorded here rather than silently bundled.
 
 ### REQ-STB-044 — The film's look reaches every picture
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-26, on real output: "styling was not held in the images" (one shot returned as a flat cartoon while its neighbours were photographic) and "also character clothing changes" (grey suit → navy suit → olive shirt across five shots).
 - **Statement:** Every image and video prompt shall carry the project's Style Card, and the card shall state what must remain identical between shots. `assembleFramePrompt`/`assembleTakePrompt` have accepted a `card` since REQ-GEN-026, but no caller passed one — so the look reached a picture only when the planner happened to write it into that shot's `imagePrompt`, which is exactly why one shot drifted to illustration.
 - **Acceptance criteria:**
@@ -762,7 +762,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** frames already generated keep their old prompts — this only affects new generations. Cast reference images remain the stronger consistency lever for faces; continuity is prose and so is advisory to the model, not enforced.
 
 ### REQ-STB-043 — Director's pass: plans graded against the active card before anything is billed
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Status:** DONE · **Stage:** P9 · **Priority:** should
 - **Raised-by:** USER 2026-07-26: "Director's pass would be quite cool." — EPIC-STB-001, SR-DIR-006 (SCN-DIR-003).
 - **Statement:** A draft shot plan shall state its own craft and be graded against the project's Style Card before any generation is paid for, with notes that name the shots and the axis each one violates; a revision prompt shall then ask for a plan that fixes exactly those notes.
 - **Acceptance criteria:**
@@ -778,7 +778,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** the revision is not yet executed or applied — `assembleDirectorPassPrompt` is built and tested but nothing calls the model with it and writes the result back, and the notes are not yet surfaced in the UI. Both need the plan-proposal flow and are the remaining work on SCN-DIR-003, which therefore is NOT `UPPER_VALIDATED`.
 
 ### REQ-STB-042 — Style Card contract: archetypes become data, refusals become expressible
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Status:** DONE · **Stage:** P9 · **Priority:** should
 - **Raised-by:** USER 2026-07-26: "also looking for even further styling options. Like saying I want a 1-minute feature film of ModernPath AI directed by Aki Kaurismäki, a bit humoristic." — EPIC-STB-001, SR-DIR-003.
 - **Source:** `epics/EPIC-STB-001-director-briefs.md` (SCN-DIR-001, SCN-DIR-002); `docs/87-directing-playbook.md`
 - **Statement:** Style shall be structured, editable data rather than prose in prompt strings. A Zod Style Card (ADR-003 canonical) carries typed craft axes — structure/arc, camera (allowed movements, sizes, angles), pacing window, palette, light, performance, **humour**, sound, typography — plus **anti-notes**, the refusals no `ArchetypeRecipe` field could express. The six existing archetypes are re-expressed as seed cards under their existing keys. `provenance` (the user's brief and any reference director) is display-only and MUST NOT reach any prompt.
@@ -795,7 +795,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** enabler slice — `archetypes.ts` still feeds `recipeFor()` (`libs/stb/src/service.ts`) and `setProjectArchetype` (`libs/prj/src/service.ts`); switching those call sites to cards is TASK-DIR-004, which the key-parity test above protects. Storing per-project editable cards is SR-DIR-008. Whip pan was left out of the vocabulary deliberately: it is a transition, not a shot movement, and belongs to the deferred exporter-transitions work.
 
 ### REQ-STB-041 — Shot grammar: typed craft vocabulary + plan grader
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Status:** DONE · **Stage:** P9 · **Priority:** should
 - **Raised-by:** USER 2026-07-26: "Can we further improve the artistic director skills of our video scripting… Like saying I want a 1-minute feature film of ModernPath AI directed by Aki Kaurismäki, a bit humoristic." — EPIC-STB-001, SR-DIR-001 + SR-DIR-002.
 - **Source:** `docs/87-directing-playbook.md` §"Directing principles" (2, 4, 6); `epics/EPIC-STB-001-director-briefs.md`
 - **Statement:** Craft direction shall be expressible as typed data and gradable as such. A versioned vocabulary (shot size, angle, movement, plus grader thresholds) lives in `@avd/shared/config`, and a pure `gradeShotGrammar(shots, constraints)` returns structured, director-readable notes — so the playbook's principles are checked rather than merely injected into a prompt string. `direction.camera` free text could not express or verify any of this.
@@ -814,7 +814,7 @@ Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 - **Deferred / notes:** enabler slice — the grammar is not yet emitted by the planner or shown in the UI. Consuming it is TASK-DIR-004 (card-driven prompts) and TASK-DIR-005 (director's pass); the plan schema gains the typed fields with TASK-DIR-002. Grader is pure and synchronous by design so a draft plan can be graded before any generation is billed (SCN-DIR-003).
 
 ### REQ-STB-040 — Edit clip length: free crop vs regenerate
-- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Status:** DONE · **Stage:** P8 · **Priority:** must
 - **Raised-by:** USER 2026-07-25: "Maybe also being able to edit the length of clips (+renegerate or crop the video/animation)"
 - **Statement:** Each shot on the stage carries a length field with `Set length` (INV-STB-001 bounds enforced in the service) and states the consequence before you spend: shortening below the take's real footage shows `✂ export crops Ns of this take · free` (the exporter already normalizes every clip with ffmpeg `-t durationS`, so no regeneration is needed); lengthening past it shows `⚠ take is Ns short — regenerate to fill` plus a hatched overlay on the clip in the timeline, with the take estimate repriced for the new length.
 - **Acceptance criteria:**

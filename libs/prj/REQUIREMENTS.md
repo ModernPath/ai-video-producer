@@ -1,7 +1,7 @@
 # Requirements Ledger — PRJ (Projects)
 
 ## Dashboard — PRJ (Projects)
-Totals: 4 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 6 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -9,8 +9,8 @@ Totals: 4 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 | REQ-PRJ-002 | Idempotent creation (command_id) | P2 | DONE | BR-PRJ papercut (USER dup project) | tests/create.int.spec.ts + browser double-click | src/service.ts, migration 0011 |
 | REQ-PRJ-003 | Archive lifecycle | P2 | DONE | BR-PRJ-003 (`docs/11` §4) | tests/archive.int.spec.ts | src/service.ts, ../gen/src/service.ts (enqueue guard) |
 | REQ-PRJ-004 | Cost meter read model | P2 | DONE | INV-PRJ-004 (`docs/11` §3) | tests/cost-meter.int.spec.ts | src/service.ts (costMeterUsd) |
-| REQ-PRJ-005 | Compiled Style Card stored on the project | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-008 (USER 2026-07-26 "how do I test my Kaurismäki shortfilm?") | tests/style-card-store.int.spec.ts (9) | src/service.ts (setProjectStyleCard/getProjectStyleCard), migration 0023, web compileStyleCardAction |
-| REQ-PRJ-006 | Film runtime: settable, and read from the prompt when stated | P9 | IN_REVIEW | USER 2026-07-26 "it's only 30seconds instead of minute that I was asking for" | tests/brief-duration.spec.ts (8) + style-card-store.int.spec.ts | src/brief-duration.ts, setProjectTargetDuration, web runtime field |
+| REQ-PRJ-005 | Compiled Style Card stored on the project | P9 | DONE | EPIC-STB-001 SR-DIR-008 (USER 2026-07-26 "how do I test my Kaurismäki shortfilm?") | tests/style-card-store.int.spec.ts (9) | src/service.ts (setProjectStyleCard/getProjectStyleCard), migration 0023, web compileStyleCardAction |
+| REQ-PRJ-006 | Film runtime: settable, and read from the prompt when stated | P9 | DONE | USER 2026-07-26 "it's only 30seconds instead of minute that I was asking for" | tests/brief-duration.spec.ts (8) + style-card-store.int.spec.ts | src/brief-duration.ts, setProjectTargetDuration, web runtime field |
 
 ---
 
@@ -57,7 +57,7 @@ Totals: 4 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 - **Deferred / notes:** wiring the storyboard header (`apps/web/app/p/[id]/page.tsx`) to `costMeterUsd` is left for the integrator (that file is out of scope for this slice); the current inline SQL there sums all statuses and thus diverges from INV-PRJ-004 until wired.
 
 ### REQ-PRJ-005 — Compiled Style Card stored on the project
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Status:** DONE · **Stage:** P9 · **Priority:** should
 - **Raised-by:** USER 2026-07-26: "hmm, how do I test my Kaurismäki shortfilm?" — the directing picker offered only the six built-ins, so a brief compiled by REQ-GEN-025 had nowhere to live and nothing in the app could use it.
 - **Source:** `epics/EPIC-STB-001-director-briefs.md` SR-DIR-008 (SCN-DIR-001)
 - **Statement:** A Style Card compiled from the project's own prompt shall be stored on the project, validated against the contract on the way in, and take precedence over the six seed keys. Exactly one style source is active at a time.
@@ -75,7 +75,7 @@ Totals: 4 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 - **Deferred / notes:** the card is not yet editable axis-by-axis in the UI (UR-DIR-002) — recompiling replaces it. Compiling is a blocking server action taking ~25s; it is not routed through the generation ledger because, like `research.ts`, it is a single near-free text call.
 
 ### REQ-PRJ-006 — Film runtime: settable, and read from the prompt when stated
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Status:** DONE · **Stage:** P9 · **Priority:** should
 - **Raised-by:** USER 2026-07-26: "Also it's only 30seconds instead of minute that I was asking for."
 - **Statement:** A project's target runtime shall be editable, and a runtime stated in the user's own prompt shall be honoured when a Style Card is compiled from it. Investigation showed two separate causes: the runtime was displayed in the header but editable NOWHERE, and nothing ever read a duration out of the brief.
 - **Acceptance criteria:**

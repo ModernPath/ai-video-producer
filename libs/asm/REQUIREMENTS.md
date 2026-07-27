@@ -1,15 +1,15 @@
 # Requirements Ledger — ASM (Assembly & Export)
 
 ## Dashboard — ASM (Assembly & Export)
-Totals: 11 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 15 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-ASM-001 | Snapshot requires ready takes; immutable | P1 | DONE | INV-ASM-001/002 | tests/export.int.spec.ts | src/service.ts |
-| REQ-ASM-015 | Audio mode in plain language, one click, next to the player | P8 | IN_REVIEW | USER 2026-07-25 "how do I select do I use the tracks own audio, music or mixed?" | browser (one click native→mix relabels player + ducks bed to 0.2512; restore to music) | components/AudioModePicker.tsx, stage + Music + Output wiring |
-| REQ-ASM-014 | Clip preview plays with the music bed at its cut position | P8 | IN_REVIEW | USER 2026-07-25 "how do I play the audio within one clip? … only the videos own audio track, not external music" | tests/preview-mix.spec.ts (6) + browser (music: bed@19.32 vs expected 19.27, scrub→21.33/21.32, pause stops bed; mix: duck 0.2512 == 10^(-12/20)) | libs/asm/src/preview.ts, components/ClipPlayer.tsx, stage wiring |
-| REQ-ASM-013 | Finished film plays in-app (exports player + post-export jump) | P7 | IN_REVIEW | USER 2026-07-24 "how do I even play the video" | browser E2E (#exports anchor + inline player) | page.tsx exports section, exportAction redirect |
-| REQ-ASM-012 | Exports use universally playable audio (aac) | P7 | IN_REVIEW | USER BUG 2026-07-24 (downloaded export silent in QuickTime) | tests/audio-mix.int.spec.ts (music mode aac) | src/service.ts music-mode -c:a aac |
+| REQ-ASM-015 | Audio mode in plain language, one click, next to the player | P8 | DONE | USER 2026-07-25 "how do I select do I use the tracks own audio, music or mixed?" | browser (one click native→mix relabels player + ducks bed to 0.2512; restore to music) | components/AudioModePicker.tsx, stage + Music + Output wiring |
+| REQ-ASM-014 | Clip preview plays with the music bed at its cut position | P8 | DONE | USER 2026-07-25 "how do I play the audio within one clip? … only the videos own audio track, not external music" | tests/preview-mix.spec.ts (6) + browser (music: bed@19.32 vs expected 19.27, scrub→21.33/21.32, pause stops bed; mix: duck 0.2512 == 10^(-12/20)) | libs/asm/src/preview.ts, components/ClipPlayer.tsx, stage wiring |
+| REQ-ASM-013 | Finished film plays in-app (exports player + post-export jump) | P7 | DONE | USER 2026-07-24 "how do I even play the video" | browser E2E (#exports anchor + inline player) | page.tsx exports section, exportAction redirect |
+| REQ-ASM-012 | Exports use universally playable audio (aac) | P7 | DONE | USER BUG 2026-07-24 (downloaded export silent in QuickTime) | tests/audio-mix.int.spec.ts (music mode aac) | src/service.ts music-mode -c:a aac |
 | REQ-ASM-002 | Export concatenates takes, no generation | P1 | DONE | INV-ASM-003 | tests/export.int.spec.ts | src/service.ts |
 | REQ-ASM-003 | Export output downloadable as ready asset | P1 | DONE | `docs/15` §5 | tests/export.int.spec.ts + browser E2E | src/service.ts, apps/web (exports UI) |
 | REQ-ASM-004 | Audio mix modes (native/music/mix) at export | P3 | DONE | BR-ASM-001/002 | tests/audio-mix.int.spec.ts + browser/ffprobe | src/service.ts (snapshot audio + mix pass) |
@@ -138,7 +138,7 @@ Totals: 11 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Deferred / notes:** exports-list Share button wiring in `app/p/[id]/page.tsx` is integrated later (out of this slice); `shareExportAction` is ready for it.
 
 ### REQ-ASM-012 — Exports use universally playable audio
-- **Status:** IN_REVIEW  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
+- **Status:** DONE  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
 - **Raised-by:** USER BUG 2026-07-24: "exported video did not contain audio" — music-mode exports muxed the Lyria mp3 stream as mp3-in-mp4, which QuickTime/AVFoundation plays SILENT (Chrome tolerates it, which masked the bug in browser checks)
 - **Source:** BR-ASM-001/002 (music mode); playback compatibility
 - **Statement:** Every export encodes audio as AAC regardless of mix mode; mp3 never reaches the final container.
@@ -149,7 +149,7 @@ Totals: 11 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Deferred / notes:** both live films re-exported with aac; old silent-in-QuickTime exports remain as prior rows (immutable assets).
 
 ### REQ-ASM-013 — Finished film plays in-app
-- **Status:** IN_REVIEW  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
+- **Status:** DONE  ·  **Stage:** P7  ·  **Priority:** must  ·  **Owner:** —
 - **Raised-by:** USER 2026-07-24: "How do I even play the video as the service?" — the EXPORTS section offered only download/share links, no player
 - **Source:** docs/06 (the finished film is the product's payoff; it must be impossible to miss)
 - **Statement:** The EXPORTS section leads with an inline audible player for the newest successful export, carries the anchor `#exports`, and the Export action redirects to it on completion.
@@ -160,7 +160,7 @@ Totals: 11 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Deferred / notes:** queue-mode exports finish async — the redirect lands on the running row; LiveRefresh updates it in place.
 
 ### REQ-ASM-014 — Clip preview plays with the music bed at its cut position
-- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Status:** DONE · **Stage:** P8 · **Priority:** must
 - **Raised-by:** USER 2026-07-25: "how do I play the audio within one clip? Timeline is good, but can't play the video with the audio (only the videos own audio track, not external music)"
 - **Statement:** Playing the selected take on the stage also plays the project track underneath, seeked to THAT clip's position in the cut (a clip at 0:18→0:23 auditions against the same bars the export will use). The mix follows the project's audio mode through `previewMix`, the same rule the exporter applies (BR-ASM-001/002): `music` replaces the take audio with the track, `mix` keeps the take audio and ducks the track by `config.audio.duckDb`, `native` plays the take alone. In `native` a "♫ hear with music" toggle auditions the clip against the bed without changing the project's mode. The bed follows play/pause/seek/end and resyncs past a 0.18s drift; with no attached track the UI says so instead of implying a bed.
 - **Acceptance criteria:**
@@ -174,7 +174,7 @@ Totals: 11 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Deferred / notes:** two media elements syncing in JS drift slightly on a heavily loaded tab (corrected past 0.18s, no audible flam in testing); a single WebAudio graph would be sample-accurate if that ever matters. Take-audio waveform display and per-clip volume/duck overrides are not built — duck comes from config, as in the export.
 
 ### REQ-ASM-015 — Audio mode in plain language, one click, next to the player
-- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** must
+- **Status:** DONE · **Stage:** P8 · **Priority:** must
 - **Raised-by:** USER 2026-07-25: "how do I select do I use the tracks own audio, music or mixed?" — the control existed but was undiscoverable: an `audio: native / music / mix` dropdown in the Output panel, jargon-named, two gestures (pick then Set), nowhere near the player.
 - **Statement:** One-click mode buttons in plain language — **Take audio** (only what the model generated), **Music only** (the track replaces it), **Both** (take audio up front, track ducked) — with the active mode checked and the current mode's meaning written under it. Rendered in three places: under the clip player (where the difference is audible), in the Music panel, and in Output. Modes needing a track are disabled with an explanation when none is attached.
 - **Acceptance criteria:**

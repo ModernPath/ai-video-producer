@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 21 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 31 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -26,17 +26,17 @@ Totals: 21 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 D
 | REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | DONE | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
 | REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | DONE | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
 | REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
-| REQ-GEN-034 | Stuck work recovers: queued rows nothing will claim, and cancel | P9 | IN_REVIEW | USER 2026-07-27 "2 (video) and 3 (image) are stuck… how to restart?" | tests/stuck-recovery.int.spec.ts (8) | executor reapStale queued branch + cancelGeneration, in-flight panel |
-| REQ-GEN-032 | One prompt pipeline; golden-file tests on assembled output | P10 | IN_REVIEW | `docs/88-architecture-review.md` §2 · four shipped defects | tests/prompt-pipeline.spec.ts (12) + prompt-golden.spec.ts (5) | src/prompt.ts (subjectStage/lookStages/soundStages/assemble) |
+| REQ-GEN-034 | Stuck work recovers: queued rows nothing will claim, and cancel | P9 | DONE | USER 2026-07-27 "2 (video) and 3 (image) are stuck… how to restart?" | tests/stuck-recovery.int.spec.ts (8) | executor reapStale queued branch + cancelGeneration, in-flight panel |
+| REQ-GEN-032 | One prompt pipeline; golden-file tests on assembled output | P10 | DONE | `docs/88-architecture-review.md` §2 · four shipped defects | tests/prompt-pipeline.spec.ts (12) + prompt-golden.spec.ts (5) | src/prompt.ts (subjectStage/lookStages/soundStages/assemble) |
 | REQ-GEN-033 | Lint + config hardening: no-dupe-keys, derived vocabularies | P10 | PROPOSED | `docs/88-architecture-review.md` §5 | — | — |
-| REQ-GEN-031 | Filmed prompts carry no typography and forbid on-screen text | P9 | IN_REVIEW | USER 2026-07-27 "where these gibberish texts in middle of video come from?" | prompt.spec.ts REQ-GEN-031 (4) + style-card.spec.ts (4) | style-card toVisualStyle, prompt.ts NO_ON_SCREEN_TEXT |
-| REQ-GEN-029 | Live refresh coalesced — SSE no longer races a form action's commit | P9 | IN_REVIEW | USER 2026-07-27 runtime TypeError "fiber.reset is not a function" | apps/web/tests/refresh-coalesce.spec.ts (5) | apps/web/lib/coalesce.ts, LiveRefresh |
-| REQ-GEN-028 | Spoken lines survive from script to video model | P9 | IN_REVIEW | USER 2026-07-27 "Pasi is talking something… in video prompt all of that is missing" | tests/prompt.spec.ts REQ-GEN-028 (7) | prompt.ts dialogue in plan schema + custom-prompt path |
-| REQ-GEN-027 | Stuck runs recover on page load, and failed pictures are visible | P9 | IN_REVIEW | USER 2026-07-26 "two videos seem stuck" | tests/stale-sweep.int.spec.ts (5) | executor sweepStuckGenerations, page.tsx sweep + per-shot failure banner |
-| REQ-GEN-026 | Card-driven prompts: the pipeline reads Style Cards, not prose recipes | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-005 | tests/prompt.spec.ts REQ-GEN-026 (5) + style-card.spec.ts | src/prompt.ts (card look) · stb recipeFor · prj setProjectArchetype · web picker · archetypes.ts deleted |
-| REQ-GEN-025 | Style-card compiler: free-form brief → craft primitives | P9 | IN_REVIEW | EPIC-STB-001 SR-DIR-004 (USER 2026-07-26 "a 1-minute feature film … directed by Aki Kaurismäki, a bit humoristic") | tests/style-compiler.spec.ts (25) + 2 live grounded compiles | src/style-compiler.ts |
-| REQ-GEN-024 | Web-grounded entity research (Google Search + URL context) | P8 | IN_REVIEW | USER 2026-07-24 (with docs links) | tests/research.spec.ts + real LastBot verification | src/research.ts (tools: googleSearch+urlContext), researchEntityProfileAction, library ✦ button |
-| REQ-GEN-018 | Race-safe claim across parallel workers | P5 | IN_REVIEW | `docs/03` §2 (enabler) | tests/claim-race.int.spec.ts (2) | executor claimGeneration (conditional update) + loser-scans-on loop |
+| REQ-GEN-031 | Filmed prompts carry no typography and forbid on-screen text | P9 | DONE | USER 2026-07-27 "where these gibberish texts in middle of video come from?" | prompt.spec.ts REQ-GEN-031 (4) + style-card.spec.ts (4) | style-card toVisualStyle, prompt.ts NO_ON_SCREEN_TEXT |
+| REQ-GEN-029 | Live refresh coalesced — SSE no longer races a form action's commit | P9 | DONE | USER 2026-07-27 runtime TypeError "fiber.reset is not a function" | apps/web/tests/refresh-coalesce.spec.ts (5) | apps/web/lib/coalesce.ts, LiveRefresh |
+| REQ-GEN-028 | Spoken lines survive from script to video model | P9 | DONE | USER 2026-07-27 "Pasi is talking something… in video prompt all of that is missing" | tests/prompt.spec.ts REQ-GEN-028 (7) | prompt.ts dialogue in plan schema + custom-prompt path |
+| REQ-GEN-027 | Stuck runs recover on page load, and failed pictures are visible | P9 | DONE | USER 2026-07-26 "two videos seem stuck" | tests/stale-sweep.int.spec.ts (5) | executor sweepStuckGenerations, page.tsx sweep + per-shot failure banner |
+| REQ-GEN-026 | Card-driven prompts: the pipeline reads Style Cards, not prose recipes | P9 | DONE | EPIC-STB-001 SR-DIR-005 | tests/prompt.spec.ts REQ-GEN-026 (5) + style-card.spec.ts | src/prompt.ts (card look) · stb recipeFor · prj setProjectArchetype · web picker · archetypes.ts deleted |
+| REQ-GEN-025 | Style-card compiler: free-form brief → craft primitives | P9 | DONE | EPIC-STB-001 SR-DIR-004 (USER 2026-07-26 "a 1-minute feature film … directed by Aki Kaurismäki, a bit humoristic") | tests/style-compiler.spec.ts (25) + 2 live grounded compiles | src/style-compiler.ts |
+| REQ-GEN-024 | Web-grounded entity research (Google Search + URL context) | P8 | DONE | USER 2026-07-24 (with docs links) | tests/research.spec.ts + real LastBot verification | src/research.ts (tools: googleSearch+urlContext), researchEntityProfileAction, library ✦ button |
+| REQ-GEN-018 | Race-safe claim across parallel workers | P5 | DONE | `docs/03` §2 (enabler) | tests/claim-race.int.spec.ts (2) | executor claimGeneration (conditional update) + loser-scans-on loop |
 
 ### REQ-GEN-016 — Jobs execute via queue worker (pg-boss)
 - **Status:** DONE · **Stage:** P2 · **Priority:** must (enabler)
@@ -57,7 +57,7 @@ Totals: 21 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 D
 - **Tests:** `libs/prj/tests/activity.int.spec.ts` + browser E2E · **Code:** `libs/prj/src/activity.ts`, `apps/web/app/api/projects/[id]/events/route.ts`, `apps/web/components/LiveRefresh.tsx` · **Log:** LOG 2026-07-23 (slice 4)
 
 ### REQ-GEN-018 — Race-safe claim across parallel workers
-- **Status:** IN_REVIEW · **Stage:** P5 · **Source:** `docs/03` §2 (enabler) — discovered during REQ-GEN-011
+- **Status:** DONE · **Stage:** P5 · **Source:** `docs/03` §2 (enabler) — discovered during REQ-GEN-011
 - **Statement:** Claiming a queued generation is atomic: `claimGeneration` flips queued→running via conditional UPDATE (`WHERE status='queued'` + RETURNING) and reports the winner; losers scan on to the next queued row. A row can never be executed (and billed) twice however many runners race.
 - **Acceptance criteria:**
   - GIVEN 4 concurrent claims on one queued row THEN exactly one wins; a later claim on the running row returns false (deterministic int test).
@@ -255,7 +255,7 @@ Totals: 21 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 D
 - **Deferred / notes:** STB still snaps shot durations to {4,6,8} at plan level — exposing free durations (9–10s shots) in the UI is a follow-up STB slice. Conversational multi-turn retake untested. No UI switch — route is config/env by design (taste iteration without deploy, Tips #5).
 
 ### REQ-GEN-034 — Stuck work recovers: queued rows nothing will claim, and cancel
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27: "some problems in error handling of image and video generation, seems 2 (video) and 3 (image) are stuck and not completing, how to restart?" — a take `running` 7 minutes and a frame `queued` 7 minutes, with no way out of either.
 - **Statement:** Work that will never finish shall be recoverable, and anything in flight shall be cancellable. Two holes: a `queued` row was never reaped on the reasoning "it never started, so it cannot be orphaned" — true in queue mode, FALSE inline, where generations run inside the request that created them and nothing ever consumes the queue; and there was no cancel at all, so a run under the 30-minute sweep window had no exit.
 - **Acceptance criteria:**
@@ -272,7 +272,7 @@ Totals: 21 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 D
 - **Deferred / notes:** cancelling marks the ROW cancelled; it cannot stop an HTTP request already in flight at the provider, so a late response is discarded rather than aborted. The deeper fix is `WORKER_MODE=queue` in dev (ADR-002 consequences) — this makes inline survivable, not correct. **Reversal recorded:** `tests/stale-sweep.int.spec.ts` asserted "queued cannot be orphaned"; it now asserts that for queue mode only.
 
 ### REQ-GEN-032 — One prompt pipeline; golden-file tests on assembled output
-- **Status:** IN_REVIEW · **Stage:** P10 · **Priority:** must
+- **Status:** DONE · **Stage:** P10 · **Priority:** must
 - **Raised-by:** `docs/88-architecture-review.md` §2 — `assembleTakePrompt`/`assembleFramePrompt` return early on `customPrompt`, and the planner writes one for every shot, so the composed branch carrying the craft and safety rails never executes in a real film.
 - **Statement:** Visual prompt assembly shall have ONE path. A custom prompt shall substitute the subject stage only; look, continuity, dialogue, rails and format shall append unconditionally. The assembled output of representative shots shall be asserted against committed golden files, so every prompt change is a reviewable diff.
 - **Acceptance criteria:**
@@ -296,7 +296,7 @@ Totals: 21 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 D
 - **Deferred / notes:** no behaviour change; each item is a guard against a defect that has already happened once.
 
 ### REQ-GEN-031 — Filmed prompts carry no typography and forbid on-screen text
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27, on a generated take of a CORRIDOR reading "The Luting an Dof" in yellow on navy: "I do not understand where these gibberish texts in middle of video come from?"
 - **Statement:** A filmed frame or take shall never be asked for lettering. `toVisualStyle` fed the Style Card's `typography` axis into every filmed prompt, so a corridor prompt ended with "Minimalist centered mid-century sans-serif title text in bright mustard yellow rendered against solid dark navy background cards" — and the video model rendered exactly that, as pseudo-words. Typography describes GRAPHIC shots, rendered locally by Remotion where text is real text.
 - **Acceptance criteria:**
@@ -310,7 +310,7 @@ Totals: 21 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 D
 - **Deferred / notes:** takes already generated keep their old prompts — regenerate any shot showing lettering. The pipeline was contradicting itself: the composed path forbade on-screen text while the card demanded titles, and the more specific instruction won.
 
 ### REQ-GEN-029 — Live refresh coalesced so SSE cannot race a form action
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27: runtime `TypeError: fiber.reset is not a function`, thrown from react-dom's `recursivelyResetForms`; reproducing it also surfaced `Cannot read properties of null (reading 'removeChild')` from `commitDeletionEffectsOnFiber`.
 - **Statement:** A live-update refresh shall not tear down the tree while React is committing a form action. `LiveRefresh` (REQ-GEN-017) called `router.refresh()` on EVERY SSE `changed` event, and a server action's own `revalidatePath` write emits one — so the refresh replaced the subtree at the moment React ran its post-action form-reset pass over the just-submitted form. React then found a host fiber flagged for form reset whose DOM node was no longer a form (`fiber.reset` undefined), and a deletion whose parent node was already detached.
 - **Acceptance criteria:**
@@ -326,7 +326,7 @@ Totals: 21 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 D
 - **Deferred / notes:** 350ms is a judgement call — long enough for an action to commit, short enough to feel live. The refresh also runs inside `startTransition` so it is a non-urgent update and cannot pre-empt the action's commit. This is a pre-existing race in REQ-GEN-017, not a regression from the recent work, but the stage-panel keying (REQ-STB-045) makes remounts more frequent and so made it easier to hit.
 
 ### REQ-GEN-028 — Spoken lines survive from script to video model
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-27: "video script still has no details in it, at original video I see Pasi is talking something ('follow the modern path'), but in video prompt all of that is missing."
 - **Statement:** A line written in the script shall reach the video model. Two independent faults broke this: the shot-plan JSON shape never asked for `dialogue`, so the planner dropped every spoken line the script had written; and `assembleTakePrompt` returns early on a custom prompt, before the `Spoken line:` clause is added — and the planner writes a custom `videoPrompt` for every shot, so no line could reach the model by any path.
 - **Acceptance criteria:**
@@ -342,7 +342,7 @@ Totals: 21 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 D
 - **Deferred / notes:** existing shots keep their empty `dialogue` — a re-plan picks lines up, or REQ-STB-046's field sets one without discarding paid takes. Whether the omni route actually performs a spoken line is a separate question from whether it is asked to; this fixes the asking.
 
 ### REQ-GEN-027 — Stuck runs recover on page load, and failed pictures are visible
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Status:** DONE · **Stage:** P9 · **Priority:** must
 - **Raised-by:** USER 2026-07-26: "two videos seem stuck" — two takes sat `running` for 38 minutes, past the 30-minute stale window, with the rail spinning "working" and the stage spinning "generating video…".
 - **Source:** extends REQ-GEN-022 (stale-running reaper); BR-GEN-005 (slots must free)
 - **Statement:** A run orphaned mid-flight shall recover without the user dispatching new work, and a failed picture or video generation shall be visible on the shot it belongs to with a one-click retry.
@@ -358,7 +358,7 @@ Totals: 21 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 D
 - **Deferred / notes:** the underlying fragility is inline dev mode — a generation runs inside the server action's request, so an aborted request (a reload mid-take, which is how these two died) leaves the row `running` until swept. `WORKER_MODE=queue` with `apps/worker` does not have this failure mode; the sweep makes inline mode survivable rather than fixing it.
 
 ### REQ-GEN-026 — Card-driven prompts: the pipeline reads Style Cards, not prose recipes
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Status:** DONE · **Stage:** P9 · **Priority:** should
 - **Raised-by:** EPIC-STB-001 SR-DIR-005 (TASK-DIR-004), following REQ-STB-042 and REQ-GEN-025.
 - **Statement:** Every prompt the pipeline assembles shall derive from the project's Style Card rather than from hardcoded prose, and no visual prompt shall contain the reference the card was compiled from. `ArchetypeRecipe` and `archetypes.ts` are removed: the directing block, plan bias and music bias are now DERIVED (`toDirectingBlock`/`toPlanBias`/`toMusicBias`), so editing one axis of a card changes the prompts.
 - **Acceptance criteria:**
@@ -375,7 +375,7 @@ Totals: 21 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 D
 - **Deferred / notes:** the `card` input is plumbed through prompt assembly but the executor does not yet pass the project's card to frame/take generation, and compiled cards are still not persisted (SR-DIR-008) — so today only the six seeds are reachable, via the existing archetype picker. Animation renders still read accent/background from the plan rather than the card directly; the plan bias pins them, which closes SR-DIR-007 at the planning layer only.
 
 ### REQ-GEN-025 — Style-card compiler: free-form brief → craft primitives
-- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Status:** DONE · **Stage:** P9 · **Priority:** should
 - **Raised-by:** USER 2026-07-26: "Like saying I want a 1-minute feature film of ModernPath AI directed by Aki Kaurismäki, a bit humoristic." — EPIC-STB-001, SR-DIR-004 (SCN-DIR-001, SCN-DIR-002).
 - **Source:** `epics/EPIC-STB-001-director-briefs.md`; grounding pattern REQ-GEN-024 (`src/research.ts`)
 - **Statement:** A free-form creative brief shall compile into a validated Style Card (REQ-STB-042) using web-grounded research, and the reference it was compiled from shall not survive into any prompt. Research is the ONE moment a reference name is legitimately in play; afterwards the craft axes carry the intent, because providers filter or dilute named-artist prompts and a name averages to mush in an image model.
@@ -393,7 +393,7 @@ Totals: 21 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 D
 - **Deferred / notes:** the compiler is not yet reachable from the UI and cards are not yet persisted (SR-DIR-008) — a brief compiles only in code. `MOCK_GEN` returns a fixed card so no test hits the provider. Real-ring evidence is two live grounded compiles (§9.8), each a single near-free text call with no generation-ledger row, matching the `research.ts` precedent.
 
 ### REQ-GEN-024 — Web-grounded entity research
-- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** should
+- **Status:** DONE · **Stage:** P8 · **Priority:** should
 - **Raised-by:** USER 2026-07-24: "generate it based on google search and url context" (ai.google.dev docs linked)
 - **Statement:** `researchEntityProfile` calls the script model with the googleSearch + urlContext tools to produce a factual 150-250 word profile from the entity name and optional official URL; the library's "✦ Research from web" button saves it as the entity profile (REQ-AST-012). Direct helper, no ledger row (transcribe.ts pattern, near-free).
 - **Acceptance criteria:**

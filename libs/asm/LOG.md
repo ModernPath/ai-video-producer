@@ -1,5 +1,13 @@
 # Build Log — ASM (Assembly & Export)
 
+## 2026-07-27 — human sign-off: 4 requirements IN_REVIEW → DONE
+**Done:** USER:2026-07-27 "Let's approve all requirements in review state?" — the 4 IN_REVIEW rows in this ledger are approved and moved to DONE. Covers assembly, audio mix modes, export presets and share links. Status updated in all three places per `CLAUDE.md` §1.8 (dashboard row · detail block · `Totals:`); `PROGRESS.md` regenerated from the ledgers and independently agrees (129 DONE · 0 IN_REVIEW across all contexts).
+**Decisions:** this drains the queue rather than collapsing the state — the option `docs/88-architecture-review.md` §6 offered when it recorded "48 IN_REVIEW · 0 signed off" and called the distinction information-free. IN_REVIEW keeps its meaning for future work; it is the sign-off that was outstanding, and the user is the sign-off authority. Checked before flipping: every row carries both a Tests and a Code link, and no detail block flags open work.
+**Deferred:** none.
+**Discovered:** with this drained, the whole repo holds 0 READY and 0 IN_PROGRESS — the actionable queue is empty. What remains is 4 PROPOSED (the architecture-review refactors) and 1 BLOCKED (REQ-STB-032 on OQ-115). Per `CLAUDE.md` §13 an empty queue is itself a review trigger.
+**Follow-ups:** promote the PROPOSED refactors when the next build session starts.
+**Gate:** ledger-only change, no code touched. Verified 0 residual IN_REVIEW in any ledger; row count matched detail-block count in every file before the flip (mismatch would have aborted).
+
 ## 2026-07-25 — REQ-ASM-015 audio mode picker (→ IN_REVIEW)
 **Done:** Replaced the `audio: native/music/mix` dropdown with one-click buttons in plain language — Take audio · Music only · Both — showing the active mode and what it means, rendered under the clip player, in the Music panel and in Output. Track-dependent modes disable themselves with a reason when no track is attached.
 **Decisions:** Put it under the player first: the user asked how to choose while listening to a clip, so the control belongs where the difference is audible, not in a settings panel. One gesture instead of select+Set.
