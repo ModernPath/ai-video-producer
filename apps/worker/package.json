@@ -8,15 +8,15 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
-    "@avd/shared": "workspace:*",
-    "@avd/gen": "workspace:*",
-    "@avd/stb": "workspace:*",
     "@avd/asm": "workspace:*",
     "@avd/ast": "workspace:*",
+    "@avd/gen": "workspace:*",
     "@avd/plt": "workspace:*",
     "@avd/prj": "workspace:*",
-    "drizzle-orm": "^0.44.0",
-    "pg-boss": "^10.1.0",
+    "@avd/shared": "workspace:*",
+    "@avd/stb": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "pg-boss": "^10.4.2",
     "tsx": "^4.19.0"
   }
 }

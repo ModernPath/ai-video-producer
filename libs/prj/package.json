@@ -12,12 +12,12 @@
     "./brief-duration": "./src/brief-duration.ts"
   },
   "dependencies": {
-    "@avd/shared": "workspace:*",
-    "zod": "^3.24.0",
-    "@avd/plt": "workspace:*",
-    "drizzle-orm": "^0.44.0",
     "@avd/ast": "workspace:*",
     "@avd/gen": "workspace:*",
-    "uuid": "^11.0.0"
+    "@avd/plt": "workspace:*",
+    "@avd/shared": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "uuid": "^14.0.1",
+    "zod": "^4.4.3"
   }
 }
