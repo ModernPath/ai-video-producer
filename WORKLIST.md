@@ -30,9 +30,17 @@ Ledger requirements (`libs/<ctx>/REQUIREMENTS.md`) use a **separate** status set
 
 | Epic | Epic record | User requirements | Acceptance scenarios | System requirements | Tasks | Upper status | Lower status | Overall status | Human approval | Evidence / gaps |
 |---|---|---|---|---|---|---|---|---|---|---|
-| EPIC-STB-001 — Director briefs | `epics/EPIC-STB-001-director-briefs.md` | UR-DIR-001/002/003 | SCN-DIR-001…004 | SR-DIR-001…008 | TASK-DIR-001…005 | PROPOSED | LOWER_VERIFIED (5/5 tasks) | IN_PROGRESS | — | Lower loop complete. Upper loop blocked on card persistence (SR-DIR-008) + UI: no user flow exists yet, so no scenario is upper-validated. Explainer family deferred to a sibling epic (GAP-108 voice-over) |
+| EPIC-PRJ-001 — Golden thread | `epics/EPIC-PRJ-001-golden-thread.md` | UR-GT-001 | SCN-PRJ-001, SCN-STB-020, SCN-GEN-001 | — (ledger-only) | — | UPPER_VALIDATED | — | DONE | USER:2026-07-27 retroactive backfill | Phase 1 exit demo; browser golden thread BACKLOG iter 4–6 |
+| EPIC-STB-002 — Script → animatic | `epics/EPIC-STB-002-script-to-animatic.md` | UR-STB-001/002 | SCN-STB-001/002/010/011/012/021 | — | — | UPPER_VALIDATED | — | DONE | USER:2026-07-27 retroactive backfill | Phase 2; script studio + animatic E2E |
+| EPIC-ASM-001 — Export pipeline | `epics/EPIC-ASM-001-export-pipeline.md` | UR-ASM-001/002 | SCN-ASM-001/002/003 | — | — | UPPER_VALIDATED | — | DONE | USER:2026-07-27 retroactive backfill | Phase 3 core; REQ-ASM-012..015 papercuts remain IN_REVIEW in ledger |
+| EPIC-GEN-001 — Lyria music | `epics/EPIC-GEN-001-lyria-music.md` | UR-MUS-001/002 | SCN-GEN-010/011/012 | — | — | UPPER_VALIDATED | — | DONE | USER:2026-07-27 retroactive backfill | Real Lyria E2E; REQ-STB-032 BLOCKED on OQ-115 |
+| EPIC-ANM-001 — Remotion | `epics/EPIC-ANM-001-remotion-animations.md` | UR-ANM-001/002 | SCN-ANM-001/002/003 | — | — | UPPER_VALIDATED | — | DONE | USER:2026-07-27 retroactive backfill | REQ-ANM-005/006 template variety IN_REVIEW |
+| EPIC-STB-003 — Archetype directing | `epics/EPIC-STB-003-archetype-directing.md` | UR-ARC-001/002 | SCN-STB-030/031/032 | — | — | UPPER_VALIDATED | — | DONE | USER:2026-07-27 retroactive backfill | Superseded by EPIC-STB-001 for free-form Style Cards |
+| EPIC-STB-001 — Director briefs | `epics/EPIC-STB-001-director-briefs.md` | UR-DIR-001/002/003 | SCN-DIR-001…004 | SR-DIR-001…008 | TASK-DIR-001…005 | PROPOSED | LOWER_VERIFIED (5/5 tasks) | IN_PROGRESS | — | **Only active epic.** Upper loop blocked on card persistence (SR-DIR-008) + UI. Supersedes EPIC-STB-003 for style intent. |
 
 ## Work Rows
+
+### Active — EPIC-STB-001
 
 | Task / slice | Epic | Epic record / task file | User requirement | Acceptance scenario | System requirement | Scope | Status | Lower test evidence | Upper BDD/E2E evidence | Code reference | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -42,11 +50,21 @@ Ledger requirements (`libs/<ctx>/REQUIREMENTS.md`) use a **separate** status set
 | TASK-DIR-004 card-driven prompts | EPIC-STB-001 | `epics/EPIC-STB-001-director-briefs.md` | UR-DIR-001 | SCN-DIR-002 | SR-DIR-005 | Primitives into prompts; reference name provably excluded | LOWER_VERIFIED | `libs/gen/tests/prompt.spec.ts` REQ-GEN-026 (5) | — | `libs/gen/src/prompt.ts`, stb `recipeFor`, prj `setProjectArchetype`, web picker | REQ-GEN-026 · `archetypes.ts` deleted |
 | TASK-DIR-005 director's pass | EPIC-STB-001 | `epics/EPIC-STB-001-director-briefs.md` | UR-DIR-003 | SCN-DIR-003 | SR-DIR-006 | Grade draft plan vs card, propose revision, surface notes | LOWER_VERIFIED | `libs/stb/tests/director-pass.spec.ts` (13) | — | `libs/stb/src/director-pass.ts`, plan-normalize grammar, gen plan schema | REQ-STB-043 · revision not yet executed/applied, notes not in UI → SCN-DIR-003 not upper-validated |
 
+### Forward (not opened)
+
+| Epic (proposed) | Trigger | Status |
+|---|---|---|
+| EPIC-AST-001 — Library consistency | Phase 4 kickoff; SCN-AST-001…004 | PROPOSED |
+| EPIC-STB-004 — Workspace polish | After EPIC-STB-001 upper loop | PROPOSED |
+| EPIC-STB-005 — Explainer / voice | GAP-108 TTS provider chosen | DEFERRED |
+| EPIC-PLT-001 — Accounts & cost | Phase 5 | PROPOSED |
+
 ## Blocked / Deferred
 
 | Item | Status | Reason | Required decision | Owner |
 |---|---|---|---|---|
-| Explainer video family (narration, diagram templates, screencast) | DEFERRED | Voice-led, not music-led: depends on GAP-108 (voice-over pipeline, post-MVP). Sibling epic, not a style card. | Pick a TTS provider before the epic opens | — |
+| Explainer video family (narration, diagram templates, screencast) | DEFERRED | Voice-led, not music-led: depends on GAP-108 (voice-over pipeline, post-MVP). Sibling epic EPIC-STB-005, not a style card. | Pick a TTS provider before the epic opens | — |
+| Lyric-shot alignment (REQ-STB-032) | BLOCKED | OQ-115 strategy undecided | fill-to-timestamp vs track offset vs both | — |
 | Motion themes (theme × animation template) | DEFERRED | Downstream of SR-DIR-007 — needs card typography/palette first | — | — |
 | Export transitions + pacing curve | DEFERRED | Unrelated to style compilation; exporter-side work | — | — |
 

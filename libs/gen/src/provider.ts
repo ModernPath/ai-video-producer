@@ -143,7 +143,14 @@ export function createGeminiProvider(): GenProvider {
         try {
           return { json: JSON.parse(jsonText) };
         } catch {
-          throw new ProviderError("output_unusable", `model returned non-JSON structured output: ${text.slice(0, 200)}`);
+          // A response that starts as valid JSON and simply stops is TRUNCATED, not malformed —
+          // saying "non-JSON" sends you hunting for a prompt bug that is not there. The shot plan
+          // grew when it started carrying a cast (REQ-STB-048), which made this reachable.
+          const looksTruncated = /^[[{]/.test(jsonText) && !/[\]}]\s*$/.test(jsonText);
+          throw new ProviderError(
+            "output_unusable",
+            `${looksTruncated ? "model output was cut off mid-JSON (response too long)" : "model returned non-JSON structured output"}: ${text.slice(0, 200)}`
+          );
         }
       } catch (err) {
         throw mapGeminiError(err);

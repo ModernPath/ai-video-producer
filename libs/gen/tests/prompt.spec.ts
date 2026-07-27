@@ -378,3 +378,32 @@ describe("REQ-GEN-028: spoken lines survive from script to video model", () => {
     expect(out).toContain('Spoken line: "ModernPath. Production ready."');
   });
 });
+
+// REQ-STB-048 (USER 2026-07-27): the planner must cast the film, not just describe it.
+describe("REQ-GEN-030: the shot plan names the cast the film needs", () => {
+  const plan = () => assembleShotPlanPrompt({
+    projectTitle: "T", brief: {}, targetDurationSeconds: 60, scriptText: "Pasi and a colleague drink coffee.",
+  });
+
+  it("asks for a cast list alongside the shots", () => {
+    expect(plan()).toMatch(/"cast"\s*:/);
+  });
+
+  it("asks for a concrete, repeatable appearance — the seed for a reference portrait", () => {
+    expect(plan()).toMatch(/appearance/i);
+    expect(plan()).toMatch(/repeat|consistent|same/i);
+  });
+
+  it("demands EVERY recurring body on screen, not just the named lead", () => {
+    expect(plan()).toMatch(/every (character|person)|unnamed|background|extra/i);
+  });
+
+  it("offers only the kinds the entity model has", () => {
+    const p = plan();
+    for (const k of ["company", "product", "person", "character"]) expect(p).toContain(`"${k}"`);
+  });
+
+  it("tells the planner to reference cast by the names it just assigned", () => {
+    expect(plan()).toMatch(/by name/i);
+  });
+});

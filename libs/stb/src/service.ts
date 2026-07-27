@@ -2,14 +2,15 @@
 import { and, asc, eq, inArray, isNull, max } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
-import { config, shotDurationPolicy, styleCards, type FullFrameAnimationTemplate } from "@avd/shared/config";
-import { styleCardSchema, toDirectingBlock, toMusicBias, toPlanBias } from "@avd/shared/contracts"; // TASK-DIR-004 · SR-DIR-008
+import { config, shotDurationPolicy, styleCards, type EntityKind, type FullFrameAnimationTemplate } from "@avd/shared/config";
+import { styleCardSchema, toDirectingBlock, toMusicBias, toPlanBias, toPortraitStyle } from "@avd/shared/contracts"; // TASK-DIR-004 · SR-DIR-008 · REQ-STB-048
 import { asset } from "@avd/ast/schema";
 import { listProjectEntities, projectStylePrompt } from "@avd/ast";
 import { enqueueGeneration } from "@avd/gen";
 import { generation } from "@avd/gen/schema";
 import { frameCandidate, musicBrief, scriptVersion, shot, shotPlanProposal, take } from "./schema";
 import { normalizePlannedShots } from "./plan-normalize";
+import { normalizePlannedCast } from "./casting";
 import { project } from "@avd/prj/schema";
 
 export class StbValidationError extends Error {
@@ -562,14 +563,17 @@ export async function materializeGenerationOutput(db: Db, generationId: string) 
   if (g.kind === "shot_plan") {
     const normalized = normalizePlannedShots(g.output); // USER BUG: real-model shapes vary
     if (!normalized.length) return null;
-    const out = { shots: normalized };
+    // REQ-STB-048: keep the cast beside the shots. `changes` used to be a bare array, which threw
+    // the cast away before any UI could offer to cast it. Readers already accept both shapes, so
+    // proposals stored before this stay readable.
+    const out = { shots: normalized, cast: normalizePlannedCast(g.output) };
     const target = g.target as { scriptVersionId?: string };
     const id = uuidv7();
     await db.insert(shotPlanProposal).values({
       id,
       projectId: g.projectId,
       scriptVersionId: target.scriptVersionId ?? null,
-      changes: out.shots,
+      changes: out,
       generationId: g.id,
     });
     return { kind: "shot_plan" as const, id };
@@ -672,6 +676,75 @@ export async function updateShotDialogue(db: Db, input: { shotId: string; dialog
   if (line) direction.dialogue = line;
   else delete direction.dialogue;
   await db.update(shot).set({ direction }).where(eq(shot.id, input.shotId));
+}
+
+// ---- Casting (REQ-STB-048, USER 2026-07-27) ----
+
+/**
+ * A plain reference portrait for someone the plan asked to cast.
+ *
+ * Deliberately scene-free: this image becomes the reference EVERY later shot of that character is
+ * conditioned on, so baking in this shot's diner booth or hallway lighting would drag one scene
+ * into all of them. Appearance only, neutral background.
+ */
+export async function requestEntityPortrait(
+  db: Db,
+  input: { projectId: string; appearance: string; principal: string; aspectRatio: "16:9" | "9:16" }
+) {
+  const [p] = await db.select().from(project).where(eq(project.id, input.projectId));
+  if (!p) throw new StbValidationError("not_found", "Project not found");
+  const appearance = input.appearance.trim();
+  if (!appearance) throw new StbValidationError("validation_failed", "A portrait needs an appearance to draw");
+  const card = await projectCard(db, input.projectId); // the film's own look, so casting matches it
+  // NOT the card object: `toVisualStyle` would add typography and the main character's continuity,
+  // which is how the first portrait came back captioned "THE WORKER" in someone else's jacket.
+  const look = card ? toPortraitStyle(card) : "";
+  return enqueueGeneration(db, {
+    organizationId: p.organizationId,
+    projectId: p.id,
+    principal: input.principal,
+    kind: "frame",
+    commandId: uuidv7(),
+    target: { casting: true },
+    promptInput: {
+      aspectRatio: input.aspectRatio,
+      durationSeconds: 0,
+      entities: [],
+      customPrompt: `Reference portrait. ${appearance}. Single person, facing camera, neutral expression, plain uncluttered background, even lighting, full head and shoulders visible.${look ? ` ${look}` : ""}`,
+      direction: { synopsis: appearance, subject: "reference portrait", action: "stands facing camera" },
+    },
+  });
+}
+
+/**
+ * Turn a finished portrait into a cast member on this project.
+ *
+ * INV-AST-004 requires 1–5 refs for an entity to exist, so the portrait must come first — which is
+ * also the only order that means anything: an entity with no reference images contributes nothing
+ * to consistency, and consistency is the entire point of casting.
+ */
+export async function castFromPortrait(
+  db: Db,
+  input: { projectId: string; generationId: string; name: string; kind: EntityKind; description: string }
+): Promise<string> {
+  const [g] = await db.select().from(generation).where(eq(generation.id, input.generationId));
+  const assetId = g?.outputAssetIds?.[0];
+  if (!g || !assetId) throw new StbValidationError("not_found", "That portrait produced no image yet");
+  const [p] = await db.select().from(project).where(eq(project.id, input.projectId));
+  if (!p) throw new StbValidationError("not_found", "Project not found");
+
+  const { createEntity, attachEntities, listProjectEntities } = await import("@avd/ast");
+  const entityId = await createEntity(db, {
+    organizationId: p.organizationId,
+    kind: input.kind,
+    name: input.name.trim(),
+    description: input.description.trim() || input.name.trim(),
+    refAssetIds: [assetId],
+  });
+  // attachEntities replaces the set, so carry the existing cast across.
+  const existing = (await listProjectEntities(db, input.projectId)).map((e) => e.id);
+  await attachEntities(db, { projectId: input.projectId, entityIds: [...existing, entityId] });
+  return entityId;
 }
 
 // ---- Per-shot reference images (REQ-STB-016) ----

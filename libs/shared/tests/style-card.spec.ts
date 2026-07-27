@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  styleCardSchema, toDirectingBlock, toGrammarConstraints, toMusicBias, toPlanBias, toVisualStyle,
-  type StyleCard,
+  styleCardSchema, toDirectingBlock, toGrammarConstraints, toMusicBias, toPlanBias, toPortraitStyle,
+  toVisualStyle, type StyleCard,
 } from "../src/contracts/style-card";
 import { styleCards } from "../src/config/style-cards";
 
@@ -160,5 +160,43 @@ describe("REQ-STB-042: the six archetypes survive as seed cards", () => {
     for (const [key, card] of Object.entries(styleCards)) {
       expect(card.provenance.references, `seed card ${key} names a reference`).toEqual([]);
     }
+  });
+});
+
+// REQ-STB-048, from the first real portrait: casting "Colleague" produced a fine likeness with
+// "THE WORKER" burned across it in the card's yellow display type, wearing the MAIN character's
+// navy work jacket. Both came from reusing the full visual style. A reference portrait is not a
+// shot: text baked into it drags into every image conditioned on it, and one character's wardrobe
+// is not another's.
+describe("REQ-STB-042: a reference portrait uses the world, not the staging", () => {
+  const card: StyleCard = {
+    ...kaurismaki,
+    typography: "Bold centered retro sans-serif lettering in bright yellow.",
+    continuity: "The main character wears a faded navy work jacket and carries a steel lunchbox.",
+    camera: { ...kaurismaki.camera, notes: "Rigid tripod compositions, classic two-shot rules." },
+  };
+
+  it("keeps the film's light and colour, so casting matches the world", () => {
+    const p = toPortraitStyle(card);
+    expect(p).toContain("Hard practical sources");
+    expect(p).toContain("Saturated primary blocks");
+  });
+
+  it("drops typography — a reference with lettering burned in poisons every shot it conditions", () => {
+    const p = toPortraitStyle(card);
+    expect(p).not.toContain(card.typography);          // the card's own type direction
+    expect(p).not.toMatch(/bright yellow|sans-serif/i); // and nothing prescribing type
+  });
+
+  it("drops the main character's continuity — that wardrobe belongs to someone else", () => {
+    expect(toPortraitStyle(card)).not.toMatch(/navy work jacket|lunchbox/i);
+  });
+
+  it("drops shot composition — a portrait is not a two-shot", () => {
+    expect(toPortraitStyle(card)).not.toMatch(/two-shot|tripod composition/i);
+  });
+
+  it("says outright that no text belongs in the frame", () => {
+    expect(toPortraitStyle(card)).toMatch(/no text|no lettering|no words/i);
   });
 });

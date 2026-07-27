@@ -3,7 +3,8 @@
 > **USER epic (2026-07-23):** pure-animation scenes from a prompt + animation overlays on
 > generated video scenes. Templates are parameterized React components — props, never code.
 
-**Context:** ANM (render) + GEN (dispatch) + STB (takes) · **Phase:** shipped MVP 2026-07-23
+**Context:** ANM (render) + GEN (dispatch) + STB (takes) · **Phase:** shipped MVP 2026-07-23  
+**Epic:** [EPIC-ANM-001-remotion-animations](../../epics/EPIC-ANM-001-remotion-animations.md)
 
 ## User outcomes
 
@@ -22,6 +23,12 @@
 |----|------|--------|
 | `title` | full-frame title card, animated text + accent underline | h264 mp4 |
 | `lower-third` | sliding accent-bar label, bottom-left | alpha VP8 webm |
+
+## BDD
+
+- `SCN-ANM-001` — Per-shot "✦ Animate" renders a title-card take; selectable and exportable.
+- `SCN-ANM-002` — Overlay composites transparent lower-third into a new take with `retake_of` lineage.
+- `SCN-ANM-003` — Plan-authored animation shots applied on shot-plan apply (no frame spend).
 
 ## Planned (PROPOSED)
 

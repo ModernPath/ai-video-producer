@@ -3,6 +3,7 @@
 - **Status:** IN_PROGRESS — lower loop complete (5/5 tasks `LOWER_VERIFIED`), upper loop not started
 - **Owning context(s):** STB (story & storyboard) · GEN (prompt assembly, research) · PRJ (project style state)
 - **Created:** 2026-07-26
+- **Supersedes:** [EPIC-STB-003](./EPIC-STB-003-archetype-directing.md) (six hardcoded archetypes → free-form Style Cards)
 
 ## Sourced user outcome
 

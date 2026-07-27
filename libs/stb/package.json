@@ -12,7 +12,8 @@
     "./board": "./src/board.ts",
     "./timeline": "./src/timeline.ts",
     "./grammar": "./src/grammar.ts",
-    "./director-pass": "./src/director-pass.ts"
+    "./director-pass": "./src/director-pass.ts",
+    "./casting": "./src/casting.ts"
   },
   "dependencies": {
     "@avd/shared": "workspace:*",

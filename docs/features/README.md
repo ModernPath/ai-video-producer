@@ -10,6 +10,8 @@ Per-surface specs for the AI Video Director. **Authoritative for UX behavior** o
 | Shot editor | [shot-editor.md](./shot-editor.md) | STB/GEN | 1 (minimal) → 2 |
 | Library & style | [library-style.md](./library-style.md) | AST | 4 |
 | Assembly & export | [assembly-export.md](./assembly-export.md) | ASM | 3 |
+| Music (Lyria + sync) | [music.md](./music.md) | STB/GEN | 3+ |
+| Animations (Remotion) | [animations.md](./animations.md) | ANM/GEN/STB | 3+ |
 | Design system | [design-system.md](./design-system.md) | — | 2+ |
 
 Journey map: `06-ux-architecture.md`. Phases: `81-build-plan.md`.

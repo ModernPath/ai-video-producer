@@ -266,6 +266,54 @@ export async function createEntityAction(formData: FormData) {
   revalidatePath("/library");
 }
 
+/**
+ * REQ-STB-048 (USER 2026-07-27: "Maybe allow either adding an image for character or generate it?")
+ * — cast a character the plan asked for.
+ *
+ * INV-AST-004 forces the order: an entity needs a reference image to exist, so an upload is used
+ * directly and otherwise a portrait is generated first and the cast member created from it. Either
+ * way the member exists only WITH a reference, which is the whole mechanism of consistency.
+ */
+export async function castMemberAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) return;
+  const [p] = await db().select().from(project).where(eq(project.id, projectId));
+  if (!p) return;
+
+  const kind = (String(formData.get("kind")) || "character") as "company" | "product" | "person" | "character";
+  const description = String(formData.get("description") ?? "").trim();
+  const appearance = String(formData.get("appearance") ?? "").trim();
+  const file = formData.get("portrait");
+
+  const { castFromPortrait, requestEntityPortrait } = await import("@avd/stb");
+
+  if (file instanceof File && file.size > 0) {
+    const { uploadBytesDirect, createEntity, attachEntities, listProjectEntities } = await import("@avd/ast");
+    const assetId = await uploadBytesDirect(db(), {
+      organizationId: p.organizationId, projectId: null, kind: "image",
+      mime: file.type || "image/png", bytes: new Uint8Array(await file.arrayBuffer()),
+    });
+    const entityId = await createEntity(db(), {
+      organizationId: p.organizationId, kind, name,
+      description: description || appearance || name, refAssetIds: [assetId],
+    });
+    const existing = (await listProjectEntities(db(), projectId)).map((e) => e.id);
+    await attachEntities(db(), { projectId, entityIds: [...existing, entityId] });
+  } else {
+    const genId = await requestEntityPortrait(db(), {
+      projectId, appearance: appearance || description || name, principal: PRINCIPAL, aspectRatio: p.aspectRatio,
+    });
+    // Run THIS generation, not "the next queued one". `drainQueueAndMaterialize` uses
+    // runNextGeneration, which claims any queued row — with a shot plan already waiting it ran that
+    // instead, and casting then read a portrait that had not been generated yet.
+    const { runGenerationById } = await import("@avd/gen");
+    await runGenerationById(db(), genId);
+    await castFromPortrait(db(), { projectId, generationId: genId, name, kind, description });
+  }
+  revalidatePath(`/p/${projectId}`);
+}
+
 export async function setCastAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));
   const { attachEntities } = await import("@avd/ast");

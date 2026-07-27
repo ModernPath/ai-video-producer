@@ -13,6 +13,7 @@ import {
 } from "../src/service";
 import { frameCandidate, scriptVersion, shot, shotPlanProposal, take } from "../src/schema";
 import { migrate } from "../../../scripts/migrate";
+import { normalizePlannedShots } from "../src/plan-normalize";
 
 // REQ-STB-008 + REQ-STB-011 — mock-mode script studio flow.
 describe("STB script studio: draft -> plan -> apply", () => {
@@ -68,7 +69,8 @@ describe("STB script studio: draft -> plan -> apply", () => {
     await materializeGenerationOutput(db, genId);
     const [proposal] = await db.select().from(shotPlanProposal).where(eq(shotPlanProposal.projectId, projectId));
     expect(proposal).toBeTruthy();
-    const shots = proposal!.changes as Array<{ title: string; durationS: number }>;
+    // REQ-STB-048: `changes` now holds { shots, cast } — read it through the normalizer.
+    const shots = normalizePlannedShots(proposal!.changes);
     expect(shots.length).toBeGreaterThanOrEqual(3);
     for (const s of shots) {
       expect(s.durationS).toBeGreaterThanOrEqual(config.shot.minSeconds);

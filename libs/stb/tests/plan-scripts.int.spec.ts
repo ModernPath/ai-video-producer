@@ -13,6 +13,7 @@ import {
 } from "../src/service";
 import { frameCandidate, scriptVersion, shot, shotPlanProposal, take } from "../src/schema";
 import { migrate } from "../../../scripts/migrate";
+import { normalizePlannedShots } from "../src/plan-normalize";
 
 // REQ-STB-014 — the plan authors ready image/video prompts per shot.
 describe("STB plan-authored scripts", () => {
@@ -64,7 +65,9 @@ describe("STB plan-authored scripts", () => {
     await runNextGeneration(db, { organizationId: orgId });
     await materializeGenerationOutput(db, g);
     const [proposal] = await db.select().from(shotPlanProposal).where(eq(shotPlanProposal.projectId, projectId));
-    const planned = proposal!.changes as Array<{ title: string; imagePrompt?: string; videoPrompt?: string }>;
+    // REQ-STB-048: `changes` now holds { shots, cast }; read it the way production does, so this
+    // test asserts on the plan rather than on one storage shape.
+    const planned = normalizePlannedShots(proposal!.changes);
     expect(planned.length).toBeGreaterThanOrEqual(3);
     for (const ps of planned) {
       expect((ps.imagePrompt ?? "").length).toBeGreaterThan(20);

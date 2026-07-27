@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 17 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -25,6 +25,7 @@ Totals: 30 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 | REQ-STB-039 | Music timeline: clips on the track's time axis, drift + off-beat cuts | P8 | IN_REVIEW | USER 2026-07-25 ("see the music timing within the clips… if I add a new clip it might outsync") | tests/timeline.spec.ts (9) + browser (Neon Rivers 5 clips, boundary ticks, 3/5→5/5 off-beat after a length edit) | libs/stb/src/timeline.ts, components/Timeline.tsx, ast/src/probe.ts (ffprobe), upload+music duration recording |
 | REQ-STB-040 | Edit clip length: free crop vs regenerate, stated per shot | P8 | IN_REVIEW | USER 2026-07-25 ("edit the length of clips (+regenerate or crop)") | tests/timeline.spec.ts crop/shortfall block + browser (5s→6s persisted, ⚠ 1s short, take price 0.51→0.61) | updateShotDurationAction, stage length editor, trimmedS/shortfallS in timeline.ts |
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
+| REQ-STB-048 | The plan casts the film; missing characters get a portrait | P9 | IN_REVIEW | USER 2026-07-27 "other characters than Pasi are not kept… director should think of cast and list them" | tests/casting.spec.ts (14) + casting-portrait.int.spec.ts (5) + prompt.spec.ts REQ-GEN-030 (5) | stb/casting.ts, requestEntityPortrait/castFromPortrait, toPortraitStyle, casting UI |
 | REQ-STB-047 | Prompt drift audit + restore from plan | P9 | IN_REVIEW | USER 2026-07-27 "this does not sound like the prompt that was used for this image / video?" | manual audit + restore verified on the live project | scripts/audit-prompts.ts, pnpm audit:prompts |
 | REQ-STB-046 | A shot's spoken line is editable without re-planning | P9 | IN_REVIEW | USER 2026-07-27 (dialogue missing from every shot) | tests/dialogue.int.spec.ts (5) | stb updateShotDialogue, saveScriptsAndGenerateAction, SPOKEN LINE field |
 | REQ-STB-045 | Per-shot prompt identity + reference scrub at the prompt boundary | P9 | IN_REVIEW | USER 2026-07-26 "the image prompt is not retained, so I could actually generate alternative images" | apps/web/tests/stage-panel-identity.spec.tsx (3) + prompt.spec.ts (4) | page.tsx key={s.id}, prompt.ts guard(), shared/reference-scrub.ts |
@@ -471,6 +472,23 @@ Totals: 30 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 - **Code:** `libs/stb/src/timeline.ts`, `apps/web/components/Timeline.tsx`, `apps/web/components/Workspace.tsx`, `libs/ast/src/probe.ts` (ffprobe duration), `libs/ast/src/uploads.ts` + `libs/gen/src/executor.ts` (record audio duration), `apps/web/scripts/backfill-audio-durations.ts`
 - **Log:** LOG 2026-07-25
 - **Deferred / notes:** `asset.duration_s` was NULL for every audio row, so drift could never render — now probed at upload/generate and backfilled (17/17 existing tracks). Waveform rendering, a scrubbing playhead across clips, and drag-the-edge trimming are not built; ticks come from section stamps, not beat detection.
+
+### REQ-STB-048 — The plan casts the film; missing characters get a portrait
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-27: "the other characters than Pasi in this movie are not kept. In the script planning, I think that director should think of cast and list them, allowing to generate images for other cast needed in this movie… Maybe allow either adding a image for character or generate it?"
+- **Statement:** The shot plan shall name every recurring body the film puts on screen, and anyone without a reference image shall be castable from the workspace — by generating a portrait from the planner's appearance line, or by uploading one. Reference images are the only mechanism of character consistency, so a character nobody casts is re-invented in every shot; in `Synchronized Drink` the model gave up and drew Pasi twice.
+- **Acceptance criteria:**
+  - GIVEN the shot-plan prompt THEN it requests a `cast` list with name, kind, description and a concrete repeatable `appearance`, demands unnamed roles ("the colleague") be included, and tells the planner to reference them by the names it assigned.
+  - GIVEN a planner response THEN the cast normalizes: missing names dropped, unknown kinds defaulted to `character`, duplicates collapsed case-insensitively, appearance used when no description is given.
+  - GIVEN existing project cast THEN only those missing are offered for casting, matched case- and space-insensitively; a member with zero reference images still counts as missing.
+  - GIVEN the stored proposal THEN it keeps the cast beside the shots, and rows written before this (a bare shots array) still read.
+  - GIVEN a portrait request THEN it is a plain reference portrait carrying the film's light and colour but NOT its typography, continuity or shot composition, and states that no text belongs in the frame.
+  - GIVEN a finished portrait THEN the cast member is created from it and attached to the project — INV-AST-004 forces this order, since an entity needs 1–5 refs to exist.
+  - GIVEN a generation that produced no image THEN casting is refused.
+- **Tests:** `tests/casting.spec.ts` (14) · `tests/casting-portrait.int.spec.ts` (5) · `libs/gen/tests/prompt.spec.ts` REQ-GEN-030 (5) · `libs/shared/tests/style-card.spec.ts` portrait block (5)
+- **Code:** `src/casting.ts` (`normalizePlannedCast`, `castingGaps`) · `src/service.ts` (`requestEntityPortrait`, `castFromPortrait`, proposal keeps cast) · `libs/gen/src/prompt.ts` (cast in the plan schema) · `libs/shared/src/contracts/style-card.ts` (`toPortraitStyle`) · `apps/web/app/actions.ts` (`castMemberAction`) · `apps/web/app/p/[id]/page.tsx` (CASTING panel)
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** casting does not retro-fit shots already generated — regenerate those a newly cast character appears in. One portrait per member (INV-AST-004 allows up to 5); more angles would strengthen consistency further.
 
 ### REQ-STB-047 — Prompt drift audit + restore from plan
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should

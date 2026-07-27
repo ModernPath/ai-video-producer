@@ -16,6 +16,7 @@ import { getMusicBrief, listCandidates, listShots } from "@avd/stb";
 import { boardProgress, shotStatus } from "@avd/stb/board";
 import { buildTimeline } from "@avd/stb/timeline";
 import { normalizePlannedShots } from "@avd/stb/plan-normalize";
+import { castingGaps, normalizePlannedCast } from "@avd/stb/casting"; // REQ-STB-048
 import { assembleFramePrompt, assembleTakePrompt, estimateTake } from "@avd/gen";
 import { listEntities, listProjectEntities, listStyleKits } from "@avd/ast";
 import { asset } from "@avd/ast/schema";
@@ -27,7 +28,7 @@ import {
   generateMusicTrackAction, generateTakeAction, moveShotTo, musicBriefAction, overlayTakeAction, proposePlanAction,
   removeCandidateAction, removeShotAction, retakeAction, retryExportAction,
   retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction,
-  compileStyleCardAction, setArchetypeAction, setProjectStyleAction, setTargetDurationAction, transcribeTrackAction,
+  castMemberAction, compileStyleCardAction, setArchetypeAction, setProjectStyleAction, setTargetDurationAction, transcribeTrackAction,
   updateBriefAction, updateShotDurationAction, updateShotRefsAction, uploadTrackAction,
 } from "../../actions";
 import { CastBar } from "../../../components/CastBar";
@@ -820,6 +821,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
       {proposals.map((prop) => {
         const planned = normalizePlannedShots(prop.changes);
+        // REQ-STB-048: who this plan needs on screen that the project has not cast yet.
+        const gaps = castingGaps(normalizePlannedCast(prop.changes), cast.map((e) => ({ name: e.name, refAssetIds: e.refAssetIds })));
         return (
           <Section
             key={prop.id}
@@ -833,6 +836,40 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               </form>
             ) : undefined}
           >
+            {gaps.length > 0 && (
+              <div style={{ ...sub, marginBottom: 10, borderColor: "var(--accent)" }}>
+                <p className="mono" style={{ fontSize: 10.5, marginBottom: 2 }}>
+                  ✦ CASTING — {gaps.length} {gaps.length === 1 ? "character has" : "characters have"} no reference image
+                </p>
+                <p className="mono muted" style={{ fontSize: 9.5, marginBottom: 8 }}>
+                  Without one, the image model re-invents them in every shot they appear in. Generate a portrait
+                  from the description, or upload your own.
+                </p>
+                {gaps.map((c) => (
+                  <form key={c.name} action={castMemberAction} encType="multipart/form-data"
+                    style={{ display: "grid", gap: 5, borderTop: "1px solid var(--line)", paddingTop: 7, marginTop: 7 }}>
+                    <input type="hidden" name="projectId" value={id} />
+                    <input type="hidden" name="name" value={c.name} />
+                    <input type="hidden" name="kind" value={c.kind} />
+                    <input type="hidden" name="description" value={c.description} />
+                    <div style={{ display: "flex", gap: 8, alignItems: "baseline", flexWrap: "wrap" }}>
+                      <b style={{ fontSize: 12 }}>{c.name}</b>
+                      <span className="mono muted" style={{ fontSize: 9.5 }}>{c.kind}</span>
+                    </div>
+                    <textarea name="appearance" rows={2} defaultValue={c.appearance}
+                      style={{ width: "100%", background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "5px 7px", color: "var(--ink)", fontSize: 10.5, fontFamily: "var(--mono)", resize: "vertical" }} />
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                      <SubmitButton small primary pendingLabel="Generating portrait…">✦ Generate portrait ≈ $0.07</SubmitButton>
+                      <label className="mono muted" style={{ fontSize: 9.5, display: "flex", gap: 5, alignItems: "center" }}>
+                        or upload
+                        <input type="file" name="portrait" accept="image/*" style={{ fontSize: 9.5, maxWidth: 180 }} />
+                      </label>
+                    </div>
+                  </form>
+                ))}
+              </div>
+            )}
+
             <div style={{ display: "grid", gap: 5 }}>
               {planned.map((s, i) => (
                 <div key={i} style={{ display: "flex", gap: 8, fontSize: 11.5, borderTop: "1px solid var(--line)", paddingTop: 5 }}>

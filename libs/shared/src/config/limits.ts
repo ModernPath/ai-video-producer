@@ -4,6 +4,10 @@
  */
 import { providerLimits } from "./models";
 
+/** The entity kinds the cast model supports — mirrored by `ast.entity.kind` (REQ-STB-048). */
+export const entityKinds = ["company", "product", "person", "character"] as const;
+export type EntityKind = (typeof entityKinds)[number];
+
 export const config = {
   platform: {
     devOrgName: "Local Studio", // single-tenant dev org until PLT auth lands; resolution must be by name, deterministic

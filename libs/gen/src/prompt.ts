@@ -1,5 +1,5 @@
 // REQ-GEN-013 — deterministic prompt assembly (docs/14-generation.md §5).
-import { config, fullFrameAnimationTemplates, shotAngles, shotDurationPolicy, shotMovements, shotSizes } from "@avd/shared/config";
+import { config, entityKinds, fullFrameAnimationTemplates, shotAngles, shotDurationPolicy, shotMovements, shotSizes } from "@avd/shared/config";
 import { stripReferences, toVisualStyle, type StyleCard } from "@avd/shared/contracts"; // SR-DIR-005 · SCN-DIR-002 // REQ-STB-029 route palette · REQ-AST-012 profile cap · REQ-STB-036 template set
 
 export const PROMPT_TEMPLATE_VERSION = 3; // v3: model prompt guidelines (USER 2026-07-23) — single-scene pin, explicit audio intent, ref preservation, inpainting formula
@@ -160,7 +160,12 @@ export function assembleShotPlanPrompt(i: TextPromptInput): string {
     i.transcript
       ? `TRANSCRIPT of the attached track (align shot boundaries to these [MM:SS] sections; where the direction calls for animation shots, put the matching lyric lines into their text):\n${i.transcript}`
       : "",
-    `Return ONLY a JSON object exactly shaped: {"shots":[{"title":string,"durationS":${shotDurationPolicy().allowedS.join("|")},"shotSize":${shotSizes.map((v) => `"${v}"`).join("|")},"angle":${shotAngles.map((v) => `"${v}"`).join("|")},"movement":${shotMovements.map((v) => `"${v}"`).join("|")},"direction":{"synopsis":string,"subject":string,"action":string,"camera":string,"mood":string,"dialogue":string},"imagePrompt":string,"videoPrompt":string,"animation":{"template":${fullFrameAnimationTemplates.map((t) => `"${t}"`).join("|")},"text":string,"subtext":string,"accent":"#rrggbb","background":"#rrggbb"}|null}]} — no markdown fences, no commentary.`,
+    `Return ONLY a JSON object exactly shaped: {"cast":[{"name":string,"kind":${entityKinds.map((k) => `"${k}"`).join("|")},"description":string,"appearance":string}],"shots":[{"title":string,"durationS":${shotDurationPolicy().allowedS.join("|")},"shotSize":${shotSizes.map((v) => `"${v}"`).join("|")},"angle":${shotAngles.map((v) => `"${v}"`).join("|")},"movement":${shotMovements.map((v) => `"${v}"`).join("|")},"direction":{"synopsis":string,"subject":string,"action":string,"camera":string,"mood":string,"dialogue":string},"imagePrompt":string,"videoPrompt":string,"animation":{"template":${fullFrameAnimationTemplates.map((t) => `"${t}"`).join("|")},"text":string,"subtext":string,"accent":"#rrggbb","background":"#rrggbb"}|null}]} — no markdown fences, no commentary.`,
+    // REQ-STB-048: only cast entities carry reference images, and reference images are what make a
+    // face the same face twice. Anyone the script invents but nobody casts gets re-imagined in every
+    // shot — one shot of the user's film simply drew the lead twice for want of a second face.
+    `"cast" lists EVERY recurring person, character, product or company the film puts on screen — including unnamed ones the script only refers to by role ("the colleague", "the barista"). Give each a short stable name to be referenced by, and an "appearance": a concrete physical description precise enough that two different images of them would look like the same individual — build, age, hair, facial hair, clothing, distinguishing details. Never "a man in a suit". Someone who appears in exactly one shot and is never seen again can be left out.`,
+    `Reference cast members BY NAME in every direction, imagePrompt and videoPrompt where they appear, using exactly the names you assigned in "cast" — that is what keeps them consistent across shots.`,
     // REQ-GEN-028: the script writes spoken lines and the plan used to drop every one of them.
     `direction.dialogue is the words a character SPEAKS in this shot, copied verbatim from the script — exact wording, no paraphrase, no stage directions. Use "" for a silent shot. When a shot has dialogue, the videoPrompt must also describe the delivery (who speaks, how) so the line is performed rather than merely captioned.`,
     // SR-DIR-001: the plan states its own craft so the director's pass can grade it (REQ-STB-043).

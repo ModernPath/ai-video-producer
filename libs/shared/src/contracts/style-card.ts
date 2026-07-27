@@ -127,6 +127,22 @@ export function toMusicBias(card: StyleCard): string {
   return [card.sound, register ? `Tone: ${register}` : ""].filter(Boolean).join(" ");
 }
 
+/**
+ * REFERENCE PORTRAIT style (REQ-STB-048) — the film's world without its staging.
+ *
+ * Casting reuses the card so a new face belongs to the same film, but a portrait is not a shot.
+ * The first real one came back with the card's display type burned across it reading "THE WORKER",
+ * dressed in the MAIN character's wardrobe, because it reused the full visual style. So: light and
+ * colour yes; typography, continuity and shot composition no — a reference is conditioning for
+ * every later image of that character, and anything wrong in it is wrong everywhere.
+ */
+export function toPortraitStyle(card: StyleCard): string {
+  return [card.light, card.palette.notes, card.performance, "No text, lettering or graphics anywhere in the frame."]
+    .map((s) => (s ?? "").trim())
+    .filter(Boolean)
+    .join(" ");
+}
+
 /** VISUAL prompts (frame + take). Craft axes only — never `provenance`. */
 export function toVisualStyle(card: StyleCard): string {
   return [

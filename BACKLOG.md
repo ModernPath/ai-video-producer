@@ -14,6 +14,17 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 
 ## Routing Log
 
+## 2026-07-27 — Epic backfill (retroactive V-model rollup)
+
+**Done:** Six shipped user journeys backfilled as `DONE` epics with ledger + E2E trace links:
+`EPIC-PRJ-001` (golden thread), `EPIC-STB-002` (script → animatic), `EPIC-ASM-001` (export),
+`EPIC-GEN-001` (Lyria music), `EPIC-ANM-001` (Remotion), `EPIC-STB-003` (archetype directing,
+superseded by `EPIC-STB-001`). `WORKLIST.md` rollup expanded; `epics/README.md` and
+`docs/86-frontend-strategy.md` stale refs fixed; `docs/features/music.md` created with
+`SCN-GEN-010…012`; `docs/features/animations.md` gained `SCN-ANM-001…003`.
+**Active:** `EPIC-STB-001` remains the only in-progress epic (upper loop open).
+**Forward (proposed, not opened):** `EPIC-AST-001`, `EPIC-STB-004`, `EPIC-STB-005`, `EPIC-PLT-001`.
+
 ## 2026-07-23 — Build loop iteration 1: Prompt 0B complete
 
 **Done:** git repo (`main`), pnpm workspace, 6 context libs (ledger+log+guide each), `@avd/shared` config (model routes, price table, provider limits — no-literals rule), docker-compose (pg 16 + minio, both up), migrator + `0001_init.sql` (plt.organization, prj.project), vitest harness. **Gate: 5/5 tests green** incl. vertical org→project→query integration test.
