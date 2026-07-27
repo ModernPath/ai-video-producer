@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 58 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 3 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 59 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 2 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -27,7 +27,7 @@ Totals: 58 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 3 READY · 0 PROPOSED · 0 DE
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | DONE | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
 | REQ-STB-049 | Per-shot cast: only who is in the shot conditions it | P9 | DONE | USER 2026-07-27 "modernpath logo is put to almost every scene… AI to decide which of the cast scene by scene" | tests/casting.spec.ts resolveShotCast (7) | stb/casting.ts, applyShotPlan, resolveCast(entityIds) |
 | REQ-STB-050 | Shots long enough for what happens in them | P9 | DONE | USER 2026-07-27 "video/audio is cut… time understanding in scene planning is poor" | tests/grammar.spec.ts REQ-STB-050 (5) | speechSeconds, line-too-long rule, plan TIME BUDGET |
-| REQ-STB-059 | Split stb/service.ts by aggregate | P10 | READY | `docs/88-architecture-review.md` §3 (1,136 lines · 42 exports) | — | — |
+| REQ-STB-059 | Split stb/service.ts by aggregate | P10 | DONE | `docs/88-architecture-review.md` §3 (1,136 lines · 42 exports) | — | — |
 | REQ-STB-060 | Decompose p/[id]/page.tsx into panel components | P10 | READY | `docs/88-architecture-review.md` §3 (1,180 lines · 29% of apps/web) | — | — |
 | REQ-STB-061 | Render harness for apps/web + tests for the three UI escapes | P10 | READY | `docs/88-architecture-review.md` §4b | — | — |
 | REQ-STB-062 | A sub-clip never buys a start frame | P9 | DONE | USER 2026-07-27 "are we still generating images for sub-scenes in the beginning when approving the script?" | tests/continuity.int.spec.ts REQ-STB-062 (4) | requestFrame guard, applyPlanAction + generateMissingFramesAction skip |
@@ -518,14 +518,16 @@ Totals: 58 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 3 READY · 0 PROPOSED · 0 DE
 - **Deferred / notes:** speech rate is one global constant; a style card could carry its own (deadpan is slower than hype). Physical-action duration is guidance to the planner, not measured — only dialogue is checkable.
 
 ### REQ-STB-059 — Split stb/service.ts by aggregate
-- **Status:** READY · **Stage:** P10 · **Priority:** should
+- **Status:** DONE · **Stage:** P10 · **Priority:** should
 - **Raised-by:** `docs/88-architecture-review.md` §3 — 1,136 lines, 42 exports, covering shots, takes, frames, plans, scripts, casting, continuity, chains and critique.
 - **Statement:** STB's service surface shall be split by aggregate (`shots`, `takes`, `plan`, `casting`, `continuity`, `critique`), preserving the public API so no consumer changes. The boundary discipline applied BETWEEN contexts was never applied within one.
 - **Acceptance criteria:**
   - GIVEN the split THEN `@avd/stb` exports exactly what it exports today, and every existing test passes unchanged.
   - GIVEN any resulting module THEN it is under ~300 lines and names one aggregate.
   - GIVEN the split THEN no module imports another's internals — shared helpers move to a named module rather than being re-exported sideways.
-- **Deferred / notes:** several seams already exist as separate files (`casting.ts`, `chain.ts`, `critique.ts`, `grammar.ts`, `timeline.ts`), which is evidence the boundaries are real. Mechanical, no behaviour change.
+- **Tests:** `libs/stb/tests/module-shape.spec.ts` (size assertion was RED at 1,147L; + 3 surface-regression cases)
+- **Code:** `libs/stb/src/{common,shots,frames,takes,plan,script,music,portraits,continuity,materialize}.ts`; `service.ts` is now a 14-line barrel
+- **Deferred / notes:** 1,147L → largest module 211L. All 7 private helpers were cross-aggregate (used by 2–14 exports each) so all moved to `common.ts`; only `StbValidationError` and `DirectionJson` are re-exported publicly from it. Cross-module imports are of PUBLIC exports only, and the graph is acyclic (common → shots/script → continuity/music → takes/plan/materialize). No test changed.
 
 ### REQ-STB-060 — Decompose p/[id]/page.tsx into panel components
 - **Status:** READY · **Stage:** P10 · **Priority:** should
