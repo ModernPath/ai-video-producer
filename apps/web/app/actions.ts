@@ -314,6 +314,14 @@ export async function castMemberAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/** REQ-STB-051: read the draft plan from several angles and propose an improved one. */
+export async function critiquePlanAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { critiqueAndRevise } = await import("@avd/stb");
+  await critiqueAndRevise(db(), { proposalId: String(formData.get("proposalId")), principal: PRINCIPAL });
+  revalidatePath(`/p/${projectId}`);
+}
+
 export async function setCastAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));
   const { attachEntities } = await import("@avd/ast");

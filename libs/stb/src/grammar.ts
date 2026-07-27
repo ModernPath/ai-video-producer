@@ -19,6 +19,8 @@ export interface GradedShot {
   movement: ShotMovement;
   /** The shot's action line — checked for competing ideas. */
   action?: string;
+  /** REQ-STB-050: what is spoken in this shot — checked against how long the shot actually is. */
+  dialogue?: string;
   /** Graphic shots are exempt from the held-ending rule: an end-card IS the held ending. */
   isAnimation?: boolean;
 }
@@ -33,7 +35,7 @@ export interface GrammarConstraints {
 
 export type GrammarRule =
   | "contrast-cut" | "held-ending" | "forbidden-movement"
-  | "duration-window" | "one-idea" | "coverage";
+  | "duration-window" | "one-idea" | "coverage" | "line-too-long";
 
 export interface GrammarNote {
   rule: GrammarRule;
@@ -42,6 +44,18 @@ export interface GrammarNote {
   shotIds: string[];
   /** Plain-language note, written to be shown to a director-user verbatim. */
   note: string;
+}
+
+/**
+ * REQ-STB-050 — roughly how many seconds a line takes to say.
+ *
+ * USER 2026-07-27: "at some scenes, video/audio is cut… more emphasis should be put on how long
+ * certain things take." A shot given 4 seconds and a seven-second line ends mid-sentence, and
+ * nothing measured that because nothing knew how long speech takes.
+ */
+export function speechSeconds(text: string): number {
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  return words ? words / grammarPolicy.wordsPerSecond : 0;
 }
 
 /**
@@ -124,6 +138,21 @@ export function gradeShotGrammar(shots: GradedShot[], constraints: GrammarConstr
         severity: "warning",
         shotIds: [s.id],
         note: `${s.title} has ${countActions(s.action)} competing actions — a shot advances exactly one beat; split it.`,
+      });
+    }
+  }
+
+  // REQ-STB-050 — the line has to fit, with room around it.
+  for (const s of shots) {
+    if (!s.dialogue?.trim()) continue;
+    const needs = speechSeconds(s.dialogue);
+    const room = s.durationS * (1 - grammarPolicy.speechHeadroom);
+    if (needs > room) {
+      notes.push({
+        rule: "line-too-long",
+        severity: "error",
+        shotIds: [s.id],
+        note: `${s.title} is ${s.durationS}s but its line needs about ${Math.ceil(needs)}s to say — the take will end mid-sentence. Lengthen the shot to ${Math.ceil(needs / (1 - grammarPolicy.speechHeadroom))}s, or shorten the line.`,
       });
     }
   }

@@ -7,7 +7,8 @@
     ".": "./src/index.ts",
     "./contracts": "./contracts/index.ts",
     "./schema": "./src/schema.ts",
-    "./style-compiler": "./src/style-compiler.ts"
+    "./style-compiler": "./src/style-compiler.ts",
+    "./text-json": "./src/text-json.ts"
   },
   "dependencies": {
     "@avd/shared": "workspace:*",

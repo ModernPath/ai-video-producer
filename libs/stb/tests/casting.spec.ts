@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { castingGaps, normalizePlannedCast } from "../src/casting";
+import { castingGaps, normalizePlannedCast, resolveShotCast } from "../src/casting";
 import { normalizePlannedShots } from "../src/plan-normalize";
 
 // USER 2026-07-27: "the other characters than Pasi in this movie are not kept. In the script
@@ -104,5 +104,48 @@ describe("REQ-STB-048: the stored proposal keeps the cast beside the shots", () 
   it("still reads shots from the old bare-array rows already in the database", () => {
     expect(normalizePlannedShots(stored.shots)).toHaveLength(1);
     expect(normalizePlannedCast(stored.shots)).toEqual([]); // no cast in a legacy row, and that is fine
+  });
+});
+
+// USER 2026-07-27: "e.g. modernpath logo is put to almost every scene, I want AI to decide which of
+// the cast should be placed as reference images scene by scene."
+//
+// `resolveShotRefs` falls back to the WHOLE cast when a shot has no explicit refs, so every shot is
+// conditioned on the company logo and every prompt names it — including a close-up of a face in a
+// tram. The plan now says who is IN each shot, and only those references are attached.
+describe("REQ-STB-049: each shot is conditioned on the cast that is actually in it", () => {
+  const cast = [
+    { id: "e-pasi", name: "Pasi", refAssetIds: ["a-pasi"] },
+    { id: "e-col", name: "Colleague", refAssetIds: ["a-col1", "a-col2"] },
+    { id: "e-mp", name: "ModernPath", refAssetIds: ["a-logo"] },
+  ];
+
+  it("resolves the named members to their ids and reference images", () => {
+    expect(resolveShotCast(["Pasi"], cast)).toEqual({ entityIds: ["e-pasi"], refAssetIds: ["a-pasi"] });
+  });
+
+  it("keeps the logo out of a shot the brand is not in — the whole point", () => {
+    expect(resolveShotCast(["Pasi", "Colleague"], cast).refAssetIds).not.toContain("a-logo");
+  });
+
+  it("carries every reference image a named member has", () => {
+    expect(resolveShotCast(["Colleague"], cast).refAssetIds).toEqual(["a-col1", "a-col2"]);
+  });
+
+  it("matches names case- and space-insensitively, as the planner writes them loosely", () => {
+    expect(resolveShotCast([" modernpath ", "PASI"], cast).entityIds).toEqual(["e-pasi", "e-mp"]);
+  });
+
+  it("ignores a name nobody has been cast under, rather than failing the shot", () => {
+    expect(resolveShotCast(["Pasi", "A Passing Dog"], cast).entityIds).toEqual(["e-pasi"]);
+  });
+
+  it("returns null for a shot that named nobody — a graphic card needs no references at all", () => {
+    expect(resolveShotCast([], cast)).toBeNull();
+    expect(resolveShotCast(undefined, cast)).toBeNull();
+  });
+
+  it("de-duplicates a member the planner listed twice", () => {
+    expect(resolveShotCast(["Pasi", "pasi"], cast).refAssetIds).toEqual(["a-pasi"]);
   });
 });

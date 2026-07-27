@@ -10,7 +10,7 @@ import { enqueueGeneration } from "@avd/gen";
 import { generation } from "@avd/gen/schema";
 import { frameCandidate, musicBrief, scriptVersion, shot, shotPlanProposal, take } from "./schema";
 import { normalizePlannedShots } from "./plan-normalize";
-import { normalizePlannedCast } from "./casting";
+import { normalizePlannedCast, resolveShotCast } from "./casting";
 import { project } from "@avd/prj/schema";
 
 export class StbValidationError extends Error {
@@ -83,8 +83,13 @@ async function getShotOrThrow(db: Db, shotId: string) {
 }
 
 /** Resolves the project cast (REQ-AST-006 MVP: all attached entities apply to every shot). */
-async function resolveCast(db: Db, projectId: string) {
-  const cast = await listProjectEntities(db, projectId);
+/**
+ * REQ-STB-049: `entityIds` narrows a shot to the cast actually in it. Without it every prompt named
+ * the whole cast, so a tram close-up mentioned the company and carried its logo as a reference.
+ */
+async function resolveCast(db: Db, projectId: string, entityIds?: string[] | undefined) {
+  const all = await listProjectEntities(db, projectId);
+  const cast = entityIds?.length ? all.filter((e) => entityIds.includes(e.id)) : all;
   return {
     entities: cast.map((e) => ({ kind: e.kind, name: e.name, description: e.description, ...(e.profile ? { profile: e.profile } : {}) })), // REQ-AST-012
     entityRefAssetIds: cast.flatMap((e) => e.refAssetIds),
@@ -103,7 +108,7 @@ export async function requestFrame(
 ) {
   const s = await getShotOrThrow(db, input.shotId);
   const d = s.direction as DirectionJson;
-  const cast = await resolveCast(db, s.projectId);
+  const cast = await resolveCast(db, s.projectId, d.entityIds); // REQ-STB-049
   const refAssetIds = resolveShotRefs(s.refAssetIds, cast.entityRefAssetIds); // REQ-STB-016
   const stylePrompt = await projectStylePrompt(db, s.projectId); // REQ-AST-007
   const card = await projectCard(db, s.projectId); // REQ-STB-044
@@ -149,7 +154,7 @@ export async function requestTake(
   const s = await getShotOrThrow(db, input.shotId);
   const d = s.direction as DirectionJson;
   // REQ-GEN-009: attach the selected start frame for image conditioning (BR-STB-002).
-  const cast = await resolveCast(db, s.projectId);
+  const cast = await resolveCast(db, s.projectId, d.entityIds); // REQ-STB-049
   const refAssetIds = resolveShotRefs(s.refAssetIds, cast.entityRefAssetIds); // REQ-STB-016
   let refs: { startFrameAssetId?: string; entityRefAssetIds?: string[] } | undefined;
   if (s.selectedStartFrameId) {
@@ -499,15 +504,22 @@ export async function applyShotPlan(db: Db, input: { proposalId: string; princip
     const [anyTake] = await db.select().from(take).where(and(eq(take.shotId, ex.id), isNull(take.deletedAt))).limit(1);
     if (!anyTake) await removeShot(db, { shotId: ex.id });
   }
+  // REQ-STB-049: attach each shot ONLY to the cast it names. Falling back to the whole cast put
+  // the company logo into every shot, including close-ups of a face in a tram.
+  const projectCast = await listProjectEntities(db, proposal.projectId);
   const createdShotIds: string[] = [];
   for (const s of shots) {
+    const shotCast = resolveShotCast(s.cast, projectCast.map((e) => ({ id: e.id, name: e.name, refAssetIds: e.refAssetIds })));
     const shotId = await createShot(db, {
       organizationId: p!.organizationId,
       projectId: proposal.projectId,
       title: s.title,
-      direction: s.direction,
+      direction: { ...s.direction, ...(shotCast ? { entityIds: shotCast.entityIds } : {}) },
       durationS: s.durationS, // INV-STB-001 enforced by createShot
     });
+    if (shotCast) {
+      await db.update(shot).set({ refAssetIds: shotCast.refAssetIds }).where(eq(shot.id, shotId)); // REQ-STB-016/049
+    }
     if (s.imagePrompt || s.videoPrompt) {
       await updateShotScripts(db, { shotId, imagePrompt: s.imagePrompt ?? null, videoPrompt: s.videoPrompt ?? null }); // REQ-STB-014
     }
@@ -676,6 +688,63 @@ export async function updateShotDialogue(db: Db, input: { shotId: string; dialog
   if (line) direction.dialogue = line;
   else delete direction.dialogue;
   await db.update(shot).set({ direction }).where(eq(shot.id, input.shotId));
+}
+
+/**
+ * REQ-STB-051 — critique the draft plan from several angles, then revise it.
+ *
+ * USER 2026-07-27: "script planning could include some more iterations of adding critique steps
+ * from few angles and improve." The mechanical grader runs first and free; the lenses read the plan
+ * independently for what no rule can catch; the revision has to answer all of it at once. Result is
+ * a NEW proposal, so the original stays on the record and nothing is applied behind the user's back.
+ */
+export async function critiqueAndRevise(
+  db: Db,
+  input: { proposalId: string; principal: string }
+): Promise<{ proposalId: string; issues: number } | null> {
+  const [proposal] = await db.select().from(shotPlanProposal).where(eq(shotPlanProposal.id, input.proposalId));
+  if (!proposal) throw new StbValidationError("not_found", "Proposal not found");
+  const shots = normalizePlannedShots(proposal.changes);
+  if (!shots.length) return null;
+  const card = await projectCard(db, proposal.projectId);
+
+  const { assembleCritiquePrompt, mergeCritiques, CRITIQUE_LENSES } = await import("./critique");
+  const { textJson } = await import("@avd/gen/text-json");
+  const { reviewPlan, assembleDirectorPassPrompt } = await import("./director-pass");
+
+  // Lenses read in PARALLEL and in isolation — one shared conversation would let them converge on
+  // a single opinion, which is the opposite of why there are several.
+  const critiques = await Promise.all(
+    CRITIQUE_LENSES.map(async (lens) => ({
+      lens: lens.id,
+      issues: (await textJson<{ issues?: unknown[] }>(assembleCritiquePrompt({ lens, shots, card: card ?? undefined }), {})).issues ?? [],
+    }))
+  );
+  const merged = mergeCritiques(critiques as never);
+  const mechanical = reviewPlan(shots, card ?? undefined);
+  if (!merged.length && !mechanical.length) return { proposalId: input.proposalId, issues: 0 }; // already sound
+
+  const revision = await textJson<unknown>(
+    [
+      assembleDirectorPassPrompt({ shots, notes: mechanical, card: card ?? undefined }),
+      ``,
+      `The plan was also read by ${CRITIQUE_LENSES.length} reviewers. Every issue below must be resolved too:`,
+      ...merged.map((i) => `- [${i.severity}] (${i.lens}) ${i.shotTitle}: ${i.note}`),
+    ].join("\n"),
+    null
+  );
+  const revised = normalizePlannedShots(revision);
+  if (!revised.length) return null; // a revision we cannot read is not an improvement
+
+  const id = uuidv7();
+  await db.insert(shotPlanProposal).values({
+    id,
+    projectId: proposal.projectId,
+    scriptVersionId: proposal.scriptVersionId,
+    changes: { shots: revised, cast: normalizePlannedCast(proposal.changes) },
+    generationId: null,
+  });
+  return { proposalId: id, issues: merged.length + mechanical.length };
 }
 
 // ---- Casting (REQ-STB-048, USER 2026-07-27) ----

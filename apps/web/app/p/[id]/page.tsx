@@ -28,7 +28,7 @@ import {
   generateMusicTrackAction, generateTakeAction, moveShotTo, musicBriefAction, overlayTakeAction, proposePlanAction,
   removeCandidateAction, removeShotAction, retakeAction, retryExportAction,
   retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction,
-  castMemberAction, compileStyleCardAction, setArchetypeAction, setProjectStyleAction, setTargetDurationAction, transcribeTrackAction,
+  castMemberAction, compileStyleCardAction, critiquePlanAction, setArchetypeAction, setProjectStyleAction, setTargetDurationAction, transcribeTrackAction,
   updateBriefAction, updateShotDurationAction, updateShotRefsAction, uploadTrackAction,
 } from "../../actions";
 import { CastBar } from "../../../components/CastBar";
@@ -73,7 +73,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   // REQ-GEN-027 (USER 2026-07-26 "two videos seem stuck"): recovery used to require dispatching
   // NEW work, which the person staring at a stuck shot never does. Reading the project heals it.
   const { sweepStuckGenerations } = await import("@avd/gen");
-  await sweepStuckGenerations(d);
+  await sweepStuckGenerations(d, id); // this project only
 
   const shots = await listShots(d, id);
   const candidatesByShot = new Map(
@@ -831,6 +831,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               <form action={applyPlanAction} style={{ display: "flex", gap: 6 }}>
                 <input type="hidden" name="projectId" value={id} />
                 <input type="hidden" name="proposalId" value={prop.id} />
+                <SubmitButton small formAction={critiquePlanAction}
+                  title="Four reviewers read this plan — pacing, continuity, casting, story — and propose a fixed one"
+                  pendingLabel="Reviewing…">↻ Critique &amp; improve</SubmitButton>
                 <SubmitButton small title="Replaces shots with no takes; shots with takes are kept (INV-STB-007)" pendingLabel="…">Apply {planned.length}</SubmitButton>
                 <SubmitButton small primary name="generateFrames" value="1" title="Apply and generate the first frames" pendingLabel="…">Apply + frames</SubmitButton>
               </form>

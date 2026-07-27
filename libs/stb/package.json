@@ -13,7 +13,8 @@
     "./timeline": "./src/timeline.ts",
     "./grammar": "./src/grammar.ts",
     "./director-pass": "./src/director-pass.ts",
-    "./casting": "./src/casting.ts"
+    "./casting": "./src/casting.ts",
+    "./critique": "./src/critique.ts"
   },
   "dependencies": {
     "@avd/shared": "workspace:*",

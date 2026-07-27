@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 17 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 20 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -25,6 +25,9 @@ Totals: 30 DONE · 17 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 | REQ-STB-039 | Music timeline: clips on the track's time axis, drift + off-beat cuts | P8 | IN_REVIEW | USER 2026-07-25 ("see the music timing within the clips… if I add a new clip it might outsync") | tests/timeline.spec.ts (9) + browser (Neon Rivers 5 clips, boundary ticks, 3/5→5/5 off-beat after a length edit) | libs/stb/src/timeline.ts, components/Timeline.tsx, ast/src/probe.ts (ffprobe), upload+music duration recording |
 | REQ-STB-040 | Edit clip length: free crop vs regenerate, stated per shot | P8 | IN_REVIEW | USER 2026-07-25 ("edit the length of clips (+regenerate or crop)") | tests/timeline.spec.ts crop/shortfall block + browser (5s→6s persisted, ⚠ 1s short, take price 0.51→0.61) | updateShotDurationAction, stage length editor, trimmedS/shortfallS in timeline.ts |
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
+| REQ-STB-049 | Per-shot cast: only who is in the shot conditions it | P9 | IN_REVIEW | USER 2026-07-27 "modernpath logo is put to almost every scene… AI to decide which of the cast scene by scene" | tests/casting.spec.ts resolveShotCast (7) | stb/casting.ts, applyShotPlan, resolveCast(entityIds) |
+| REQ-STB-050 | Shots long enough for what happens in them | P9 | IN_REVIEW | USER 2026-07-27 "video/audio is cut… time understanding in scene planning is poor" | tests/grammar.spec.ts REQ-STB-050 (5) | speechSeconds, line-too-long rule, plan TIME BUDGET |
+| REQ-STB-051 | Multi-angle critique of the plan, then revise | P9 | IN_REVIEW | USER 2026-07-27 "critique steps from few angles and improve" | tests/critique.spec.ts (11) | stb/critique.ts, critiqueAndRevise, Critique & improve |
 | REQ-STB-048 | The plan casts the film; missing characters get a portrait | P9 | IN_REVIEW | USER 2026-07-27 "other characters than Pasi are not kept… director should think of cast and list them" | tests/casting.spec.ts (14) + casting-portrait.int.spec.ts (5) + prompt.spec.ts REQ-GEN-030 (5) | stb/casting.ts, requestEntityPortrait/castFromPortrait, toPortraitStyle, casting UI |
 | REQ-STB-047 | Prompt drift audit + restore from plan | P9 | IN_REVIEW | USER 2026-07-27 "this does not sound like the prompt that was used for this image / video?" | manual audit + restore verified on the live project | scripts/audit-prompts.ts, pnpm audit:prompts |
 | REQ-STB-046 | A shot's spoken line is editable without re-planning | P9 | IN_REVIEW | USER 2026-07-27 (dialogue missing from every shot) | tests/dialogue.int.spec.ts (5) | stb updateShotDialogue, saveScriptsAndGenerateAction, SPOKEN LINE field |
@@ -472,6 +475,52 @@ Totals: 30 DONE · 17 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 - **Code:** `libs/stb/src/timeline.ts`, `apps/web/components/Timeline.tsx`, `apps/web/components/Workspace.tsx`, `libs/ast/src/probe.ts` (ffprobe duration), `libs/ast/src/uploads.ts` + `libs/gen/src/executor.ts` (record audio duration), `apps/web/scripts/backfill-audio-durations.ts`
 - **Log:** LOG 2026-07-25
 - **Deferred / notes:** `asset.duration_s` was NULL for every audio row, so drift could never render — now probed at upload/generate and backfilled (17/17 existing tracks). Waveform rendering, a scrubbing playhead across clips, and drag-the-edge trimming are not built; ticks come from section stamps, not beat detection.
+
+### REQ-STB-049 — Per-shot cast: only who is in the shot conditions it
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-27: "e.g. modernpath logo is put to almost every scene, I want AI to decide which of the cast should be placed as reference images scene by scene."
+- **Statement:** Each shot shall be conditioned only on the cast actually in it. `resolveShotRefs` fell back to the WHOLE cast whenever a shot had no explicit refs, so a close-up of a face in a tram carried the company logo as a reference image and named the brand in its prompt.
+- **Acceptance criteria:**
+  - GIVEN the plan THEN each shot carries its own `cast` list, and the prompt tells the planner to list ONLY members visible in that shot and never a brand that is not on screen.
+  - GIVEN a shot naming Pasi and Colleague THEN the logo's reference is not attached.
+  - GIVEN loose names (` modernpath `, `PASI`) THEN they match case- and space-insensitively; an uncast name is ignored rather than failing the shot; duplicates collapse.
+  - GIVEN a shot naming nobody THEN null — a graphic card needs no references.
+  - GIVEN apply THEN `shot.refAssetIds` and `direction.entityIds` are set from the named members, and prompt assembly narrows the text cast block to them.
+- **Tests:** `tests/casting.spec.ts` (`resolveShotCast`, 7)
+- **Code:** `src/casting.ts` (`resolveShotCast`) · `src/service.ts` (`applyShotPlan`, `resolveCast(entityIds)`) · `libs/gen/src/prompt.ts`
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** shots applied before this keep whole-cast refs — re-plan or edit refs per shot. Verified live: the re-planned film lists ModernPath in NO shot's cast.
+
+### REQ-STB-050 — Shots long enough for what happens in them
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-27: "at some scenes, video/audio is cut, meaning that the time understanding in scene planning is poor, more emphasis should be put on how long certain things take."
+- **Statement:** A shot's length shall be checked against what has to happen in it, and the planner shall budget time explicitly rather than assuming. A shot given 4s and a 7s line ends mid-sentence, and nothing measured it because nothing knew how long speech takes.
+- **Acceptance criteria:**
+  - GIVEN a line THEN `speechSeconds` estimates its duration at `config.shot.wordsPerSecond` (2.5); an empty line is 0; a longer line is proportionally longer.
+  - GIVEN a line that cannot be spoken inside the shot THEN a `line-too-long` ERROR naming the shot, how long the line needs, and the length that would fit.
+  - GIVEN `speechHeadroom` (25%) THEN a line filling every last frame is still flagged — a take that ends on the final syllable reads as cut off.
+  - GIVEN a comfortable line THEN no note.
+  - GIVEN the plan prompt THEN it states the speaking rate, requires counting words before choosing `durationS`, gives 2–3s for a deliberate physical action, and says to split a beat across two shots rather than let a take end mid-sentence.
+- **Tests:** `tests/grammar.spec.ts` (REQ-STB-050, 5)
+- **Code:** `libs/shared/src/config/grammar.ts` (`wordsPerSecond`, `speechHeadroom`) · `src/grammar.ts` (`speechSeconds`, `line-too-long`) · `src/director-pass.ts` (passes dialogue) · `libs/gen/src/prompt.ts` (TIME BUDGET)
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** speech rate is one global constant; a style card could carry its own (deadpan is slower than hype). Physical-action duration is guidance to the planner, not measured — only dialogue is checkable.
+
+### REQ-STB-051 — Multi-angle critique of the plan, then revise
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Raised-by:** USER 2026-07-27: "Maybe script planning could include some more iterations of adding critique steps from few angles and improve."
+- **Statement:** A draft plan shall be read by several independent reviewers with distinct briefs, and their findings plus the mechanical grade shall drive a revised proposal. The grader only catches what is checkable; it cannot see an unmotivated beat, a brand in a shot with no reason to hold it, or a film with no story.
+- **Acceptance criteria:**
+  - GIVEN the lenses THEN there are ≥3 with distinct briefs, covering time, continuity, who is on screen, and structure.
+  - GIVEN a lens THEN its prompt carries only its own brief, the plan itself, and a JSON-only issues contract; a compiled card's reference name never appears.
+  - GIVEN several critiques THEN merging keeps every lens's issues, attributes each to its lens, sorts worst-first, groups by shot, and survives a lens that found nothing.
+  - GIVEN a run THEN lenses execute in PARALLEL and in isolation, so they cannot converge on one opinion.
+  - GIVEN issues THEN a NEW proposal is stored — the original stays on the record and nothing is applied unasked.
+  - GIVEN a plan with no issues THEN no revision is invented.
+- **Tests:** `tests/critique.spec.ts` (11)
+- **Code:** `src/critique.ts` (`CRITIQUE_LENSES`, `assembleCritiquePrompt`, `mergeCritiques`) · `src/service.ts` (`critiqueAndRevise`) · `libs/gen/src/text-json.ts` · `apps/web` (`critiquePlanAction`, "↻ Critique & improve")
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** one pass, not a loop to convergence — the user can press it again. Critique costs four text calls and is not recorded in the generation ledger, matching the `research.ts` precedent for cheap text; if that becomes material it should get rows. The revised plan is not auto-applied.
 
 ### REQ-STB-048 — The plan casts the film; missing characters get a portrait
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must

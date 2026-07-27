@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 import type { CSSProperties, ReactNode } from "react";
 
 export function SubmitButton({
-  children, primary, disabled, small, pendingLabel, name, value, title, style: styleOverride, className,
+  children, primary, disabled, small, pendingLabel, name, value, title, style: styleOverride, className, formAction,
 }: {
   children: ReactNode;
   primary?: boolean;
@@ -17,6 +17,8 @@ export function SubmitButton({
   title?: string;
   style?: CSSProperties;
   className?: string;
+  /** Submit this form to a DIFFERENT server action than the form's own. */
+  formAction?: (formData: FormData) => void | Promise<void>;
 }) {
   const { pending } = useFormStatus();
   const style: CSSProperties = {
@@ -40,6 +42,7 @@ export function SubmitButton({
       {...(value !== undefined ? { value } : {})}
       {...(title !== undefined ? { title } : {})}
       {...(className !== undefined ? { className } : {})}
+      {...(formAction !== undefined ? { formAction } : {})}
     >
       {pending ? (pendingLabel ?? "Working…") : children}
     </button>

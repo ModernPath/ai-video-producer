@@ -111,8 +111,21 @@ export async function reapStaleGenerations(db: Db): Promise<number> {
  * project is enough to recover it now. Safe to call anywhere: it only touches rows that started
  * before the stale window, so work genuinely in flight is untouched.
  */
-export async function sweepStuckGenerations(db: Db): Promise<number> {
-  return reapStaleGenerations(db);
+export async function sweepStuckGenerations(db: Db, projectId?: string): Promise<number> {
+  const cutoff = new Date(Date.now() - config.gen.staleRunningMinutes * 60_000);
+  const where = projectId
+    ? and(eq(generation.status, "running"), lt(generation.startedAt, cutoff), eq(generation.projectId, projectId))
+    : and(eq(generation.status, "running"), lt(generation.startedAt, cutoff));
+  const stale = await db.select({ id: generation.id }).from(generation).where(where);
+  for (const s of stale) {
+    await db.update(generation).set({
+      status: "failed",
+      errorCode: "orphaned",
+      errorDetail: `Generation ran past ${config.gen.staleRunningMinutes} minutes without finishing — the process running it likely died. Retry to regenerate.`,
+      finishedAt: new Date(),
+    }).where(and(eq(generation.id, s.id), eq(generation.status, "running")));
+  }
+  return stale.length;
 }
 
 /** Executes a specific generation by id (worker path, REQ-GEN-016). */

@@ -26,6 +26,14 @@ export const shotSizeLabels: Record<ShotSize, string> = {
 
 /** Grader thresholds — tuning taste means editing these, never a literal in the grader. */
 export const grammarPolicy = {
+  /**
+   * REQ-STB-050 — how long speech takes. ~2.5 words/second is unhurried delivery; a deadpan or
+   * contemplative style is slower still, which is the direction that gets clipped. `speechHeadroom`
+   * is the share of the shot that must remain around the line, because a take that starts speaking
+   * on frame one and ends on the last syllable reads as cut off even when nothing was cut.
+   */
+  wordsPerSecond: 2.5,
+  speechHeadroom: 0.25,
   /** A closing shot should be at least this share of the longest shot to read as "held". */
   heldEndingRatio: 0.75,
   /** Below this many distinct shot sizes, a multi-shot plan is monotonous. */

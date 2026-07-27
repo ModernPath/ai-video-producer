@@ -63,3 +63,26 @@ export function castingGaps(
   );
   return planned.filter((c) => !cast.has(key(c.name)));
 }
+
+/**
+ * REQ-STB-049 (USER 2026-07-27: "modernpath logo is put to almost every scene, I want AI to decide
+ * which of the cast should be placed as reference images scene by scene").
+ *
+ * Which entities a shot is conditioned on. Every shot previously fell back to the WHOLE cast, so a
+ * close-up of a face in a tram carried the company logo as a reference and named the brand in its
+ * prompt. Returns null when the shot names nobody — a graphic card needs no references at all, and
+ * null is what `shot.refAssetIds` stores to mean "not chosen".
+ */
+export function resolveShotCast(
+  names: string[] | undefined,
+  cast: Array<{ id: string; name: string; refAssetIds: string[] }>
+): { entityIds: string[]; refAssetIds: string[] } | null {
+  if (!names?.length) return null;
+  const wanted = new Set(names.map(key));
+  const hits = cast.filter((e) => wanted.has(key(e.name)));
+  if (!hits.length) return null;
+  return {
+    entityIds: hits.map((e) => e.id),
+    refAssetIds: [...new Set(hits.flatMap((e) => e.refAssetIds))],
+  };
+}

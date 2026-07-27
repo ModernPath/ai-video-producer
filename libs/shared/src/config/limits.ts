@@ -13,6 +13,8 @@ export const config = {
     devOrgName: "Local Studio", // single-tenant dev org until PLT auth lands; resolution must be by name, deterministic
   },
   shot: {
+    /** REQ-STB-050: unhurried delivery — the plan budgets dialogue against this. */
+    wordsPerSecond: 2.5,
     minSeconds: 4,
     maxSeconds: 8, // must never exceed providerLimits.video.maxClipSeconds (INV-STB-001; Veo 3.1 route)
     defaultSeconds: 6,

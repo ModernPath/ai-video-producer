@@ -46,10 +46,13 @@ afterAll(async () => {
   await db.delete(organization).where(eq(organization.id, orgId));
 });
 
+// Scoped to this project on purpose: the reaper is global, but a PAGE LOAD sweeping every project
+// in the database would reap work another project is legitimately running — and it made this test
+// and `reaper.int.spec.ts` fight over each other's fixtures.
 describe("REQ-GEN-027: stuck runs recover without the user dispatching new work", () => {
   it("fails a run stuck past the stale window, with a retryable reason", async () => {
     const id = await insertRun(config.gen.staleRunningMinutes + 8, "running");
-    expect(await sweepStuckGenerations(db)).toBeGreaterThanOrEqual(1);
+    expect(await sweepStuckGenerations(db, projectId)).toBeGreaterThanOrEqual(1);
     const row = await statusOf(id);
     expect(row.status).toBe("failed");
     expect(row.errorCode).toBe("orphaned");
@@ -59,19 +62,19 @@ describe("REQ-GEN-027: stuck runs recover without the user dispatching new work"
 
   it("leaves a run that is still legitimately in flight alone", async () => {
     const id = await insertRun(2, "running");
-    await sweepStuckGenerations(db);
+    await sweepStuckGenerations(db, projectId);
     expect((await statusOf(id)).status).toBe("running");
   });
 
   it("leaves queued work alone — it has not started, so it cannot be orphaned", async () => {
     const id = await insertRun(config.gen.staleRunningMinutes + 8, "queued");
-    await sweepStuckGenerations(db);
+    await sweepStuckGenerations(db, projectId);
     expect((await statusOf(id)).status).toBe("queued");
   });
 
   it("is safe to call on every page load — a second sweep changes nothing", async () => {
-    await sweepStuckGenerations(db);
-    expect(await sweepStuckGenerations(db)).toBe(0);
+    await sweepStuckGenerations(db, projectId);
+    expect(await sweepStuckGenerations(db, projectId)).toBe(0);
   });
 
   it("frees the video concurrency slot the stuck run was holding (BR-GEN-005)", async () => {
@@ -79,7 +82,7 @@ describe("REQ-GEN-027: stuck runs recover without the user dispatching new work"
       Array.from({ length: config.gen.maxConcurrentVideoPerOrg }, () =>
         insertRun(config.gen.staleRunningMinutes + 8, "running"))
     );
-    await sweepStuckGenerations(db);
+    await sweepStuckGenerations(db, projectId);
     for (const id of stuck) expect((await statusOf(id)).status).toBe("failed");
   });
 });

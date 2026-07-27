@@ -23,6 +23,7 @@ export function reviewPlan(shots: NormalizedPlannedShot[], card: StyleCard | und
       angle: s.grammar.angle,
       movement: s.grammar.movement,
       ...(s.direction.action ? { action: s.direction.action } : {}),
+      ...(s.direction.dialogue ? { dialogue: s.direction.dialogue } : {}), // REQ-STB-050
       ...(s.animation ? { isAnimation: true } : {}),
     })),
     // No card means no refusals and no pacing window — only what is true of every film.

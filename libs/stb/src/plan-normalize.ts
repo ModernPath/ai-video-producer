@@ -28,6 +28,8 @@ export interface NormalizedPlannedShot {
   title: string;
   durationS: number;
   grammar: PlannedGrammar;
+  /** REQ-STB-049: names of the cast physically in THIS shot — drives its reference images. */
+  cast: string[];
   direction: DirectionJson;
   imagePrompt?: string | undefined;
   videoPrompt?: string | undefined;
@@ -102,6 +104,9 @@ export function normalizePlannedShots(raw: unknown): NormalizedPlannedShot[] {
     out.push({
       title: str(s.title) || str(s.name) || `Shot ${i + 1}`,
       durationS: snapDuration(s.durationS ?? s.duration ?? s.durationSeconds ?? s.duration_seconds),
+      cast: Array.isArray(s.cast)
+        ? (s.cast as unknown[]).filter((c): c is string => typeof c === "string" && c.trim().length > 0).map((c) => c.trim())
+        : [],
       grammar: ((): PlannedGrammar => {
         // Top level, inside `direction`, or inside `grammar` — models use the first two, and the
         // THIRD is our own output: a stored proposal is normalized already, so anything re-reading
