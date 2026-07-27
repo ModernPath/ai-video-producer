@@ -1,6 +1,7 @@
 {
   "name": "ai-video-director",
   "private": true,
+  "license": "MIT",
   "packageManager": "pnpm@10.30.1",
   "engines": {
     "node": ">=22"
