@@ -7,7 +7,7 @@
 // face twice. Anyone the script invents but the project never cast — "the colleague" — is
 // re-imagined by the image model in every shot, and in one shot it gave up and drew Pasi twice.
 // So the planner now names everyone the film needs, and anyone missing can be cast before shooting.
-import type { EntityKind } from "@avd/shared/config";
+import { entityKinds, type EntityKind } from "@avd/shared/config";
 
 export interface PlannedCastMember {
   name: string;
@@ -18,7 +18,8 @@ export interface PlannedCastMember {
   appearance: string;
 }
 
-const KINDS: readonly EntityKind[] = ["company", "product", "person", "character"];
+// From config, not a second copy — this list drifted the moment `location` was added.
+const KINDS: readonly EntityKind[] = entityKinds;
 const str = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
 const key = (name: string): string => name.trim().toLowerCase().replace(/\s+/g, " ");
 

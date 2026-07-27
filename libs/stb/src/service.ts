@@ -3,7 +3,7 @@ import { and, asc, eq, inArray, isNull, max } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import { config, shotDurationPolicy, styleCards, type EntityKind, type FullFrameAnimationTemplate } from "@avd/shared/config";
-import { styleCardSchema, toDirectingBlock, toMusicBias, toPlanBias, toPortraitStyle } from "@avd/shared/contracts"; // TASK-DIR-004 · SR-DIR-008 · REQ-STB-048
+import { styleCardSchema, toDirectingBlock, toMusicBias, toPlanBias, toPortraitStyle, toScenePlateStyle } from "@avd/shared/contracts"; // TASK-DIR-004 · SR-DIR-008 · REQ-STB-048
 import { asset } from "@avd/ast/schema";
 import { listProjectEntities, projectStylePrompt } from "@avd/ast";
 import { enqueueGeneration } from "@avd/gen";
@@ -813,7 +813,7 @@ export async function critiqueAndRevise(
  */
 export async function requestEntityPortrait(
   db: Db,
-  input: { projectId: string; appearance: string; principal: string; aspectRatio: "16:9" | "9:16" }
+  input: { projectId: string; appearance: string; principal: string; aspectRatio: "16:9" | "9:16"; kind?: EntityKind }
 ) {
   const [p] = await db.select().from(project).where(eq(project.id, input.projectId));
   if (!p) throw new StbValidationError("not_found", "Project not found");
@@ -822,7 +822,9 @@ export async function requestEntityPortrait(
   const card = await projectCard(db, input.projectId); // the film's own look, so casting matches it
   // NOT the card object: `toVisualStyle` would add typography and the main character's continuity,
   // which is how the first portrait came back captioned "THE WORKER" in someone else's jacket.
-  const look = card ? toPortraitStyle(card) : "";
+  // REQ-STB-053: a LOCATION gets an empty establishing plate, not a head-and-shoulders portrait.
+  const isPlace = input.kind === "location";
+  const look = card ? (isPlace ? toScenePlateStyle(card) : toPortraitStyle(card)) : "";
   return enqueueGeneration(db, {
     organizationId: p.organizationId,
     projectId: p.id,
@@ -834,8 +836,12 @@ export async function requestEntityPortrait(
       aspectRatio: input.aspectRatio,
       durationSeconds: 0,
       entities: [],
-      customPrompt: `Reference portrait. ${appearance}. Single person, facing camera, neutral expression, plain uncluttered background, even lighting, full head and shoulders visible.${look ? ` ${look}` : ""}`,
-      direction: { synopsis: appearance, subject: "reference portrait", action: "stands facing camera" },
+      customPrompt: isPlace
+        ? `Reference plate of a location. ${appearance}. Wide establishing view of the empty space showing its architecture, furniture and light sources.${look ? ` ${look}` : ""}`
+        : `Reference portrait. ${appearance}. Single person, facing camera, neutral expression, plain uncluttered background, even lighting, full head and shoulders visible.${look ? ` ${look}` : ""}`,
+      direction: isPlace
+        ? { synopsis: appearance, subject: "location plate", action: "empty space" }
+        : { synopsis: appearance, subject: "reference portrait", action: "stands facing camera" },
     },
   });
 }

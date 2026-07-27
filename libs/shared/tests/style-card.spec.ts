@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   styleCardSchema, toDirectingBlock, toGrammarConstraints, toMusicBias, toPlanBias, toPortraitStyle,
-  toVisualStyle, type StyleCard,
+  toScenePlateStyle, toVisualStyle, type StyleCard,
 } from "../src/contracts/style-card";
 import { styleCards } from "../src/config/style-cards";
 
@@ -235,5 +235,32 @@ describe("REQ-STB-042: typography never reaches a filmed prompt", () => {
 
   it("still tells the planner about type in the directing block", () => {
     expect(toDirectingBlock(card)).toContain(card.typography);
+  });
+});
+
+// REQ-STB-053 — a scene plate is not a portrait. The person instructions ("single person, facing
+// camera, head and shoulders") would fight an empty room, and a plate with someone standing in it
+// would drag that person into every shot conditioned on the space.
+describe("REQ-STB-042: a scene plate shows the space, empty", () => {
+  const card: StyleCard = { ...kaurismaki, continuity: "Pasi wears a navy jacket and carries a lunchbox." };
+
+  it("keeps the film's light and colour so the space belongs to the film", () => {
+    const p = toScenePlateStyle(card);
+    expect(p).toContain("Hard practical sources");
+    expect(p).toContain("Saturated primary blocks");
+  });
+
+  it("drops the main character's continuity — a room wears nothing", () => {
+    expect(toScenePlateStyle(card)).not.toMatch(/navy jacket|lunchbox/i);
+  });
+
+  it("drops performance direction — nobody is in the plate to perform", () => {
+    expect(toScenePlateStyle(card)).not.toMatch(/deadpan|gesture/i);
+  });
+
+  it("says the space is empty and carries no text", () => {
+    const p = toScenePlateStyle(card);
+    expect(p).toMatch(/no people|empty|unoccupied/i);
+    expect(p).toMatch(/no text|no lettering/i);
   });
 });

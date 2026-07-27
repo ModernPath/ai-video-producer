@@ -7,7 +7,7 @@ import { asset, entity, projectEntity, styleKit } from "./schema";
 import { project } from "@avd/prj/schema";
 import { AstValidationError } from "./uploads";
 
-export type EntityKind = "company" | "product" | "person" | "character";
+export type EntityKind = "company" | "product" | "person" | "character" | "location";
 
 async function assertValidRefs(db: Db, refAssetIds: string[]): Promise<void> {
   const max = config.entity.maxRefs;

@@ -5,7 +5,9 @@
 import { providerLimits } from "./models";
 
 /** The entity kinds the cast model supports — mirrored by `ast.entity.kind` (REQ-STB-048). */
-export const entityKinds = ["company", "product", "person", "character"] as const;
+// REQ-STB-053: `location` is a SCENE cast like a character — it carries a reference plate so the
+// space stays the same space across every shot set there.
+export const entityKinds = ["company", "product", "person", "character", "location"] as const;
 export type EntityKind = (typeof entityKinds)[number];
 
 export const config = {

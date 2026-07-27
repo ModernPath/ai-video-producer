@@ -149,3 +149,42 @@ describe("REQ-STB-049: each shot is conditioned on the cast that is actually in 
     expect(resolveShotCast(["Pasi", "pasi"], cast).refAssetIds).toEqual(["a-pasi"]);
   });
 });
+
+// USER 2026-07-27, across four takes of the same canteen: "It's still a problem that the cafe
+// setting all the time changes. Maybe we should also generate a scene reference image for clips
+// that belong at same scene?"
+//
+// Exactly the character problem again, one level up: the booth, the bench, the wall and the table
+// were re-invented in every shot because nothing held the SPACE fixed. A location is cast like
+// anyone else — it gets a reference image and the shots set there are conditioned on it.
+describe("REQ-STB-053: a scene is cast like a character", () => {
+  it("accepts location as a kind the planner can return", () => {
+    const [c] = normalizePlannedCast({ cast: [{ name: "The Canteen", kind: "location", appearance: "A worn municipal canteen" }] });
+    expect(c!.kind).toBe("location");
+  });
+
+  it("finds a location with no reference image, exactly like a character", () => {
+    const planned = normalizePlannedCast({
+      cast: [{ name: "The Canteen", kind: "location", appearance: "worn booths" }, { name: "Pasi", kind: "person" }],
+    });
+    expect(castingGaps(planned, [{ name: "Pasi", refAssetIds: ["a"] }]).map((c) => c.name)).toEqual(["The Canteen"]);
+  });
+
+  it("attaches the scene plate to every shot set there, alongside the people", () => {
+    const cast = [
+      { id: "e-pasi", name: "Pasi", refAssetIds: ["a-pasi"] },
+      { id: "e-canteen", name: "The Canteen", refAssetIds: ["a-canteen"] },
+    ];
+    const resolved = resolveShotCast(["Pasi", "The Canteen"], cast);
+    expect(resolved!.refAssetIds).toEqual(["a-pasi", "a-canteen"]);
+  });
+
+  it("keeps a shot in a different place free of the canteen plate", () => {
+    const cast = [
+      { id: "e-pasi", name: "Pasi", refAssetIds: ["a-pasi"] },
+      { id: "e-canteen", name: "The Canteen", refAssetIds: ["a-canteen"] },
+      { id: "e-corridor", name: "The Corridor", refAssetIds: ["a-corridor"] },
+    ];
+    expect(resolveShotCast(["Pasi", "The Corridor"], cast)!.refAssetIds).not.toContain("a-canteen");
+  });
+});

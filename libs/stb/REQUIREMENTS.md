@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 22 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -27,6 +27,7 @@ Totals: 30 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
 | REQ-STB-049 | Per-shot cast: only who is in the shot conditions it | P9 | IN_REVIEW | USER 2026-07-27 "modernpath logo is put to almost every scene… AI to decide which of the cast scene by scene" | tests/casting.spec.ts resolveShotCast (7) | stb/casting.ts, applyShotPlan, resolveCast(entityIds) |
 | REQ-STB-050 | Shots long enough for what happens in them | P9 | IN_REVIEW | USER 2026-07-27 "video/audio is cut… time understanding in scene planning is poor" | tests/grammar.spec.ts REQ-STB-050 (5) | speechSeconds, line-too-long rule, plan TIME BUDGET |
+| REQ-STB-053 | A scene is cast: locations get a reference plate | P9 | IN_REVIEW | USER 2026-07-27 "the cafe setting all the time changes… generate a scene reference image for clips that belong at same scene?" | tests/casting.spec.ts REQ-STB-053 (4) + style-card.spec.ts plate (4) | entityKinds location, migration 0024, toScenePlateStyle, plan prompt |
 | REQ-STB-052 | Critique the SCRIPT, before it becomes shots | P9 | IN_REVIEW | USER 2026-07-27 "shouldn't it be run for the script?" | tests/script-critique.spec.ts (11) | stb/critique.ts SCRIPT_LENSES, critiqueAndRedraftScript, script Critique & improve |
 | REQ-STB-051 | Multi-angle critique of the plan, then revise | P9 | IN_REVIEW | USER 2026-07-27 "critique steps from few angles and improve" | tests/critique.spec.ts (11) | stb/critique.ts, critiqueAndRevise, Critique & improve |
 | REQ-STB-048 | The plan casts the film; missing characters get a portrait | P9 | IN_REVIEW | USER 2026-07-27 "other characters than Pasi are not kept… director should think of cast and list them" | tests/casting.spec.ts (14) + casting-portrait.int.spec.ts (5) + prompt.spec.ts REQ-GEN-030 (5) | stb/casting.ts, requestEntityPortrait/castFromPortrait, toPortraitStyle, casting UI |
@@ -506,6 +507,21 @@ Totals: 30 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 - **Code:** `libs/shared/src/config/grammar.ts` (`wordsPerSecond`, `speechHeadroom`) · `src/grammar.ts` (`speechSeconds`, `line-too-long`) · `src/director-pass.ts` (passes dialogue) · `libs/gen/src/prompt.ts` (TIME BUDGET)
 - **Log:** see LOG 2026-07-27
 - **Deferred / notes:** speech rate is one global constant; a style card could carry its own (deadpan is slower than hype). Physical-action duration is guidance to the planner, not measured — only dialogue is checkable.
+
+### REQ-STB-053 — A scene is cast: locations get a reference plate
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-27, across four takes of the same canteen — booth, bench, wall and table all different: "It's still a problem that the cafe setting all the time changes. Maybe we should also generate a scene reference image for clips that belong at same scene?"
+- **Statement:** A recurring PLACE shall be cast exactly as a character is: it becomes an entity of kind `location` with a reference plate, and every shot set there is conditioned on it. The character fix (REQ-STB-048/049) held faces still while the space behind them was re-invented shot to shot, because nothing held the space.
+- **Acceptance criteria:**
+  - GIVEN a planner response THEN `location` is an accepted cast kind, and the plan prompt asks for every recurring place with an appearance describing architecture, furniture, wall colour and light sources.
+  - GIVEN a location with no reference image THEN it appears in the casting gaps exactly like a character.
+  - GIVEN a shot naming a person and a location THEN both reference sets attach; a shot set elsewhere carries neither the wrong room's plate.
+  - GIVEN a location portrait THEN it is an EMPTY establishing plate — the card's light and palette, but no continuity (a room wears nothing), no performance direction (nobody is there to perform), an explicit "no people", and no text.
+  - GIVEN the entity table THEN the kind check constraint admits `location` (migration 0024).
+- **Tests:** `tests/casting.spec.ts` (REQ-STB-053, 4) · `libs/shared/tests/style-card.spec.ts` (plate, 4)
+- **Code:** `libs/shared/src/config/limits.ts` (`entityKinds`) · `migrations/0024_entity_location.sql` · `libs/shared/src/contracts/style-card.ts` (`toScenePlateStyle`) · `libs/gen/src/prompt.ts` · `libs/stb/src/service.ts` (`requestEntityPortrait` kind) · `apps/web` (casting panel copy)
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** shots generated before the plate existed keep their old references — regenerate them. A plate is one wide of the space; a scene shot from several angles may want more than one (INV-AST-004 allows 5). The plan decides scene boundaries; there is no explicit scene grouping in the data model (OQ-108 covers whether shots need scenes as a first-class concept).
 
 ### REQ-STB-052 — Critique the SCRIPT, before it becomes shots
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must

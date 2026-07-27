@@ -143,6 +143,21 @@ export function toPortraitStyle(card: StyleCard): string {
     .join(" ");
 }
 
+/**
+ * SCENE PLATE style (REQ-STB-053) — the space, empty, in the film's light.
+ *
+ * Not a portrait: the person instructions would fight an empty room, and anyone standing in the
+ * plate would be dragged into every shot conditioned on that space. Continuity is a character's
+ * wardrobe and belongs to nobody here; performance direction has no one to direct.
+ */
+export function toScenePlateStyle(card: StyleCard): string {
+  return [
+    card.light, card.palette.notes,
+    "The space is empty — no people, no figures.",
+    "No text, lettering or graphics anywhere in the frame.",
+  ].map((s) => (s ?? "").trim()).filter(Boolean).join(" ");
+}
+
 /** VISUAL prompts (frame + take). Craft axes only — never `provenance`. */
 export function toVisualStyle(card: StyleCard): string {
   return [

@@ -302,7 +302,7 @@ export async function castMemberAction(formData: FormData) {
     await attachEntities(db(), { projectId, entityIds: [...existing, entityId] });
   } else {
     const genId = await requestEntityPortrait(db(), {
-      projectId, appearance: appearance || description || name, principal: PRINCIPAL, aspectRatio: p.aspectRatio,
+      projectId, appearance: appearance || description || name, principal: PRINCIPAL, aspectRatio: p.aspectRatio, kind,
     });
     // Run THIS generation, not "the next queued one". `drainQueueAndMaterialize` uses
     // runNextGeneration, which claims any queued row — with a shot plan already waiting it ran that

@@ -1,5 +1,5 @@
 // REQ-GEN-013 — deterministic prompt assembly (docs/14-generation.md §5).
-import { config, entityKinds, fullFrameAnimationTemplates, shotAngles, shotDurationPolicy, shotMovements, shotSizes } from "@avd/shared/config";
+import { config, entityKinds, fullFrameAnimationTemplates, shotAngles, shotDurationPolicy, shotMovements, shotSizes, type EntityKind } from "@avd/shared/config";
 import { stripReferences, toVisualStyle, type StyleCard } from "@avd/shared/contracts"; // SR-DIR-005 · SCN-DIR-002 // REQ-STB-029 route palette · REQ-AST-012 profile cap · REQ-STB-036 template set
 
 export const PROMPT_TEMPLATE_VERSION = 3; // v3: model prompt guidelines (USER 2026-07-23) — single-scene pin, explicit audio intent, ref preservation, inpainting formula
@@ -15,7 +15,7 @@ export interface DirectionInput {
 }
 
 export interface EntityBlock {
-  kind: "company" | "product" | "person" | "character";
+  kind: EntityKind; // REQ-STB-053 added "location" — a scene is cast like a character
   name: string;
   description: string;
   /** REQ-AST-012: long-form background — TEXT prompts only (script/plan/music), never visual prompts. */
@@ -172,6 +172,8 @@ export function assembleShotPlanPrompt(i: TextPromptInput): string {
     // REQ-STB-048: only cast entities carry reference images, and reference images are what make a
     // face the same face twice. Anyone the script invents but nobody casts gets re-imagined in every
     // shot — one shot of the user's film simply drew the lead twice for want of a second face.
+    // REQ-STB-053: the canteen was re-invented in every shot set there. A place is cast like a body.
+    `"cast" ALSO lists every recurring PLACE as kind "location" — the canteen, the corridor, the office. Give each an "appearance" describing the SPACE itself: its architecture, furniture, wall colour and finish, light sources and their placement. Every shot set there must list that location in its own "cast", exactly as it lists the people in it. Without this the same room is re-invented shot to shot.`,
     `"cast" lists EVERY recurring person, character, product or company the film puts on screen — including unnamed ones the script only refers to by role ("the colleague", "the barista"). Give each a short stable name to be referenced by, and an "appearance": a concrete physical description precise enough that two different images of them would look like the same individual — build, age, hair, facial hair, clothing, distinguishing details. Never "a man in a suit". Someone who appears in exactly one shot and is never seen again can be left out.`,
     `Reference cast members BY NAME in every direction, imagePrompt and videoPrompt where they appear, using exactly the names you assigned in "cast" — that is what keeps them consistent across shots.`,
     // REQ-STB-049: each shot is conditioned ONLY on the members it lists. Listing everyone put the

@@ -852,11 +852,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             {gaps.length > 0 && (
               <div style={{ ...sub, marginBottom: 10, borderColor: "var(--accent)" }}>
                 <p className="mono" style={{ fontSize: 10.5, marginBottom: 2 }}>
-                  ✦ CASTING — {gaps.length} {gaps.length === 1 ? "character has" : "characters have"} no reference image
+                  ✦ CASTING — {gaps.length} {gaps.length === 1 ? "entry has" : "entries have"} no reference image
                 </p>
                 <p className="mono muted" style={{ fontSize: 9.5, marginBottom: 8 }}>
-                  Without one, the image model re-invents them in every shot they appear in. Generate a portrait
-                  from the description, or upload your own.
+                  Without one, the image model re-invents them in every shot — a face becomes a different face,
+                  a room becomes a different room. Generate a reference from the description, or upload your own.
                 </p>
                 {gaps.map((c) => (
                   <form key={c.name} action={castMemberAction} encType="multipart/form-data"
@@ -872,7 +872,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     <textarea name="appearance" rows={2} defaultValue={c.appearance}
                       style={{ width: "100%", background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "5px 7px", color: "var(--ink)", fontSize: 10.5, fontFamily: "var(--mono)", resize: "vertical" }} />
                     <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                      <SubmitButton small primary pendingLabel="Generating portrait…">✦ Generate portrait ≈ $0.07</SubmitButton>
+                      <SubmitButton small primary pendingLabel="Generating…">✦ Generate {c.kind === "location" ? "scene plate" : "portrait"} ≈ $0.07</SubmitButton>
                       <label className="mono muted" style={{ fontSize: 9.5, display: "flex", gap: 5, alignItems: "center" }}>
                         or upload
                         <input type="file" name="portrait" accept="image/*" style={{ fontSize: 9.5, maxWidth: 180 }} />

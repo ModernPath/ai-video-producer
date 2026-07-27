@@ -41,7 +41,7 @@ export const uploadSession = ast.table("upload_session", {
 export const entity = ast.table("entity", {
   id: uuid("id").primaryKey(),
   organizationId: uuid("organization_id").notNull(),
-  kind: text("kind", { enum: ["company", "product", "person", "character"] }).notNull(),
+  kind: text("kind", { enum: ["company", "product", "person", "character", "location"] }).notNull(),
   name: text("name").notNull(),
   description: text("description").notNull(),
   profile: text("profile"), // REQ-AST-012: long-form background for text prompts (marketing context)
