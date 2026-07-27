@@ -13,6 +13,8 @@ import { Timeline } from "./Timeline";
 export interface RailShot {
   id: string;
   position: number;
+  /** REQ-STB-056: "4.1" for a continuity sub-clip, "4" otherwise — the chain, made legible. */
+  label: string;
   title: string;
   durationS: number;
   status: "planned" | "framed" | "generated";
@@ -217,7 +219,7 @@ export function Workspace({
                   )}
                   <span style={{ minWidth: 0, flex: 1 }}>
                     <span style={{ display: "block", fontSize: 11.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {s.position}. {s.title}
+                      {s.label}. {s.title}
                     </span>
                     <span className="mono muted" style={{ fontSize: 9 }}>
                       {s.durationS}s{s.isAnimation ? " · ✦" : ""}

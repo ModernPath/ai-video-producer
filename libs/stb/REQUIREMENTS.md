@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 24 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 26 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -27,6 +27,8 @@ Totals: 30 DONE · 24 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
 | REQ-STB-049 | Per-shot cast: only who is in the shot conditions it | P9 | IN_REVIEW | USER 2026-07-27 "modernpath logo is put to almost every scene… AI to decide which of the cast scene by scene" | tests/casting.spec.ts resolveShotCast (7) | stb/casting.ts, applyShotPlan, resolveCast(entityIds) |
 | REQ-STB-050 | Shots long enough for what happens in them | P9 | IN_REVIEW | USER 2026-07-27 "video/audio is cut… time understanding in scene planning is poor" | tests/grammar.spec.ts REQ-STB-050 (5) | speechSeconds, line-too-long rule, plan TIME BUDGET |
+| REQ-STB-056 | Linked clips numbered as sub-clips (4, 4.1, 4.2) | P9 | IN_REVIEW | USER 2026-07-27 "indicate at timeline which clips are linked, e.g. 4, 4.1, 4.2" | tests/chain-labels.spec.ts (7) | chainLabels, rail + timeline + shot header |
+| REQ-STB-057 | A sub-clip's start frame is given, not chosen or bought | P9 | IN_REVIEW | USER 2026-07-27 "show only the last frame and hide other starting images? skip the starting frame creation for subclips?" | verified live on both a sub-clip and an ordinary shot | page.tsx start-frame + GENERATE panel |
 | REQ-STB-055 | Chains generate in order; out-of-order takes refused | P9 | IN_REVIEW | USER 2026-07-27 "continue as the video for first is generated" | tests/chain.spec.ts (12) + continuity.int.spec.ts (3) | src/chain.ts, requestTake guard, generateChainAction |
 | REQ-STB-054 | Continuity chains: a shot continues another from its last frame | P9 | IN_REVIEW | USER 2026-07-27 "clothing and positions of persons sitting are changing… sub-clips for the main clip" | tests/continuity.int.spec.ts (11) | shot.continues_from_shot_id, setShotContinuity, handoffTailFrame |
 | REQ-STB-053 | A scene is cast: locations get a reference plate | P9 | IN_REVIEW | USER 2026-07-27 "the cafe setting all the time changes… generate a scene reference image for clips that belong at same scene?" | tests/casting.spec.ts REQ-STB-053 (4) + style-card.spec.ts plate (4) | entityKinds location, migration 0024, toScenePlateStyle, plan prompt |
@@ -509,6 +511,35 @@ Totals: 30 DONE · 24 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 - **Code:** `libs/shared/src/config/grammar.ts` (`wordsPerSecond`, `speechHeadroom`) · `src/grammar.ts` (`speechSeconds`, `line-too-long`) · `src/director-pass.ts` (passes dialogue) · `libs/gen/src/prompt.ts` (TIME BUDGET)
 - **Log:** see LOG 2026-07-27
 - **Deferred / notes:** speech rate is one global constant; a style card could carry its own (deadpan is slower than hype). Physical-action duration is guidance to the planner, not measured — only dialogue is checkable.
+
+### REQ-STB-056 — Linked clips numbered as sub-clips
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Raised-by:** USER 2026-07-27: "should we somehow indicate at timeline which clips are linked, e.g. with numbering, e.g. 4, 4.1, 4.2 etc or alignment."
+- **Statement:** A continuity chain shall be legible at a glance. It was previously invisible until a shot was focused, so the dependency the film depends on could not be seen while looking at the film.
+- **Acceptance criteria:**
+  - GIVEN an unchained film THEN shots number 1..n.
+  - GIVEN a chain THEN its followers take decimal sub-numbers under the head (4, 4.1, 4.2).
+  - GIVEN sub-clips THEN they do NOT consume top-level numbers — the next independent shot after 4.2 is 5, not 7, because the numbering describes the FILM's structure rather than the row count.
+  - GIVEN two separate chains THEN each numbers under its own head; GIVEN a chain opening the film THEN 1, 1.1, 1.2.
+  - GIVEN a follower whose source was cut THEN it numbers as a top-level shot again.
+  - GIVEN any film THEN every shot is labelled exactly once, uniquely.
+- **Tests:** `tests/chain-labels.spec.ts` (7)
+- **Code:** `src/chain.ts` (`chainLabels`) · `apps/web/components/Workspace.tsx` (`RailShot.label`) · `apps/web/app/p/[id]/page.tsx` (rail, timeline blocks, focused-shot header)
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** sub-clips of a sub-clip stay flat under the head (4.1, 4.2 — never 4.1.1); a chain is a sequence, not a tree. Indentation in the rail was considered and left out — the number already carries it and indentation would fight the drag-to-reorder affordance.
+
+### REQ-STB-057 — A sub-clip's start frame is given, not chosen or bought
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-27: "if we have continuity, should we show only the last frame and hide other starting images? Maybe even skip the starting frame creation at the beginning for subclips?"
+- **Statement:** A shot that continues another shall present its start frame as a given, not a choice. Its first frame IS the previous take's last frame (REQ-STB-054), so offering alternatives invites the user to break the chain, and offering paid frame generation sells them an image that will be discarded.
+- **Acceptance criteria:**
+  - GIVEN a sub-clip THEN the section reads "handed over from the previous take — not a choice" and shows ONLY the handed-over frame.
+  - GIVEN a sub-clip THEN the paid frame-generation control is replaced by a line stating there are no frames to buy, and the inline "Save & generate frame" is disabled with that reason.
+  - GIVEN an ordinary shot THEN nothing changes — the picker and the purchase remain.
+- **Tests:** verified live on both a sub-clip (Coffee Mug Lift) and an ordinary shot (Coffee Mug Lower); the underlying chain state is covered by `tests/continuity.int.spec.ts` and `tests/chain.spec.ts`.
+- **Code:** `apps/web/app/p/[id]/page.tsx` (start-frame section, GENERATE panel, inline frame button)
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** UI-only, so guarded by live verification rather than a unit test — the service already refuses out-of-order takes (REQ-STB-055), and a frame generated on a sub-clip is wasteful rather than dangerous. Breaking the chain still restores the full picker, which is the intended escape hatch.
 
 ### REQ-STB-055 — Chains generate in order; out-of-order takes refused
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must

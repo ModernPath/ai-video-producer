@@ -65,3 +65,34 @@ export function generationBlocker(shots: ChainShot[], shotId: string): string | 
   if (source.selectedTakeId) return null;
   return `Continues ${source.title} — generate and choose that take first, so this shot can start from its last frame.`;
 }
+
+/**
+ * REQ-STB-056 (USER 2026-07-27: "indicate at timeline which clips are linked, e.g. 4, 4.1, 4.2").
+ *
+ * Display numbers where a chain reads as one shot with sub-clips. Followers do NOT consume
+ * top-level numbers, so a film of 1,2,3,4,4.1,4.2 continues at 5 — the numbering describes the
+ * FILM's structure, not the row count.
+ */
+export function chainLabels(shots: ChainShot[]): Map<string, string> {
+  const byId = new Map(shots.map((s) => [s.id, s]));
+  const out = new Map<string, string>();
+  let top = 0;
+  const subCounters = new Map<string, number>();
+
+  for (const s of shots) {
+    // A follower whose source is gone is not a sub-clip of anything — number it normally.
+    const source = s.continuesFromShotId ? byId.get(s.continuesFromShotId) : undefined;
+    const sourceLabel = source ? out.get(source.id) : undefined;
+    if (!sourceLabel) {
+      top += 1;
+      out.set(s.id, String(top));
+      continue;
+    }
+    // Sub-clips of a sub-clip stay flat under the chain HEAD: 4.1, 4.2 — not 4.1.1.
+    const headLabel = sourceLabel.split(".")[0]!;
+    const n = (subCounters.get(headLabel) ?? 0) + 1;
+    subCounters.set(headLabel, n);
+    out.set(s.id, `${headLabel}.${n}`);
+  }
+  return out;
+}

@@ -17,7 +17,7 @@ import { boardProgress, shotStatus } from "@avd/stb/board";
 import { buildTimeline } from "@avd/stb/timeline";
 import { normalizePlannedShots } from "@avd/stb/plan-normalize";
 import { castingGaps, normalizePlannedCast } from "@avd/stb/casting"; // REQ-STB-048
-import { chainFor, generationBlocker } from "@avd/stb/chain"; // REQ-STB-055
+import { chainFor, chainLabels, generationBlocker } from "@avd/stb/chain"; // REQ-STB-055/056
 import { assembleFramePrompt, assembleTakePrompt, estimateTake } from "@avd/gen";
 import { listEntities, listProjectEntities, listStyleKits } from "@avd/ast";
 import { asset } from "@avd/ast/schema";
@@ -166,12 +166,18 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     ? await d.select().from(asset).where(eq(asset.id, music.activeTrackAssetId))
     : [];
   const trackDurationS = trackAsset?.durationS ? Number(trackAsset.durationS) : null;
+  // REQ-STB-056: display numbers where a chain reads as one shot with sub-clips (4, 4.1, 4.2).
+  const shotLabels = chainLabels(shots.map((x) => ({
+    id: x.id, title: x.title, position: x.position,
+    continuesFromShotId: x.continuesFromShotId, selectedTakeId: x.selectedTakeId,
+  })));
+
   const timeline = buildTimeline({
     shots: shots.map((s) => {
       const sel = candidatesByShot.get(s.id)!.takes.find((t) => t.id === s.selectedTakeId);
       return {
         id: s.id,
-        title: s.title,
+        title: `${shotLabels.get(s.id) ?? s.position}. ${s.title}`, // REQ-STB-056
         durationS: Number(s.durationS),
         takeActualS: sel ? Number(sel.durationActualS ?? s.durationS) : null,
       };
@@ -189,6 +195,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     return {
       id: s.id,
       position: s.position,
+      label: shotLabels.get(s.id) ?? String(s.position),
       title: s.title,
       durationS: Number(s.durationS),
       status: shotStatus({ selectedTakeId: s.selectedTakeId, frameCount: cands.frames.length }),
@@ -228,7 +235,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </span>
       )}
       <AnimaticPlayer
-        shots={railShots.map((s) => ({ id: s.id, durationS: s.durationS, frameAssetId: s.thumbAssetId, title: s.title }))}
+        shots={railShots.map((s) => ({ id: s.id, durationS: s.durationS, frameAssetId: s.thumbAssetId, title: `${s.label}. ${s.title}` }))}
         musicAssetId={music?.activeTrackAssetId}
       />
       <form action={exportAction} style={{ display: "flex", gap: 5, alignItems: "center" }} title={progress.ready ? "Export the full cut" : "Takeless shots are skipped explicitly (INV-ASM-002)"}>
@@ -274,7 +281,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       <div key={s.id} style={{ maxWidth: 1460 }}>
         {/* Shot header — order & removal live where you're looking at the shot */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
-          <span className="mono muted" style={{ fontSize: 12 }}>{s.position}</span>
+          <span className="mono muted" style={{ fontSize: 12 }}>{shotLabels.get(s.id) ?? s.position}</span>
           <h2 className="disp" style={{ fontSize: 15 }}>{s.title}</h2>
           <span className="mono muted" style={{ fontSize: 11 }}>{s.durationS}s</span>
           <span className="mono" style={{ fontSize: 10, color: status === "generated" ? "var(--ok)" : status === "framed" ? "var(--accent)" : "var(--ink-2)" }}>{status}</span>
@@ -376,13 +383,21 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             <div style={sub}>
               <p className="mono muted" style={{ ...label, marginBottom: 8 }}>GENERATE</p>
               <div style={{ display: "grid", gap: 6 }}>
-                <form action={generateFrameAction}>
-                  <input type="hidden" name="projectId" value={id} />
-                  <input type="hidden" name="shotId" value={s.id} />
-                  <SubmitButton disabled={busy.frame > 0} pendingLabel="Framing…">
-                    ＋ {config.frame.candidatesDefault} frames ≈ ${(config.frame.candidatesDefault * priceTable.imagePerImageUsd.standard).toFixed(2)}
-                  </SubmitButton>
-                </form>
+                {/* REQ-STB-057: a sub-clip already HAS its first frame — the previous take's last.
+                    Buying more would only offer a way to break the chain. */}
+                {s.continuesFromShotId ? (
+                  <p className="mono muted" style={{ fontSize: 10, lineHeight: 1.5 }}>
+                    ↳ start frame comes from the previous take — no frames to buy
+                  </p>
+                ) : (
+                  <form action={generateFrameAction}>
+                    <input type="hidden" name="projectId" value={id} />
+                    <input type="hidden" name="shotId" value={s.id} />
+                    <SubmitButton disabled={busy.frame > 0} pendingLabel="Framing…">
+                      ＋ {config.frame.candidatesDefault} frames ≈ ${(config.frame.candidatesDefault * priceTable.imagePerImageUsd.standard).toFixed(2)}
+                    </SubmitButton>
+                  </form>
+                )}
                 <form action={generateTakeAction}>
                   <input type="hidden" name="projectId" value={id} />
                   <input type="hidden" name="shotId" value={s.id} />
@@ -473,11 +488,18 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         {/* Start frames */}
         <div style={{ ...card, marginTop: 12 }}>
           <p className="mono muted" style={{ ...label, marginBottom: 8 }}>
-            START FRAMES · pick 1 — only the selected frame conditions the video model
+            {/* REQ-STB-057: a sub-clip's first frame is DECIDED by the previous take — there is
+                nothing to pick, and picking would break the chain it exists to preserve. */}
+            {s.continuesFromShotId
+              ? "START FRAME · handed over from the previous take — not a choice"
+              : "START FRAMES · pick 1 — only the selected frame conditions the video model"}
             {busy.frame > 0 && <span className="gen-pulse"> ● generating image…</span>}
           </p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            {cands.frames.map((f) => (
+            {(s.continuesFromShotId
+              ? cands.frames.filter((f) => f.id === s.selectedStartFrameId)
+              : cands.frames
+            ).map((f) => (
               <div key={f.id} style={{ display: "grid", gap: 4, justifyItems: "start" }}>
                 <form action={selectFrameAction}>
                   <input type="hidden" name="projectId" value={id} />
@@ -621,7 +643,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
           <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <button type="submit" name="generate" value="none" style={btn}>Save</button>
-            <button type="submit" name="generate" value="frame" disabled={busy.frame > 0} style={{ ...btnPrimary, opacity: busy.frame > 0 ? 0.45 : 1 }}>Save &amp; generate frame</button>
+            <button type="submit" name="generate" value="frame" disabled={busy.frame > 0 || Boolean(s.continuesFromShotId)} title={s.continuesFromShotId ? "This sub-clip starts from the previous take\u2019s last frame — generating one would replace it and break the chain." : undefined} style={{ ...btnPrimary, opacity: busy.frame > 0 || s.continuesFromShotId ? 0.45 : 1 }}>Save &amp; generate frame</button>
             <button type="submit" name="generate" value="take" disabled={busy.take > 0 || Boolean(blocked)} title={blocked ?? undefined} style={{ ...btnPrimary, opacity: busy.take > 0 || blocked ? 0.45 : 1 }}>Save &amp; generate take</button>
             <span className="mono muted" style={{ fontSize: 9 }}>empty = auto · custom text sent verbatim</span>
           </div>
@@ -664,7 +686,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <div style={{ marginLeft: "auto" }}>
           {/* USER 2026-07-25: the animatic belongs next to the cut, not in a corner of the header */}
           <AnimaticPlayer
-            shots={railShots.map((s) => ({ id: s.id, durationS: s.durationS, frameAssetId: s.thumbAssetId, title: s.title }))}
+            shots={railShots.map((s) => ({ id: s.id, durationS: s.durationS, frameAssetId: s.thumbAssetId, title: `${s.label}. ${s.title}` }))}
             musicAssetId={music?.activeTrackAssetId}
           />
         </div>
@@ -678,7 +700,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             No export yet. {progress.generated > 0 ? "Hit Export cut in the command bar — or preview the animatic first." : "Generate takes for your shots, then export."}
           </p>
           <AnimaticPlayer
-            shots={railShots.map((s) => ({ id: s.id, durationS: s.durationS, frameAssetId: s.thumbAssetId, title: s.title }))}
+            shots={railShots.map((s) => ({ id: s.id, durationS: s.durationS, frameAssetId: s.thumbAssetId, title: `${s.label}. ${s.title}` }))}
             musicAssetId={music?.activeTrackAssetId}
           />
         </div>
