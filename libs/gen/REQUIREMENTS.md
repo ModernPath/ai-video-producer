@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 21 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 21 DONE · 10 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -26,6 +26,7 @@ Totals: 21 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 | REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | DONE | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
 | REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | DONE | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
 | REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
+| REQ-GEN-034 | Stuck work recovers: queued rows nothing will claim, and cancel | P9 | IN_REVIEW | USER 2026-07-27 "2 (video) and 3 (image) are stuck… how to restart?" | tests/stuck-recovery.int.spec.ts (8) | executor reapStale queued branch + cancelGeneration, in-flight panel |
 | REQ-GEN-032 | One prompt pipeline; golden-file tests on assembled output | P10 | IN_REVIEW | `docs/88-architecture-review.md` §2 · four shipped defects | tests/prompt-pipeline.spec.ts (12) + prompt-golden.spec.ts (5) | src/prompt.ts (subjectStage/lookStages/soundStages/assemble) |
 | REQ-GEN-033 | Lint + config hardening: no-dupe-keys, derived vocabularies | P10 | PROPOSED | `docs/88-architecture-review.md` §5 | — | — |
 | REQ-GEN-031 | Filmed prompts carry no typography and forbid on-screen text | P9 | IN_REVIEW | USER 2026-07-27 "where these gibberish texts in middle of video come from?" | prompt.spec.ts REQ-GEN-031 (4) + style-card.spec.ts (4) | style-card toVisualStyle, prompt.ts NO_ON_SCREEN_TEXT |
@@ -252,6 +253,23 @@ Totals: 21 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
   - GIVEN a 5s omni take through the real pipeline THEN it succeeds, keeps durationS=5 (no {4,6,8} snap), and records cost 5×5792×$17.50/M ≈ $0.5068 (real E2E, RUN_REAL_OMNI).
 - **Tests:** `tests/omni-video.spec.ts` (7) · real E2E `tests/real-api.e2e.spec.ts` RUN_REAL_OMNI ($0.5068 verified) · **Code:** `src/provider.ts` (buildOmniVideoRequest + interactions branch), `src/routing.ts`, `src/cost.ts`, `src/executor.ts` (refs + model cost), shared config (omniVideoModel, priceTable omni rates, gen.videoRoute) · **Log:** LOG 2026-07-24
 - **Deferred / notes:** STB still snaps shot durations to {4,6,8} at plan level — exposing free durations (9–10s shots) in the UI is a follow-up STB slice. Conversational multi-turn retake untested. No UI switch — route is config/env by design (taste iteration without deploy, Tips #5).
+
+### REQ-GEN-034 — Stuck work recovers: queued rows nothing will claim, and cancel
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-27: "some problems in error handling of image and video generation, seems 2 (video) and 3 (image) are stuck and not completing, how to restart?" — a take `running` 7 minutes and a frame `queued` 7 minutes, with no way out of either.
+- **Statement:** Work that will never finish shall be recoverable, and anything in flight shall be cancellable. Two holes: a `queued` row was never reaped on the reasoning "it never started, so it cannot be orphaned" — true in queue mode, FALSE inline, where generations run inside the request that created them and nothing ever consumes the queue; and there was no cancel at all, so a run under the 30-minute sweep window had no exit.
+- **Acceptance criteria:**
+  - GIVEN inline mode AND a `queued` row older than `config.gen.staleQueuedMinutes` THEN it is failed as `orphaned` with a message explaining that single-process mode abandoned it.
+  - GIVEN a fresh queued row THEN it is left alone — it may be about to run.
+  - GIVEN QUEUE mode THEN a queued row is NEVER reaped however old: pg-boss owns it, and reaping would fight the worker.
+  - GIVEN a stale `running` row THEN it is reaped in either mode, unchanged.
+  - GIVEN a running or queued row THEN `cancelGeneration` fails it as `cancelled`, sets `finishedAt`, frees the concurrency slot, and returns `true`; a second call returns `false` rather than claiming a cancellation that did not happen.
+  - GIVEN a cancelled row THEN its message differs from an orphaned one — a choice and a crash must not read alike.
+  - GIVEN a shot with work in flight THEN the workspace shows what is running, for how long, warns past 3 minutes, and offers cancel.
+- **Tests:** `tests/stuck-recovery.int.spec.ts` (8)
+- **Code:** `src/executor.ts` (`reapStale` queued branch, `cancelGeneration`) · `libs/shared/src/config/limits.ts` (`staleQueuedMinutes`) · `apps/web/app/actions.ts` (`cancelGenerationAction`) · `apps/web/app/p/[id]/page.tsx` (in-flight panel)
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** cancelling marks the ROW cancelled; it cannot stop an HTTP request already in flight at the provider, so a late response is discarded rather than aborted. The deeper fix is `WORKER_MODE=queue` in dev (ADR-002 consequences) — this makes inline survivable, not correct. **Reversal recorded:** `tests/stale-sweep.int.spec.ts` asserted "queued cannot be orphaned"; it now asserts that for queue mode only.
 
 ### REQ-GEN-032 — One prompt pipeline; golden-file tests on assembled output
 - **Status:** IN_REVIEW · **Stage:** P10 · **Priority:** must

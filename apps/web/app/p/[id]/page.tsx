@@ -29,7 +29,7 @@ import {
   generateMusicTrackAction, generateTakeAction, moveShotTo, musicBriefAction, overlayTakeAction, proposePlanAction,
   removeCandidateAction, removeShotAction, retakeAction, retryExportAction,
   retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction,
-  castMemberAction, compileStyleCardAction, critiquePlanAction, critiqueScriptAction, generateChainAction, refreshHandoffAction, setArchetypeAction, setContinuityAction, setProjectStyleAction, setTargetDurationAction, transcribeTrackAction,
+  cancelGenerationAction, castMemberAction, compileStyleCardAction, critiquePlanAction, critiqueScriptAction, generateChainAction, refreshHandoffAction, setArchetypeAction, setContinuityAction, setProjectStyleAction, setTargetDurationAction, transcribeTrackAction,
   updateBriefAction, updateShotDurationAction, updateShotRefsAction, uploadTrackAction,
 } from "../../actions";
 import { CastBar } from "../../../components/CastBar";
@@ -89,9 +89,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     .from(generation)
     .where(and(eq(generation.projectId, id), inArray(generation.status, ["queued", "running"])));
   const activeByShot = new Map<string, { frame: number; take: number }>();
+  // REQ-GEN-034: the in-flight rows themselves, so a stuck one can be cancelled by id.
+  const activeRowsByShot = new Map<string, Array<{ id: string; kind: string; since: Date }>>();
   for (const g of activeGens) {
     const shotId = (g.target as { shotId?: string }).shotId;
     if (!shotId) continue;
+    activeRowsByShot.set(shotId, [...(activeRowsByShot.get(shotId) ?? []),
+      { id: g.id, kind: g.kind, since: g.startedAt ?? g.createdAt }]);
     const e = activeByShot.get(shotId) ?? { frame: 0, take: 0 };
     if (g.kind === "frame" || g.kind === "image_edit") e.frame++;
     if (g.kind === "take" || g.kind === "retake" || g.kind === "animation") e.take++;
@@ -543,6 +547,33 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             {cands.frames.length === 0 && <p className="muted" style={{ fontSize: 11.5 }}>No frames yet.</p>}
           </div>
         </div>
+
+        {/* REQ-GEN-034: what is in flight on this shot, how long it has been, and a way out.
+            Before this, a run under the 30-minute sweep window had no exit at all. */}
+        {(activeRowsByShot.get(s.id) ?? []).length > 0 && (
+          <div style={{ ...sub, marginTop: 12, display: "grid", gap: 6 }}>
+            {(activeRowsByShot.get(s.id) ?? []).map((g) => {
+              const mins = Math.floor((Date.now() - new Date(g.since).getTime()) / 60_000);
+              const slow = mins >= 3;
+              return (
+                <form key={g.id} action={cancelGenerationAction} style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                  <input type="hidden" name="projectId" value={id} />
+                  <input type="hidden" name="generationId" value={g.id} />
+                  <span className="mono gen-pulse" style={{ fontSize: 10.5 }}>● {g.kind} running</span>
+                  <span className="mono muted" style={{ fontSize: 10 }}>
+                    {mins < 1 ? "just started" : `${mins} min`}
+                  </span>
+                  {slow && (
+                    <span className="mono" style={{ fontSize: 10, color: "#e0763a" }}>
+                      longer than expected — cancel and try again if it is not moving
+                    </span>
+                  )}
+                  <SubmitButton small pendingLabel="Cancelling…">✕ cancel</SubmitButton>
+                </form>
+              );
+            })}
+          </div>
+        )}
 
         {/* REQ-STB-054: the continuity chain — a sub-clip of the shot before it, starting from
             that take's last frame. Shown where the dependency matters, on the shot itself. */}

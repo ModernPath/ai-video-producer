@@ -1,6 +1,6 @@
 // REQ-GEN-002/003/006/010/011/015 — provider-agnostic executor: claim → provider call →
 // storage/output → cost → terminal status. Providers: mock (fixtures), gemini, test stubs.
-import { and, asc, count, eq, inArray, lt } from "drizzle-orm";
+import { and, asc, count, eq, inArray, lt, type SQL } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
 import { config, fullFrameAnimationTemplates, omniVideoModel, providerLimits, type FullFrameAnimationTemplate } from "@avd/shared/config";
@@ -92,20 +92,57 @@ export async function runNextGeneration(
  * other's rows, failing for reasons unrelated to the code under test.
  */
 async function reapStale(db: Db, projectId?: string): Promise<number> {
-  const cutoff = new Date(Date.now() - config.gen.staleRunningMinutes * 60_000);
-  const where = projectId
-    ? and(eq(generation.status, "running"), lt(generation.startedAt, cutoff), eq(generation.projectId, projectId))
-    : and(eq(generation.status, "running"), lt(generation.startedAt, cutoff));
-  const stale = await db.select({ id: generation.id }).from(generation).where(where);
+  const scope = (extra: SQL | undefined) => (projectId ? and(extra, eq(generation.projectId, projectId)) : extra);
+  const runCutoff = new Date(Date.now() - config.gen.staleRunningMinutes * 60_000);
+
+  const stale: Array<{ id: string; detail: string }> = (
+    await db.select({ id: generation.id }).from(generation)
+      .where(scope(and(eq(generation.status, "running"), lt(generation.startedAt, runCutoff))))
+  ).map((r) => ({
+    id: r.id,
+    detail: `Generation ran past ${config.gen.staleRunningMinutes} minutes without finishing — the process running it likely died. Retry to regenerate.`,
+  }));
+
+  // REQ-GEN-034 (USER 2026-07-27: "3 (image) … stuck"): a QUEUED row is only "waiting" if something
+  // will claim it. Inline mode runs generations inside the request that created them, so nothing
+  // ever consumes the queue and a queued row is dead on arrival. In QUEUE mode pg-boss owns these —
+  // reaping them there would fight the worker.
+  const { queueMode } = await import("@avd/shared/queue");
+  if (queueMode() === "inline") {
+    const queueCutoff = new Date(Date.now() - config.gen.staleQueuedMinutes * 60_000);
+    const orphanedQueued = await db.select({ id: generation.id }).from(generation)
+      .where(scope(and(eq(generation.status, "queued"), lt(generation.createdAt, queueCutoff))));
+    stale.push(...orphanedQueued.map((r) => ({
+      id: r.id,
+      detail: `Queued for over ${config.gen.staleQueuedMinutes} minutes with nothing to run it — in single-process mode a generation runs inside the request that created it, so this one was abandoned. Retry to regenerate.`,
+    })));
+  }
+
   for (const s of stale) {
     await db.update(generation).set({
-      status: "failed",
-      errorCode: "orphaned",
-      errorDetail: `Generation ran past ${config.gen.staleRunningMinutes} minutes without finishing — the process running it likely died. Retry to regenerate.`,
-      finishedAt: new Date(),
-    }).where(and(eq(generation.id, s.id), eq(generation.status, "running")));
+      status: "failed", errorCode: "orphaned", errorDetail: s.detail, finishedAt: new Date(),
+    }).where(and(eq(generation.id, s.id), inArray(generation.status, ["running", "queued"])));
   }
   return stale.length;
+}
+
+/**
+ * REQ-GEN-034 — stop something in flight. Returns false when there was nothing to cancel, so a
+ * caller can say "already finished" instead of claiming a cancellation that did not happen.
+ *
+ * `cancelled` is deliberately distinct from `orphaned`: one is a choice, the other a crash, and the
+ * message a user reads should not confuse the two.
+ */
+export async function cancelGeneration(db: Db, input: { generationId: string }): Promise<boolean> {
+  const rows = await db.update(generation).set({
+    status: "failed",
+    errorCode: "cancelled",
+    errorDetail: "Cancelled — nothing was charged for an unfinished generation. Generate again when ready.",
+    finishedAt: new Date(),
+  })
+    .where(and(eq(generation.id, input.generationId), inArray(generation.status, ["running", "queued"])))
+    .returning({ id: generation.id });
+  return rows.length > 0;
 }
 
 /** REQ-GEN-022: recovery at claim time — unscoped unless a caller narrows it. */

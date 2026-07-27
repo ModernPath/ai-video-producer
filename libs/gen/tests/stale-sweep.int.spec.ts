@@ -66,10 +66,20 @@ describe("REQ-GEN-027: stuck runs recover without the user dispatching new work"
     expect((await statusOf(id)).status).toBe("running");
   });
 
-  it("leaves queued work alone — it has not started, so it cannot be orphaned", async () => {
-    const id = await insertRun(config.gen.staleRunningMinutes + 8, "queued");
-    await sweepStuckGenerations(db, projectId);
-    expect((await statusOf(id)).status).toBe("queued");
+  // REVERSED by REQ-GEN-034. This asserted "queued has not started, so it cannot be orphaned",
+  // which is true in QUEUE mode and false inline: inline runs a generation inside the request that
+  // created it, so nothing ever consumes the queue and a queued row is dead on arrival. The user hit
+  // exactly this — an image queued 7 minutes with nothing that would ever claim it.
+  it("leaves queued work alone in QUEUE mode — pg-boss owns it", async () => {
+    const prior = process.env.WORKER_MODE;
+    process.env.WORKER_MODE = "queue";
+    try {
+      const id = await insertRun(config.gen.staleRunningMinutes + 8, "queued");
+      await sweepStuckGenerations(db, projectId);
+      expect((await statusOf(id)).status).toBe("queued");
+    } finally {
+      if (prior === undefined) delete process.env.WORKER_MODE; else process.env.WORKER_MODE = prior;
+    }
   });
 
   it("is safe to call on every page load — a second sweep changes nothing", async () => {

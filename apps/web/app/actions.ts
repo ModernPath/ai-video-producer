@@ -361,6 +361,19 @@ export async function refreshHandoffAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/**
+ * REQ-GEN-034 (USER 2026-07-27: "how to restart?") — stop a generation that is in flight.
+ *
+ * Until now the only exit from a stuck run was waiting 30 minutes for the sweep. Cancelling frees
+ * the concurrency slot and turns the shot's spinner back into a generate button.
+ */
+export async function cancelGenerationAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { cancelGeneration } = await import("@avd/gen");
+  await cancelGeneration(db(), { generationId: String(formData.get("generationId")) });
+  revalidatePath(`/p/${projectId}`);
+}
+
 /** REQ-STB-054: mark this shot as continuing the previous one (or stop). */
 export async function setContinuityAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));

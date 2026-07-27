@@ -31,6 +31,9 @@ export const config = {
     videoRoute: (process.env.GEN_VIDEO_ROUTE === "omni" ? "omni" : "veo") as "veo" | "omni",
     retryAttempts: 3,
     staleRunningMinutes: 30, // REQ-GEN-022: running longer than this = orphaned (crash mid-run)
+    // REQ-GEN-034: inline mode has no queue consumer — a row that stays `queued` this long will
+    // never be claimed by anything. In QUEUE mode this is ignored: pg-boss owns those rows.
+    staleQueuedMinutes: 5,
     // INV-GEN-004: daily per-org spend cap; env-overridable for ops without a deploy
     quota: { dailyUsdPerOrg: Number(process.env.GEN_DAILY_USD_CAP ?? 100) }, // raised 20→100 (USER 2026-07-24: "you get 100 dollars for today")
   },
