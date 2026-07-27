@@ -9,7 +9,7 @@
 - Choose audio: native / music / mix (ducking) — preview mix on the rough cut before rendering.
 - Pick preset (social-vertical / social-landscape / master), export, watch staged progress, download.
 - Create/revoke a share link; share page plays the video with title + poster.
-- Music Brief round-trip lives here too: copy Suno prompt → upload track → fit indicator (track vs video length).
+- Music Brief lives here too: render with Lyria, or copy the prompt to Suno and upload the track → fit indicator (track vs video length).
 
 ## Key UI
 

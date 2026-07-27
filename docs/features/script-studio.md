@@ -15,7 +15,7 @@
 
 - Split view: chat left, current script version right (inline manual edits allowed → `manual` version).
 - Shot plan proposal as a card list diff: added / changed / removed, each toggleable before Apply (INV-STB-007 confirmation on removals with takes).
-- Music Brief panel: generated Suno prompt, editable, copy button (Phase 3).
+- Music Brief panel: generated music prompt, editable, one-click Lyria render + copy button for Suno (Phase 3).
 
 ## BDD
 

@@ -9,7 +9,7 @@
 - One-click **♫ Generate track** (Lyria 3 via Interactions API) attaches a real audio asset to the project.
 - **⏱ Transcribe** yields MM:SS lines for lyric-synced cut suggestions and export captions.
 - **♪ MUSIC SYNC** panel proposes shot-duration changes aligned to song structure.
-- Attach uploaded Suno tracks (legacy round-trip) with duration probing for timeline alignment.
+- Attach uploaded Suno tracks (supported alternative to Lyria) with duration probing for timeline alignment.
 
 ## Key UI
 
