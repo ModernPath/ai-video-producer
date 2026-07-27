@@ -12,7 +12,8 @@
     "compose:up": "docker compose up -d",
     "migrate": "node --experimental-strip-types scripts/migrate.ts",
     "test:real": "RUN_REAL_API=1 vitest run libs/gen/tests/real-api.e2e.spec.ts",
-    "style": "tsx scripts/style-card.ts"
+    "style": "tsx scripts/style-card.ts",
+    "audit:prompts": "tsx scripts/audit-prompts.ts"
   },
   "devDependencies": {
     "typescript": "^5.6.0",

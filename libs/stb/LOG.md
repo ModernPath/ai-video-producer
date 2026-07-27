@@ -1,5 +1,12 @@
 # Build Log — STB
 
+## 2026-07-27 — REQ-STB-047 prompt drift audit + restore (→ IN_REVIEW)
+**Done:** USER noticed shot 15 "Synchronized Drink" showing a title-card prompt. It was not a stale render — the DATABASE held shot 6's text, character for character, written there by the stale-textarea bug that REQ-STB-045 fixed. Keying the panels stopped new corruption but left the existing damage in place, and a mis-saved prompt reads like a perfectly good prompt, so nobody would find it by looking. Wrote `pnpm audit:prompts` to compare every shot against the plan that produced it, and restored the one affected shot.
+**Decisions:** (1) `--restore` is opt-in and every change is printed first, because drift is also what a deliberate edit looks like and the tool must not overwrite someone's own work. (2) A stored prompt character-identical to another shot's is reported as a mis-save specifically — that duplication is the fingerprint, and it separates the bug from an edit. (3) Recovery reads `shot_plan_proposal`, which keeps the planner's original text long after the shot row is overwritten.
+**Discovered:** the blast radius was 1 of 11 shots — smaller than feared, but real, and that shot had already produced paid frames and a take from a prompt describing a different scene entirely.
+**Deferred:** an in-app "revert to planned" per shot would beat a CLI script; it needs the proposal loaded per shot in the workspace.
+**Gate:** audit found exactly 1 drifted shot on the user's project, flagged it as identical to shot 6, restored it through `updateShotScripts`, and a re-audit reports `11 shots · 0 differ`. Confirmed in the browser that Synchronized Drink now shows its own diner-booth prompt.
+
 ## 2026-07-27 — REQ-STB-046 a shot's spoken line is editable (→ IN_REVIEW)
 **Done:** REQ-GEN-028 fixed the pipeline so dialogue reaches the video model, but the user's 11 existing shots still stored none, and the only route to lines was a re-plan that would have discarded takes they had already paid for. Added `updateShotDialogue` and a SPOKEN LINE field beside the image and video scripts, saved by the same Save.
 **Decisions:** `direction` is a single JSON column, so the setter MERGES — an edit to the line must not wipe the planner's synopsis, subject, action and mood. Emptying the field deletes the key rather than storing "", so a shot becomes genuinely silent instead of carrying an empty quote into the prompt.

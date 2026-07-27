@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 15 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 16 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -25,6 +25,7 @@ Totals: 30 DONE · 15 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 | REQ-STB-039 | Music timeline: clips on the track's time axis, drift + off-beat cuts | P8 | IN_REVIEW | USER 2026-07-25 ("see the music timing within the clips… if I add a new clip it might outsync") | tests/timeline.spec.ts (9) + browser (Neon Rivers 5 clips, boundary ticks, 3/5→5/5 off-beat after a length edit) | libs/stb/src/timeline.ts, components/Timeline.tsx, ast/src/probe.ts (ffprobe), upload+music duration recording |
 | REQ-STB-040 | Edit clip length: free crop vs regenerate, stated per shot | P8 | IN_REVIEW | USER 2026-07-25 ("edit the length of clips (+regenerate or crop)") | tests/timeline.spec.ts crop/shortfall block + browser (5s→6s persisted, ⚠ 1s short, take price 0.51→0.61) | updateShotDurationAction, stage length editor, trimmedS/shortfallS in timeline.ts |
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
+| REQ-STB-047 | Prompt drift audit + restore from plan | P9 | IN_REVIEW | USER 2026-07-27 "this does not sound like the prompt that was used for this image / video?" | manual audit + restore verified on the live project | scripts/audit-prompts.ts, pnpm audit:prompts |
 | REQ-STB-046 | A shot's spoken line is editable without re-planning | P9 | IN_REVIEW | USER 2026-07-27 (dialogue missing from every shot) | tests/dialogue.int.spec.ts (5) | stb updateShotDialogue, saveScriptsAndGenerateAction, SPOKEN LINE field |
 | REQ-STB-045 | Per-shot prompt identity + reference scrub at the prompt boundary | P9 | IN_REVIEW | USER 2026-07-26 "the image prompt is not retained, so I could actually generate alternative images" | apps/web/tests/stage-panel-identity.spec.tsx (3) + prompt.spec.ts (4) | page.tsx key={s.id}, prompt.ts guard(), shared/reference-scrub.ts |
 | REQ-STB-044 | The film's look reaches every picture (card → frame/take/animation) | P9 | IN_REVIEW | USER 2026-07-26 "styling was not held in the images… also character clothing changes" | tests/card-prompts.int.spec.ts (5) | stb/service.ts projectCard, shared continuity axis, style-compiler |
@@ -470,6 +471,20 @@ Totals: 30 DONE · 15 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 - **Code:** `libs/stb/src/timeline.ts`, `apps/web/components/Timeline.tsx`, `apps/web/components/Workspace.tsx`, `libs/ast/src/probe.ts` (ffprobe duration), `libs/ast/src/uploads.ts` + `libs/gen/src/executor.ts` (record audio duration), `apps/web/scripts/backfill-audio-durations.ts`
 - **Log:** LOG 2026-07-25
 - **Deferred / notes:** `asset.duration_s` was NULL for every audio row, so drift could never render — now probed at upload/generate and backfilled (17/17 existing tracks). Waveform rendering, a scrubbing playhead across clips, and drag-the-edge trimming are not built; ticks come from section stamps, not beat detection.
+
+### REQ-STB-047 — Prompt drift audit + restore from plan
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
+- **Raised-by:** USER 2026-07-27, looking at shot 15 "Synchronized Drink": "this does not sound like the prompt that was used for this image / video?" It held shot 6's title-card text, character for character.
+- **Statement:** Prompts silently written to the wrong shot shall be detectable and recoverable. REQ-STB-045 stopped NEW corruption (the stage reused one shot's uncontrolled prompt boxes for another, so Save could write the wrong text) but did nothing about damage already done — and a prompt belonging to another shot still reads like a perfectly good prompt, so inspection alone will not find it. The planner's original text survives in `shot_plan_proposal` after the shot row is overwritten, which makes both detection and repair possible.
+- **Acceptance criteria:**
+  - GIVEN a project THEN every shot's stored prompts are compared against the newest plan proposal that names it, and drift is reported with both texts.
+  - GIVEN a stored prompt character-identical to ANOTHER shot's THEN it is called out as a mis-saved prompt rather than an edit — that duplication is the fingerprint of the bug.
+  - GIVEN `--restore` THEN the planned text is written back through `updateShotScripts`; without it nothing is written, because drift is also what a deliberate edit looks like.
+  - GIVEN a hand-added shot with no planned counterpart THEN it is skipped rather than reported.
+- **Tests:** verified against the live project — 1 of 11 shots flagged and restored, re-audit clean.
+- **Code:** `scripts/audit-prompts.ts` · `pnpm audit:prompts <projectId> [--restore]`
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** an in-app "revert to planned" per shot would beat a CLI script, but it needs the proposal loaded per shot in the workspace; the script covers the damage that exists now. Only one shot was affected on the user's project — the blast radius was small, but it was real, and it had already produced paid media from a prompt that did not describe the shot.
 
 ### REQ-STB-046 — A shot's spoken line is editable without re-planning
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should
