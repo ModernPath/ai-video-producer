@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 27 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 27 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -27,6 +27,9 @@ Totals: 30 DONE · 27 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
 | REQ-STB-049 | Per-shot cast: only who is in the shot conditions it | P9 | IN_REVIEW | USER 2026-07-27 "modernpath logo is put to almost every scene… AI to decide which of the cast scene by scene" | tests/casting.spec.ts resolveShotCast (7) | stb/casting.ts, applyShotPlan, resolveCast(entityIds) |
 | REQ-STB-050 | Shots long enough for what happens in them | P9 | IN_REVIEW | USER 2026-07-27 "video/audio is cut… time understanding in scene planning is poor" | tests/grammar.spec.ts REQ-STB-050 (5) | speechSeconds, line-too-long rule, plan TIME BUDGET |
+| REQ-STB-059 | Split stb/service.ts by aggregate | P10 | PROPOSED | `docs/88-architecture-review.md` §3 (1,136 lines · 42 exports) | — | — |
+| REQ-STB-060 | Decompose p/[id]/page.tsx into panel components | P10 | PROPOSED | `docs/88-architecture-review.md` §3 (1,180 lines · 29% of apps/web) | — | — |
+| REQ-STB-061 | Render harness for apps/web + tests for the three UI escapes | P10 | PROPOSED | `docs/88-architecture-review.md` §4b | — | — |
 | REQ-STB-058 | A sub-clip admits when its start frame is not the real last frame | P9 | IN_REVIEW | USER 2026-07-27 "there was already a generated image, so I can't actually go to real last frame of previous video" | tests/handoff-state.spec.ts (6) | handoffState, refreshHandoffAction, honest START FRAME heading |
 | REQ-STB-056 | Linked clips numbered as sub-clips (4, 4.1, 4.2) | P9 | IN_REVIEW | USER 2026-07-27 "indicate at timeline which clips are linked, e.g. 4, 4.1, 4.2" | tests/chain-labels.spec.ts (7) | chainLabels, rail + timeline + shot header |
 | REQ-STB-057 | A sub-clip's start frame is given, not chosen or bought | P9 | IN_REVIEW | USER 2026-07-27 "show only the last frame and hide other starting images? skip the starting frame creation for subclips?" | verified live on both a sub-clip and an ordinary shot | page.tsx start-frame + GENERATE panel |
@@ -512,6 +515,37 @@ Totals: 30 DONE · 27 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 - **Code:** `libs/shared/src/config/grammar.ts` (`wordsPerSecond`, `speechHeadroom`) · `src/grammar.ts` (`speechSeconds`, `line-too-long`) · `src/director-pass.ts` (passes dialogue) · `libs/gen/src/prompt.ts` (TIME BUDGET)
 - **Log:** see LOG 2026-07-27
 - **Deferred / notes:** speech rate is one global constant; a style card could carry its own (deadpan is slower than hype). Physical-action duration is guidance to the planner, not measured — only dialogue is checkable.
+
+### REQ-STB-059 — Split stb/service.ts by aggregate
+- **Status:** PROPOSED · **Stage:** P10 · **Priority:** should
+- **Raised-by:** `docs/88-architecture-review.md` §3 — 1,136 lines, 42 exports, covering shots, takes, frames, plans, scripts, casting, continuity, chains and critique.
+- **Statement:** STB's service surface shall be split by aggregate (`shots`, `takes`, `plan`, `casting`, `continuity`, `critique`), preserving the public API so no consumer changes. The boundary discipline applied BETWEEN contexts was never applied within one.
+- **Acceptance criteria:**
+  - GIVEN the split THEN `@avd/stb` exports exactly what it exports today, and every existing test passes unchanged.
+  - GIVEN any resulting module THEN it is under ~300 lines and names one aggregate.
+  - GIVEN the split THEN no module imports another's internals — shared helpers move to a named module rather than being re-exported sideways.
+- **Deferred / notes:** several seams already exist as separate files (`casting.ts`, `chain.ts`, `critique.ts`, `grammar.ts`, `timeline.ts`), which is evidence the boundaries are real. Mechanical, no behaviour change.
+
+### REQ-STB-060 — Decompose p/[id]/page.tsx into panel components
+- **Status:** PROPOSED · **Stage:** P10 · **Priority:** should
+- **Raised-by:** `docs/88-architecture-review.md` §3 — 1,180 lines, 29% of all `apps/web` source, in one server component.
+- **Statement:** The workspace page shall compose panel components rather than build every panel inline. It currently assembles the rail, timeline, ~9 stage panels, 4 drawer panels, casting, continuity, exports and failure banners in a single function.
+- **Acceptance criteria:**
+  - GIVEN the decomposition THEN each panel is a component taking explicit props, and the page is data-loading plus composition.
+  - GIVEN a panel THEN it is renderable in a test without a database (the precondition for REQ-STB-061).
+  - GIVEN the refactor THEN the rendered output is unchanged, verified by walking the shot rail, drawer tabs and film panel in the browser.
+- **Deferred / notes:** the file was edited ~30 times this session by anchored string replacement and broke twice — a JSX ternary split, and an insertion landing in the wrong function. Editability is the symptom; testability is the reason.
+
+### REQ-STB-061 — Render harness for apps/web + tests for the three UI escapes
+- **Status:** PROPOSED · **Stage:** P10 · **Priority:** must
+- **Raised-by:** `docs/88-architecture-review.md` §4b — `apps/web` has one test, a source-text assertion, and three reported defects were pure UI state.
+- **Statement:** The web app shall have a component-render test setup, and the three defects that escaped through it shall be covered by tests that fail against the old code.
+- **Acceptance criteria:**
+  - GIVEN the harness THEN a panel component renders in a test without a database or a running server.
+  - GIVEN the stage panels THEN switching focus does not carry one shot's uncontrolled prompt text into another (REQ-STB-045 regression).
+  - GIVEN a sub-clip THEN no start-frame picker and no paid frame control is offered (REQ-STB-057 regression).
+  - GIVEN a sub-clip whose start frame did not come from its source take THEN the panel says so and offers the refresh (REQ-STB-058 regression).
+- **Deferred / notes:** depends on REQ-STB-060 — panels must be extractable before they are renderable. These three tests are the specific escapes; the harness is the general fix.
 
 ### REQ-STB-058 — A sub-clip admits when its start frame is not the real last frame
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must

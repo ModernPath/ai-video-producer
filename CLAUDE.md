@@ -302,6 +302,11 @@ A ledger requirement is **`DONE`** only when **all** hold:
 6. Ledger updated, `LOG.md` entry written, deferrals recorded.
 7. **Status in all three ledger places** (§5).
 8. **Provider-facing requirements:** the real-API E2E ring passes (`pnpm test:real` — `RUN_REAL_API=1` with `GEMINI_API_KEY` from `.env`) within its per-run budget cap (keep ≈ $0.05/run for images/text; video E2E per approved spike budget).
+9. **User-visible requirements: the artifact has been LOOKED AT.** The produced thing — assembled
+   prompt, image, take, or screen — has been inspected in the running product and the observation
+   recorded in `LOG.md`. Added 2026-07-27 (`docs/88-architecture-review.md` §6): every defect of the
+   P8–P9 run shipped with a green suite, because the suite asserted that code existed and never
+   asserted what it produced.
 
 Epic / UR completion additionally requires §5B gates and human approval on the parent epic.
 

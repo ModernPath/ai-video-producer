@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 21 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 21 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -26,6 +26,8 @@ Totals: 21 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | DONE | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
 | REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | DONE | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
 | REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
+| REQ-GEN-032 | One prompt pipeline; golden-file tests on assembled output | P10 | PROPOSED | `docs/88-architecture-review.md` §2 · four shipped defects | — | — |
+| REQ-GEN-033 | Lint + config hardening: no-dupe-keys, derived vocabularies | P10 | PROPOSED | `docs/88-architecture-review.md` §5 | — | — |
 | REQ-GEN-031 | Filmed prompts carry no typography and forbid on-screen text | P9 | IN_REVIEW | USER 2026-07-27 "where these gibberish texts in middle of video come from?" | prompt.spec.ts REQ-GEN-031 (4) + style-card.spec.ts (4) | style-card toVisualStyle, prompt.ts NO_ON_SCREEN_TEXT |
 | REQ-GEN-029 | Live refresh coalesced — SSE no longer races a form action's commit | P9 | IN_REVIEW | USER 2026-07-27 runtime TypeError "fiber.reset is not a function" | apps/web/tests/refresh-coalesce.spec.ts (5) | apps/web/lib/coalesce.ts, LiveRefresh |
 | REQ-GEN-028 | Spoken lines survive from script to video model | P9 | IN_REVIEW | USER 2026-07-27 "Pasi is talking something… in video prompt all of that is missing" | tests/prompt.spec.ts REQ-GEN-028 (7) | prompt.ts dialogue in plan schema + custom-prompt path |
@@ -250,6 +252,27 @@ Totals: 21 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a 5s omni take through the real pipeline THEN it succeeds, keeps durationS=5 (no {4,6,8} snap), and records cost 5×5792×$17.50/M ≈ $0.5068 (real E2E, RUN_REAL_OMNI).
 - **Tests:** `tests/omni-video.spec.ts` (7) · real E2E `tests/real-api.e2e.spec.ts` RUN_REAL_OMNI ($0.5068 verified) · **Code:** `src/provider.ts` (buildOmniVideoRequest + interactions branch), `src/routing.ts`, `src/cost.ts`, `src/executor.ts` (refs + model cost), shared config (omniVideoModel, priceTable omni rates, gen.videoRoute) · **Log:** LOG 2026-07-24
 - **Deferred / notes:** STB still snaps shot durations to {4,6,8} at plan level — exposing free durations (9–10s shots) in the UI is a follow-up STB slice. Conversational multi-turn retake untested. No UI switch — route is config/env by design (taste iteration without deploy, Tips #5).
+
+### REQ-GEN-032 — One prompt pipeline; golden-file tests on assembled output
+- **Status:** PROPOSED · **Stage:** P10 · **Priority:** must
+- **Raised-by:** `docs/88-architecture-review.md` §2 — `assembleTakePrompt`/`assembleFramePrompt` return early on `customPrompt`, and the planner writes one for every shot, so the composed branch carrying the craft and safety rails never executes in a real film.
+- **Statement:** Visual prompt assembly shall have ONE path. A custom prompt shall substitute the subject stage only; look, continuity, dialogue, rails and format shall append unconditionally. The assembled output of representative shots shall be asserted against committed golden files, so every prompt change is a reviewable diff.
+- **Acceptance criteria:**
+  - GIVEN a custom prompt THEN the assembled result still carries brand safety, on-screen-text suppression, the card look, continuity, any spoken line, and the format tail — verified by construction, not by a branch.
+  - GIVEN a representative shot per kind (filmed, dialogue, sub-clip, portrait, scene plate) THEN its assembled prompt matches a committed golden file.
+  - GIVEN a change to any rail THEN the golden files diff, and the diff is the review.
+  - GIVEN the refactor THEN no existing prompt test changes meaning — behaviour is preserved, structure is not.
+- **Deferred / notes:** four shipped defects trace to the split (REQ-GEN-028, REQ-GEN-031, REQ-STB-044, and the reference leak fixed in REQ-STB-045). Highest-value refactor identified in the review; contained to `libs/gen/src/prompt.ts` and its tests.
+
+### REQ-GEN-033 — Lint + config hardening
+- **Status:** PROPOSED · **Stage:** P10 · **Priority:** should
+- **Raised-by:** `docs/88-architecture-review.md` §5 — three hazards the type system did not catch, each of which cost real debugging time.
+- **Statement:** Classes of silent error that already occurred shall be made impossible: duplicate object keys in config, vocabulary lists copied instead of derived, and structurally-typed payloads passed whole where a field was meant.
+- **Acceptance criteria:**
+  - GIVEN a duplicated key in a config literal THEN lint fails (`no-dupe-keys`). Regression: `config.project` was declared twice and the later literal silently won, so every threshold read `undefined`.
+  - GIVEN a vocabulary (entity kinds, shot sizes, templates) THEN exactly one `as const` defines it and all consumers derive from it. Regression: `casting.ts` held its own copy and returned `character` for `location`.
+  - GIVEN `getObject` THEN callers cannot pass the whole `{ bytes, mime }` where bytes are meant without a type error. Regression: ffmpeg received the object and silently produced nothing.
+- **Deferred / notes:** no behaviour change; each item is a guard against a defect that has already happened once.
 
 ### REQ-GEN-031 — Filmed prompts carry no typography and forbid on-screen text
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must

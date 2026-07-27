@@ -1,0 +1,270 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" style="background:#1a1a1a">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+    </marker>
+    <marker id="arrow-accent" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4a9eff"/>
+    </marker>
+  </defs>
+  
+  <!-- Title -->
+  <text x="600" y="45" text-anchor="middle" fill="#fff" font-size="24" font-weight="600" font-family="system-ui, sans-serif">Requirement-Driven Development Process</text>
+  <text x="600" y="70" text-anchor="middle" fill="#888" font-size="12" font-family="system-ui, sans-serif">Full traceability: design docs ’ requirements ’ tests ’ code</text>
+
+  <!-- ==================== LEFT SIDE: LIFECYCLE ==================== -->
+  
+  <!-- Phase boxes -->
+  <g transform="translate(40, 100)">
+    <!-- Phase 1: Discovery -->
+    <rect x="0" y="0" width="280" height="90" rx="8" fill="#252525" stroke="#4a9eff" stroke-width="2"/>
+    <text x="140" y="30" text-anchor="middle" fill="#4a9eff" font-size="14" font-weight="600" font-family="system-ui, sans-serif">PHASE 1: DISCOVERY</text>
+    <text x="140" y="50" text-anchor="middle" fill="#ccc" font-size="11" font-family="system-ui, sans-serif">Customer requirements + constraints</text>
+    <text x="140" y="68" text-anchor="middle" fill="#888" font-size="11" font-family="system-ui, sans-serif">’ Design docs (docs/)</text>
+    <text x="140" y="82" text-anchor="middle" fill="#666" font-size="10" font-family="system-ui, sans-serif">Prompt 0A</text>
+    
+    <!-- Arrow -->
+    <path d="M 140 95 L 140 115" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+    
+    <!-- Phase 2: Planning -->
+    <rect x="0" y="120" width="280" height="90" rx="8" fill="#252525" stroke="#4a9eff" stroke-width="2"/>
+    <text x="140" y="150" text-anchor="middle" fill="#4a9eff" font-size="14" font-weight="600" font-family="system-ui, sans-serif">PHASE 2: PLANNING</text>
+    <text x="140" y="170" text-anchor="middle" fill="#ccc" font-size="11" font-family="system-ui, sans-serif">Design docs ’ Requirements</text>
+    <text x="140" y="188" text-anchor="middle" fill="#888" font-size="11" font-family="system-ui, sans-serif">’ Ledgers + Epics</text>
+    <text x="140" y="202" text-anchor="middle" fill="#666" font-size="10" font-family="system-ui, sans-serif">Prompt 1 · Prompt E</text>
+    
+    <!-- Arrow -->
+    <path d="M 140 215 L 140 235" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+    
+    <!-- Phase 3: Build -->
+    <rect x="0" y="240" width="280" height="90" rx="8" fill="#252525" stroke="#4a9eff" stroke-width="2"/>
+    <text x="140" y="270" text-anchor="middle" fill="#4a9eff" font-size="14" font-weight="600" font-family="system-ui, sans-serif">PHASE 3: BUILD</text>
+    <text x="140" y="290" text-anchor="middle" fill="#ccc" font-size="11" font-family="system-ui, sans-serif">Requirements ’ Tests ’ Code</text>
+    <text x="140" y="308" text-anchor="middle" fill="#888" font-size="11" font-family="system-ui, sans-serif">TDD: red ’ green ’ trace</text>
+    <text x="140" y="322" text-anchor="middle" fill="#666" font-size="10" font-family="system-ui, sans-serif">Prompt 2 · Prompt 3</text>
+    
+    <!-- Feedback loop arrow -->
+    <path d="M 285 285 Q 320 285 320 175 Q 320 95 285 95" stroke="#666" stroke-width="1.5" fill="none" stroke-dasharray="4"/>
+    <text x="335" y="175" fill="#666" font-size="9" font-family="system-ui, sans-serif">discoveries</text>
+  </g>
+
+  <!-- ==================== CENTER: HUMAN ” AI INTERFACE ==================== -->
+  
+  <g transform="translate(380, 100)">
+    <rect x="0" y="0" width="400" height="330" rx="8" fill="#1e1e1e" stroke="#444" stroke-width="1" stroke-dasharray="4"/>
+    <text x="200" y="25" text-anchor="middle" fill="#888" font-size="13" font-weight="600" font-family="system-ui, sans-serif">HUMAN ” AI AGENT INTERFACE</text>
+    
+    <!-- Human box -->
+    <rect x="20" y="45" width="160" height="120" rx="6" fill="#252525" stroke="#555"/>
+    <text x="100" y="70" text-anchor="middle" fill="#fff" font-size="12" font-weight="600" font-family="system-ui, sans-serif">HUMAN</text>
+    <text x="100" y="90" text-anchor="middle" fill="#888" font-size="10" font-family="system-ui, sans-serif">" Vision / Intent</text>
+    <text x="100" y="105" text-anchor="middle" fill="#888" font-size="10" font-family="system-ui, sans-serif">" Approval gates</text>
+    <text x="100" y="120" text-anchor="middle" fill="#888" font-size="10" font-family="system-ui, sans-serif">" Feedback / Decisions</text>
+    <text x="100" y="135" text-anchor="middle" fill="#888" font-size="10" font-family="system-ui, sans-serif">" Design docs ownership</text>
+    <text x="100" y="150" text-anchor="middle" fill="#888" font-size="10" font-family="system-ui, sans-serif">" OQ / Gap resolution</text>
+    
+    <!-- AI box -->
+    <rect x="220" y="45" width="160" height="120" rx="6" fill="#252525" stroke="#555"/>
+    <text x="300" y="70" text-anchor="middle" fill="#fff" font-size="12" font-weight="600" font-family="system-ui, sans-serif">AI AGENT</text>
+    <text x="300" y="90" text-anchor="middle" fill="#888" font-size="10" font-family="system-ui, sans-serif">" Build loop execution</text>
+    <text x="300" y="105" text-anchor="middle" fill="#888" font-size="10" font-family="system-ui, sans-serif">" TDD (red ’ green)</text>
+    <text x="300" y="120" text-anchor="middle" fill="#888" font-size="10" font-family="system-ui, sans-serif">" Traceability maintenance</text>
+    <text x="300" y="135" text-anchor="middle" fill="#888" font-size="10" font-family="system-ui, sans-serif">" Discovery capture</text>
+    <text x="300" y="150" text-anchor="middle" fill="#888" font-size="10" font-family="system-ui, sans-serif">" Ledger/Log updates</text>
+    
+    <!-- Bidirectional arrow -->
+    <path d="M 185 105 L 215 105" stroke="#4a9eff" stroke-width="2"/>
+    <polygon points="215,102 220,105 215,108" fill="#4a9eff"/>
+    <polygon points="185,102 180,105 185,108" fill="#4a9eff"/>
+    
+    <!-- Shared Contracts box -->
+    <rect x="20" y="180" width="360" height="135" rx="6" fill="#252525" stroke="#4a9eff" stroke-width="1"/>
+    <text x="200" y="205" text-anchor="middle" fill="#4a9eff" font-size="12" font-weight="600" font-family="system-ui, sans-serif">SHARED CONTRACTS (Markdown Artifacts)</text>
+    
+    <text x="40" y="230" fill="#ccc" font-size="10" font-family="system-ui, sans-serif">REQUIREMENTS.md</text>
+    <text x="200" y="230" fill="#666" font-size="10" font-family="system-ui, sans-serif">Current state per context (ledger)</text>
+    
+    <text x="40" y="248" fill="#ccc" font-size="10" font-family="system-ui, sans-serif">LOG.md</text>
+    <text x="200" y="248" fill="#666" font-size="10" font-family="system-ui, sans-serif">Append-only history + decisions</text>
+    
+    <text x="40" y="266" fill="#ccc" font-size="10" font-family="system-ui, sans-serif">WORKLIST.md</text>
+    <text x="200" y="266" fill="#666" font-size="10" font-family="system-ui, sans-serif">Epic/task rollup (V-model)</text>
+    
+    <text x="40" y="284" fill="#ccc" font-size="10" font-family="system-ui, sans-serif">epics/*.md</text>
+    <text x="200" y="284" fill="#666" font-size="10" font-family="system-ui, sans-serif">BDD scenarios + trace links</text>
+    
+    <text x="40" y="302" fill="#ccc" font-size="10" font-family="system-ui, sans-serif">BACKLOG.md</text>
+    <text x="200" y="302" fill="#666" font-size="10" font-family="system-ui, sans-serif">Triage inbox for discoveries</text>
+  </g>
+
+  <!-- ==================== RIGHT SIDE: TWO LOOPS ==================== -->
+  
+  <g transform="translate(820, 100)">
+    <!-- Ledger Loop -->
+    <rect x="0" y="0" width="340" height="200" rx="8" fill="#252525" stroke="#555"/>
+    <text x="170" y="25" text-anchor="middle" fill="#fff" font-size="12" font-weight="600" font-family="system-ui, sans-serif">LEDGER LOOP (Day-to-Day)</text>
+    <text x="170" y="42" text-anchor="middle" fill="#666" font-size="10" font-family="system-ui, sans-serif">CLAUDE.md §6  Implementation slices</text>
+    
+    <text x="20" y="65" fill="#4a9eff" font-size="10" font-family="system-ui, sans-serif">0. ORIENT</text>
+    <text x="100" y="65" fill="#888" font-size="10" font-family="system-ui, sans-serif">Read REQUIREMENTS dashboard</text>
+    
+    <text x="20" y="80" fill="#4a9eff" font-size="10" font-family="system-ui, sans-serif">1. SPECIFY</text>
+    <text x="100" y="80" fill="#888" font-size="10" font-family="system-ui, sans-serif">Sharpen acceptance criteria</text>
+    
+    <text x="20" y="95" fill="#e85d5d" font-size="10" font-family="system-ui, sans-serif">2. RED</text>
+    <text x="100" y="95" fill="#888" font-size="10" font-family="system-ui, sans-serif">Write failing tests (REQ-tagged)</text>
+    
+    <text x="20" y="110" fill="#5de85d" font-size="10" font-family="system-ui, sans-serif">3. GREEN</text>
+    <text x="100" y="110" fill="#888" font-size="10" font-family="system-ui, sans-serif">Minimal passing code (INV-annotated)</text>
+    
+    <text x="20" y="125" fill="#4a9eff" font-size="10" font-family="system-ui, sans-serif">4. GATE</text>
+    <text x="100" y="125" fill="#888" font-size="10" font-family="system-ui, sans-serif">Full test suite green</text>
+    
+    <text x="20" y="140" fill="#4a9eff" font-size="10" font-family="system-ui, sans-serif">5. TRACE</text>
+    <text x="100" y="140" fill="#888" font-size="10" font-family="system-ui, sans-serif">Link code + tests in ledger</text>
+    
+    <text x="20" y="155" fill="#ffb84a" font-size="10" font-family="system-ui, sans-serif">6. REVIEW</text>
+    <text x="100" y="155" fill="#888" font-size="10" font-family="system-ui, sans-serif">Human sign-off</text>
+    
+    <text x="20" y="170" fill="#4a9eff" font-size="10" font-family="system-ui, sans-serif">7. COMMIT</text>
+    <text x="100" y="170" fill="#888" font-size="10" font-family="system-ui, sans-serif">PR titled with REQ id</text>
+    
+    <text x="20" y="185" fill="#4a9eff" font-size="10" font-family="system-ui, sans-serif">8. CAPTURE</text>
+    <text x="100" y="185" fill="#888" font-size="10" font-family="system-ui, sans-serif">Discoveries ’ BACKLOG; LOG entry</text>
+    
+    <!-- Loop arrow -->
+    <path d="M 320 185 Q 335 185 335 100 Q 335 50 320 50" stroke="#4a9eff" stroke-width="1.5" fill="none" marker-end="url(#arrow-accent)"/>
+    
+    <!-- V-Model Loop -->
+    <rect x="0" y="220" width="340" height="200" rx="8" fill="#252525" stroke="#555"/>
+    <text x="170" y="245" text-anchor="middle" fill="#fff" font-size="12" font-weight="600" font-family="system-ui, sans-serif">V-MODEL LOOP (Epic Scale)</text>
+    <text x="170" y="262" text-anchor="middle" fill="#666" font-size="10" font-family="system-ui, sans-serif">CLAUDE.md §5B  User-visible capabilities</text>
+    
+    <text x="20" y="285" fill="#ccc" font-size="10" font-family="system-ui, sans-serif">Trace chain:</text>
+    <text x="20" y="302" fill="#4a9eff" font-size="10" font-family="system-ui, sans-serif">UR ’ EPIC ’ SCN ’ SR ’ TASK ’ TEST ’ CODE</text>
+    
+    <line x1="20" y1="315" x2="320" y2="315" stroke="#444" stroke-width="1"/>
+    
+    <text x="20" y="335" fill="#ccc" font-size="10" font-weight="500" font-family="system-ui, sans-serif">Upper loop (user intent):</text>
+    <text x="20" y="350" fill="#888" font-size="10" font-family="system-ui, sans-serif">Epic owns BDD scenarios; validated by E2E tests</text>
+    
+    <text x="20" y="370" fill="#ccc" font-size="10" font-weight="500" font-family="system-ui, sans-serif">Lower loop (system behavior):</text>
+    <text x="20" y="385" fill="#888" font-size="10" font-family="system-ui, sans-serif">Scenarios ’ SRs ’ tasks; unit/API tests</text>
+    
+    <text x="20" y="405" fill="#ccc" font-size="10" font-weight="500" font-family="system-ui, sans-serif">Gates:</text>
+    <text x="60" y="405" fill="#888" font-size="10" font-family="system-ui, sans-serif">LOWER_VERIFIED ’ UPPER_VALIDATED ’ DONE (+ human approval)</text>
+  </g>
+
+  <!-- ==================== BOTTOM: NON-NEGOTIABLES ==================== -->
+  
+  <g transform="translate(40, 470)">
+    <text x="0" y="0" fill="#fff" font-size="14" font-weight="600" font-family="system-ui, sans-serif">The 8 Non-Negotiables</text>
+    <text x="220" y="0" fill="#666" font-size="11" font-family="system-ui, sans-serif">(A change that violates one is wrong even if its tests pass)</text>
+    
+    <g transform="translate(0, 20)">
+      <rect x="0" y="0" width="270" height="45" rx="4" fill="#252525" stroke="#4a9eff" stroke-width="1" stroke-dasharray="0,0,270,45"/>
+      <text x="10" y="18" fill="#4a9eff" font-size="10" font-weight="500" font-family="system-ui, sans-serif">1. Triple link required</text>
+      <text x="10" y="35" fill="#888" font-size="9" font-family="system-ui, sans-serif">Nothing "done" without requirement + tests + code</text>
+    </g>
+    
+    <g transform="translate(280, 20)">
+      <rect x="0" y="0" width="270" height="45" rx="4" fill="#252525" stroke="#4a9eff" stroke-width="1" stroke-dasharray="0,0,270,45"/>
+      <text x="10" y="18" fill="#4a9eff" font-size="10" font-weight="500" font-family="system-ui, sans-serif">2. Explicit deferral</text>
+      <text x="10" y="35" fill="#888" font-size="9" font-family="system-ui, sans-serif">Work not done = DEFERRED row with reason + link</text>
+    </g>
+    
+    <g transform="translate(560, 20)">
+      <rect x="0" y="0" width="270" height="45" rx="4" fill="#252525" stroke="#4a9eff" stroke-width="1" stroke-dasharray="0,0,270,45"/>
+      <text x="10" y="18" fill="#4a9eff" font-size="10" font-weight="500" font-family="system-ui, sans-serif">3. Contracts are canonical</text>
+      <text x="10" y="35" fill="#888" font-size="9" font-family="system-ui, sans-serif">Schema definitions (Zod/OpenAPI) are source of truth</text>
+    </g>
+    
+    <g transform="translate(840, 20)">
+      <rect x="0" y="0" width="270" height="45" rx="4" fill="#252525" stroke="#4a9eff" stroke-width="1" stroke-dasharray="0,0,270,45"/>
+      <text x="10" y="18" fill="#4a9eff" font-size="10" font-weight="500" font-family="system-ui, sans-serif">4. Config not literals</text>
+      <text x="10" y="35" fill="#888" font-size="9" font-family="system-ui, sans-serif">Thresholds, rates, routing from versioned config</text>
+    </g>
+    
+    <g transform="translate(0, 75)">
+      <rect x="0" y="0" width="270" height="45" rx="4" fill="#252525" stroke="#4a9eff" stroke-width="1" stroke-dasharray="0,0,270,45"/>
+      <text x="10" y="18" fill="#4a9eff" font-size="10" font-weight="500" font-family="system-ui, sans-serif">5. Thin vertical slices</text>
+      <text x="10" y="35" fill="#888" font-size="9" font-family="system-ui, sans-serif">API/event ’ domain ’ DB ’ UI per slice</text>
+    </g>
+    
+    <g transform="translate(280, 75)">
+      <rect x="0" y="0" width="270" height="45" rx="4" fill="#252525" stroke="#4a9eff" stroke-width="1" stroke-dasharray="0,0,270,45"/>
+      <text x="10" y="18" fill="#4a9eff" font-size="10" font-weight="500" font-family="system-ui, sans-serif">6. Log tells the truth</text>
+      <text x="10" y="35" fill="#888" font-size="9" font-family="system-ui, sans-serif">Deferrals, decisions, discoveries in LOG.md same session</text>
+    </g>
+    
+    <g transform="translate(560, 75)">
+      <rect x="0" y="0" width="270" height="45" rx="4" fill="#252525" stroke="#4a9eff" stroke-width="1" stroke-dasharray="0,0,270,45"/>
+      <text x="10" y="18" fill="#4a9eff" font-size="10" font-weight="500" font-family="system-ui, sans-serif">7. Capture, don't carry</text>
+      <text x="10" y="35" fill="#888" font-size="9" font-family="system-ui, sans-serif">Discoveries ’ PROPOSED row or BACKLOG immediately</text>
+    </g>
+    
+    <g transform="translate(840, 75)">
+      <rect x="0" y="0" width="270" height="45" rx="4" fill="#252525" stroke="#4a9eff" stroke-width="1" stroke-dasharray="0,0,270,45"/>
+      <text x="10" y="18" fill="#4a9eff" font-size="10" font-weight="500" font-family="system-ui, sans-serif">8. Atomic status updates</text>
+      <text x="10" y="35" fill="#888" font-size="9" font-family="system-ui, sans-serif">Update dashboard + detail block + Totals together</text>
+    </g>
+  </g>
+
+  <!-- ==================== BOTTOM: STATUS + TRACEABILITY ==================== -->
+  
+  <g transform="translate(40, 630)">
+    <!-- Status Vocabulary -->
+    <rect x="0" y="0" width="350" height="180" rx="6" fill="#252525" stroke="#555"/>
+    <text x="175" y="25" text-anchor="middle" fill="#fff" font-size="12" font-weight="600" font-family="system-ui, sans-serif">Status Vocabulary</text>
+    
+    <text x="20" y="50" fill="#888" font-size="10" font-weight="500" font-family="system-ui, sans-serif">Ledger (REQ-*):</text>
+    <text x="20" y="68" fill="#666" font-size="9" font-family="system-ui, sans-serif">PROPOSED ’ READY ’ IN_PROGRESS ’ IN_REVIEW ’ DONE</text>
+    <text x="20" y="83" fill="#666" font-size="9" font-family="system-ui, sans-serif">DEFERRED (reason + link) · BLOCKED (OQ id)</text>
+    
+    <line x1="20" y1="95" x2="330" y2="95" stroke="#444" stroke-width="1"/>
+    
+    <text x="20" y="115" fill="#888" font-size="10" font-weight="500" font-family="system-ui, sans-serif">V-Model (EPIC/SCN/SR/TASK):</text>
+    <text x="20" y="133" fill="#666" font-size="9" font-family="system-ui, sans-serif">PROPOSED ’ READY ’ IN_PROGRESS</text>
+    <text x="20" y="148" fill="#666" font-size="9" font-family="system-ui, sans-serif">’ LOWER_VERIFIED ’ UPPER_VALIDATED ’ DONE</text>
+    <text x="20" y="163" fill="#666" font-size="9" font-family="system-ui, sans-serif">UR: VALIDATED (all linked epics DONE + human approval)</text>
+    
+    <!-- Traceability -->
+    <rect x="370" y="0" width="350" height="180" rx="6" fill="#252525" stroke="#555"/>
+    <text x="545" y="25" text-anchor="middle" fill="#fff" font-size="12" font-weight="600" font-family="system-ui, sans-serif">Traceability Links</text>
+    
+    <text x="390" y="50" fill="#888" font-size="10" font-weight="500" font-family="system-ui, sans-serif">Code ” Requirements:</text>
+    <text x="390" y="68" fill="#666" font-size="9" font-family="monospace">describe('REQ-XXX-001: ...', ...)</text>
+    <text x="390" y="83" fill="#666" font-size="9" font-family="monospace">// INV-XXX-001  enforced here</text>
+    <text x="390" y="98" fill="#666" font-size="9" font-family="monospace">commit: REQ-XXX-002: description</text>
+    
+    <line x1="390" y1="110" x2="700" y2="110" stroke="#444" stroke-width="1"/>
+    
+    <text x="390" y="130" fill="#888" font-size="10" font-weight="500" font-family="system-ui, sans-serif">Grounded Recording (source refs):</text>
+    <text x="390" y="148" fill="#666" font-size="9" font-family="monospace">USER:date:summary · DOC:path#section</text>
+    <text x="390" y="163" fill="#666" font-size="9" font-family="monospace">CODE:path:line · TEST:path:name · RUN:cmd</text>
+    
+    <!-- Definition of Done -->
+    <rect x="740" y="0" width="380" height="180" rx="6" fill="#252525" stroke="#555"/>
+    <text x="930" y="25" text-anchor="middle" fill="#fff" font-size="12" font-weight="600" font-family="system-ui, sans-serif">Definition of Done</text>
+    
+    <text x="760" y="50" fill="#888" font-size="10" font-weight="500" font-family="system-ui, sans-serif">Ledger REQ is DONE when:</text>
+    <text x="760" y="68" fill="#666" font-size="9" font-family="system-ui, sans-serif"> Every criterion ’ passing, REQ-tagged test</text>
+    <text x="760" y="83" fill="#666" font-size="9" font-family="system-ui, sans-serif"> All INV-* enforced + annotated in code</text>
+    <text x="760" y="98" fill="#666" font-size="9" font-family="system-ui, sans-serif"> Lint/contract checks pass · Human sign-off</text>
+    <text x="760" y="113" fill="#666" font-size="9" font-family="system-ui, sans-serif"> Status in all 3 places (dashboard, detail, totals)</text>
+    
+    <line x1="760" y1="125" x2="1100" y2="125" stroke="#444" stroke-width="1"/>
+    
+    <text x="760" y="145" fill="#888" font-size="10" font-weight="500" font-family="system-ui, sans-serif">Epic is DONE when:</text>
+    <text x="760" y="163" fill="#666" font-size="9" font-family="system-ui, sans-serif"> All SCN UPPER_VALIDATED · All SR LOWER_VERIFIED</text>
+    <text x="760" y="178" fill="#666" font-size="9" font-family="system-ui, sans-serif"> Human approval recorded in epic + WORKLIST</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="600" y="850" text-anchor="middle" fill="#555" font-size="10" font-family="system-ui, sans-serif">
+    Every change starts as a requirement with acceptance criteria, becomes a failing test, then traced code  
+  </text>
+  <text x="600" y="865" text-anchor="middle" fill="#555" font-size="10" font-family="system-ui, sans-serif">
+    and anything we choose not to do is written down as a deferral, not forgotten.
+  </text>
+</svg>
