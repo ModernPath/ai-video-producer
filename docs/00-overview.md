@@ -14,7 +14,7 @@ The **AI Video Director** takes a creator from *idea* to *finished video* throug
 2. **Script → Shots with scripts** — `gemini-3.6-flash` turns the description into a script divided into ordered **Shots** (4–8s on the current Veo route). **Every shot carries: (a) a starting-image script, (b) a video script, (c) its duration, (d) its reference images.** These authored, editable scripts are the primary creative artifact; direction fields are supporting metadata.
 3. **First images immediately** — the image scripts generate the first set of start frames right away. The user **reprompts any image script and regenerates** until the frame is right — *before* spending on video.
 4. **Takes** — each shot's video is generated from its video script, conditioned on the chosen start frame and reference images. Multiple takes; the user selects one.
-5. **Audio** — native Omni audio per clip, and/or a **Music Brief** (a prompt the user feeds to Suno) whose resulting track is attached and mixed over the assembly.
+5. **Audio** — native Omni audio per clip, and/or a **Music Brief** whose track is rendered in one click by Lyria 3 (default) or taken to Suno by hand — either way it is attached and mixed over the assembly.
 6. **Assembly & Export** — selected takes are concatenated, audio is mixed, and the final video is exported (ffmpeg, no re-generation).
 
 Use cases: brand videos, funny clips, music videos, product teasers, social content.
@@ -56,7 +56,7 @@ Script + Shot Plan + Consistent Look + Cheap Iteration on Frames
 - **Shot editor** — generate/pick start & end frames (image candidates), generate/pick takes (video candidates), retake with edit instructions (`STB`, `GEN`).
 - **Entity & Style library (org-level)** — reusable named **Entities** (companies, products, people, characters) and **Style Kits**, each with descriptions + reference images; pick them at project setup to keep many videos consistent. Reference images are **AI-editable** before use (change clothing, styling, setting) (`AST`, `GEN`).
 - **Animatic** — plays selected frames with shot timings (+ scratch/attached music) before any video is generated (`STB`, `ASM`).
-- **Music** — generate a Music Brief for Suno; upload the resulting track; choose native-audio vs music-only vs mix per project (`STB`, `ASM`).
+- **Music** — generate a Music Brief; render it with Lyria 3 in one click, or take the prompt to Suno and upload the result; choose native-audio vs music-only vs mix per project (`STB`, `ASM`).
 - **Assembly & export** — concat selected takes, mix audio, export presets, download/share (`ASM`).
 
 Surface specs: `docs/features/`.
@@ -95,7 +95,7 @@ Consequences baked into the domain: shot duration is capped at **8s** (Veo route
 | 13 | `13-storyboard.md` | STB domain (script, shots, frames, takes, music brief) — **core** |
 | 14 | `14-generation.md` | GEN domain (jobs, model routing, cost, provenance) |
 | 15 | `15-assembly-export.md` | ASM domain (animatic, assembly, export, audio mix) |
-| 17 | `17-integrations.md` | Suno handoff, future publish targets |
+| 17 | `17-integrations.md` | Lyria generation, Suno handoff, future publish targets |
 | 40–41 | `data/*` | Schema and events |
 | 81–82, 86 | Build plan, tech stack, frontend | Phasing, ADRs, client strategy |
 | — | `features/*` | Per-surface UX specs |

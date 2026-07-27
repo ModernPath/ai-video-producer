@@ -89,7 +89,7 @@ Cross-context **writes** go through commands/APIs, not shared-table updates. The
 - **Preferred:** domain events + transactional outbox (`data/41-event-catalog.md`).
 - **Sync queries:** read models for storyboard view (shots + candidate counts + thumbnails), generation status, cost meter — `07-api-contracts.md`.
 - **External model APIs (Gemini):** only GEN talks to Google. Single chokepoint: routing, retries, rate limits, cost accounting, content-policy error mapping (`14-generation.md`).
-- **External music (Suno):** manual handoff MVP — STB produces brief text, user uploads result to AST (`17-integrations.md`).
+- **Music:** STB produces the brief text; GEN renders it with Lyria 3 (default) or the user carries it to Suno and uploads the result to AST (`17-integrations.md` §4, §1).
 
 ---
 

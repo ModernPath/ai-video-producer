@@ -1,5 +1,13 @@
 # Build Log — STB
 
+## 2026-07-27 — docs reconcile: music has two routes, Lyria is the default (no code change)
+**Done:** consolidating `AGENTS.md` into a routing map surfaced stale text — it described the pipeline as "assembly + music (Suno round-trip)" after REQ-GEN-019 moved generation in-house. The drift was wider than that one file: `docs/00` (×3), `docs/06`, `docs/13` (×2) and `docs/02` all named Suno as the ONLY route, while `docs/17` — the doc that owns the topic — had documented both correctly since 2026-07-23. All six now state both routes with Lyria 3 as the default; the Lyria section is numbered `docs/17` §4.
+**Decisions:** USER:2026-07-27: "Lyria is the preference, but having prompts to suno is relevant still." Both routes are supported; Suno is NOT deprecated. The **brief is the shared artifact** — the same text either renders in-app or travels to Suno — which is why BR-STB-007 (freely editable) still governs both. `docs/17` §1 kept its number despite Lyria being the default, because four places cite `docs/17 §1` meaning Suno (`libs/asm/REQUIREMENTS.md`, `libs/stb/REQUIREMENTS.md` ×2, `src/service.ts:414`); renumbering would have broken them for cosmetic ordering.
+**Deferred:** none.
+**Discovered:** the summary docs drifted while the owning doc stayed true — the 2026-07-23 reconcile updated `docs/17` and missed every doc that SUMMARISES it. A capability that changes route needs a grep for the old route's name, not an edit to its own doc. Also GAP-106 (automate Suno) is unaffected and stays open.
+**Follow-ups:** none.
+**Gate:** docs only, no code touched. Verified `docs/17` §1–§3 numbering unchanged so all four inbound refs still resolve; no `.ts` file altered.
+
 ## 2026-07-27 — REQ-STB-062 a sub-clip never buys a start frame (→ IN_REVIEW)
 **Done:** USER asked whether sub-scenes still generate images on approving the script. They did. Measured on their MP Burton project before answering: 5 of 10 shots are sub-clips and every one had bought a start frame the handoff discards — $0.34 of the $0.34 spent on that project was ~50% waste. `requestFrame` now refuses a sub-clip by name, and the two BATCH paths skip them.
 **Decisions:** (1) The refusal goes in the SERVICE, not only the UI. REQ-STB-057 hid the controls and I stopped there; "Apply + frames" and "generate missing frames" are different paths and spent the money anyway. This is the rule I had already written for takes in REQ-STB-055 — "a disabled button is guidance, the service is the guarantee" — applied inconsistently one requirement later. (2) Single request REFUSES, batch SKIPS: a one-shot request is a mistake worth naming, while a bulk gesture must not abort because one shot is ineligible.

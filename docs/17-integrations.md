@@ -1,14 +1,19 @@
 # 17 — Integrations
 
-**Status:** Active for the Suno handoff pattern; publishing is post-MVP (GAP-105).
+**Status:** Active. Music has two supported routes — Lyria 3 in-app (default, §4) and the Suno
+handoff (§1); publishing is post-MVP (GAP-105).
 
 Not a bounded context in MVP — these are patterns hosted inside STB/AST/ASM.
 
 ---
 
-## 1. Suno music handoff (MVP — manual round-trip)
+## 1. Suno music handoff (manual round-trip)
 
-Suno has no supported API path we depend on; the MVP flow is deliberately manual and friction-minimized:
+> **USER 2026-07-27:** "Lyria is the preference, but having prompts to suno is relevant still."
+> Lyria 3 (§4) is the default route; this one is kept, not deprecated. The brief is the shared
+> artifact — the same text either renders in-app or travels to Suno.
+
+Suno has no supported API path we depend on; this flow is deliberately manual and friction-minimized:
 
 1. **Music Brief** (STB): `gemini-3.6-flash` writes a Suno-ready prompt from brief + script + total duration + pacing (shot durations). Shown with a copy button and Suno deep link.
 2. User generates the track in Suno, downloads it.
@@ -30,15 +35,15 @@ Only GEN integrates with Google Gemini APIs (`14-generation.md` §8). Any additi
 YouTube/TikTok/Instagram upload from a completed export. When built: new INT context with anti-corruption layer; `asm.ExportCompleted` is the trigger event; no provider ids in core tables without a mapping table.
 
 
-## Lyria 3 music generation (USER epic 2026-07-23 — implemented)
+## 4. Lyria 3 music generation — the default route (USER epic 2026-07-23 — implemented)
 
-The Suno round-trip now has a one-click sibling: the music brief (always with timed lyrics
+The default way to get a track. The Suno round-trip (§1) remains for users who want it: the music brief (always with timed lyrics
 unless instrumental, §docs/85) runs verbatim against `lyria-3-pro-preview` via the
 Interactions REST API ($0.08/full song, OQ-114 resolved). The returned MP3 attaches as the
 project's active track exactly like an uploaded Suno file. Kind `music`, provider
 `generateMusic`, REQ-GEN-019.
 
-## Track transcription & lyric sync (implemented)
+## 5. Track transcription & lyric sync (implemented)
 
 Any attached track can be transcribed (kind `transcript`, gemini-3.6-flash audio input,
 inline ≤20MB) into `[MM:SS]` lines — lyrics for vocal tracks, labeled sections for

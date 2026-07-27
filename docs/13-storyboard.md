@@ -17,7 +17,7 @@ Owns the creative state of a production: the **Script**, the ordered list of **S
 |-----------|----------------|
 | Script | Versioned narrative text; revisions via chat with `gemini-3.6-flash`; applying a **Shot Plan** derived from it |
 | Shot | Ordered slot: direction, duration, frame candidates + selections, takes + selection, status |
-| MusicBrief | Prompt text for Suno + link to uploaded Music Track asset + audio mix mode |
+| MusicBrief | Prompt text — rendered by Lyria 3 or carried to Suno — + link to the active Music Track asset + audio mix mode |
 
 `Shot` is the aggregate root for its frame candidates and takes (they are STB *links* to AST assets + GEN generations, with selection state owned here).
 
@@ -46,7 +46,7 @@ Owns the creative state of a production: the **Script**, the ordered list of **S
 | BR-STB-004 | Shot status is derived, never stored as free-form: `planned` (no selected start frame) → `framed` (start frame selected, no selected take) → `generated` (take selected). |
 | BR-STB-005 | Script revision does not auto-mutate shots. The user may request a **re-plan diff**: proposed add/update/remove per shot, applied selectively (protects paid work; OQ-109). |
 | BR-STB-006 | Splitting a shot divides its duration and copies direction; merging concatenates directions and requires re-framing. |
-| BR-STB-007 | Music Brief text is generated from brief + script + pacing (shot durations); the user can edit it freely before taking it to Suno. |
+| BR-STB-007 | Music Brief text is generated from brief + script + pacing (shot durations); the user can edit it freely before rendering it with Lyria 3 or taking it to Suno. |
 
 ## 5. Policies
 
