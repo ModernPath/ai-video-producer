@@ -107,6 +107,17 @@ export async function requestFrame(
   input: { shotId: string; slot: "start" | "end"; principal: string; aspectRatio: "16:9" | "9:16" }
 ) {
   const s = await getShotOrThrow(db, input.shotId);
+  // REQ-STB-062 (USER 2026-07-27: "are we still generating images for sub-scenes?") — a sub-clip's
+  // first frame IS the previous take's last frame, so a bought frame is discarded by the handoff.
+  // REQ-STB-057 hid the controls; "Apply + frames" is a different path and spent the money anyway.
+  // The refusal belongs where the cost is, exactly as for takes (REQ-STB-055).
+  if (s.continuesFromShotId) {
+    const [src] = await db.select().from(shot).where(eq(shot.id, s.continuesFromShotId));
+    throw new StbValidationError(
+      "validation_failed",
+      `${s.title} continues ${src?.title ?? "another shot"} — its start frame is that take's last frame, so generating one would be discarded. Break the chain first if you want to choose a frame.`
+    );
+  }
   const d = s.direction as DirectionJson;
   const cast = await resolveCast(db, s.projectId, d.entityIds); // REQ-STB-049
   const refAssetIds = resolveShotRefs(s.refAssetIds, cast.entityRefAssetIds); // REQ-STB-016

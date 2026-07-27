@@ -6,7 +6,7 @@ import { organization } from "@avd/plt/schema";
 import { project } from "@avd/prj/schema";
 import { generation } from "@avd/gen/schema";
 import { asset } from "@avd/ast/schema";
-import { createShot, handoffTailFrame, requestTake, setShotContinuity } from "../src/service";
+import { createShot, handoffTailFrame, requestFrame, requestFrameBatch, requestTake, setShotContinuity } from "../src/service";
 import { frameCandidate, shot, take } from "../src/schema";
 
 // USER 2026-07-27: "the clothing and positions of persons sitting are changing… store the last
@@ -183,5 +183,44 @@ describe("REQ-STB-055: a take cannot be bought out of chain order", () => {
     await db.update(shot).set({ selectedTakeId: (await db.select().from(take).where(eq(take.shotId, a)))[0]!.id })
       .where(eq(shot.id, head!.id));
     await expect(requestTake(db, { shotId: follower!.id, principal: "user:test", aspectRatio: "16:9" })).resolves.toBeTruthy();
+  });
+});
+
+// USER 2026-07-27: "are we still generating images for sub-scenes in the beginning when approving
+// the script?" — Yes. REQ-STB-057 hid the frame controls for a sub-clip in the UI, but "Apply +
+// frames" is a different path and `requestFrame` had no guard, so every sub-clip bought a start
+// frame that the tail-frame handoff then discards. Five of them on the user's own project.
+//
+// The refusal belongs where the cost is incurred — the same rule already applied to takes
+// (REQ-STB-055): a hidden button is guidance, the service is the guarantee.
+describe("REQ-STB-062: a sub-clip never buys a start frame", () => {
+  let head = "", sub = "";
+
+  beforeAll(async () => {
+    head = await createShot(db, { organizationId: orgId, projectId, title: "Chain head", direction: dir, durationS: 6 });
+    sub = await createShot(db, { organizationId: orgId, projectId, title: "Chain sub", direction: dir, durationS: 6 });
+    await setShotContinuity(db, { shotId: sub, continuesFromShotId: head });
+  });
+
+  it("refuses a single frame request for a sub-clip, naming the source", async () => {
+    await expect(requestFrame(db, { shotId: sub, slot: "start", principal: "user:test", aspectRatio: "16:9" }))
+      .rejects.toThrow(/Chain head/);
+  });
+
+  it("refuses the batch too — the batch is how the money actually gets spent", async () => {
+    await expect(requestFrameBatch(db, { shotId: sub, slot: "start", principal: "user:test", aspectRatio: "16:9" }))
+      .rejects.toThrow(/last frame|continues/i);
+  });
+
+  it("still allows the chain head", async () => {
+    await expect(requestFrame(db, { shotId: head, slot: "start", principal: "user:test", aspectRatio: "16:9" }))
+      .resolves.toBeTruthy();
+  });
+
+  it("allows it again once the chain is broken — the escape hatch", async () => {
+    await setShotContinuity(db, { shotId: sub, continuesFromShotId: null });
+    await expect(requestFrame(db, { shotId: sub, slot: "start", principal: "user:test", aspectRatio: "16:9" }))
+      .resolves.toBeTruthy();
+    await setShotContinuity(db, { shotId: sub, continuesFromShotId: head });
   });
 });

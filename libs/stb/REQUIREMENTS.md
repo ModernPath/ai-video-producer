@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 27 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 28 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -30,6 +30,7 @@ Totals: 30 DONE · 27 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
 | REQ-STB-059 | Split stb/service.ts by aggregate | P10 | PROPOSED | `docs/88-architecture-review.md` §3 (1,136 lines · 42 exports) | — | — |
 | REQ-STB-060 | Decompose p/[id]/page.tsx into panel components | P10 | PROPOSED | `docs/88-architecture-review.md` §3 (1,180 lines · 29% of apps/web) | — | — |
 | REQ-STB-061 | Render harness for apps/web + tests for the three UI escapes | P10 | PROPOSED | `docs/88-architecture-review.md` §4b | — | — |
+| REQ-STB-062 | A sub-clip never buys a start frame | P9 | IN_REVIEW | USER 2026-07-27 "are we still generating images for sub-scenes in the beginning when approving the script?" | tests/continuity.int.spec.ts REQ-STB-062 (4) | requestFrame guard, applyPlanAction + generateMissingFramesAction skip |
 | REQ-STB-058 | A sub-clip admits when its start frame is not the real last frame | P9 | IN_REVIEW | USER 2026-07-27 "there was already a generated image, so I can't actually go to real last frame of previous video" | tests/handoff-state.spec.ts (6) | handoffState, refreshHandoffAction, honest START FRAME heading |
 | REQ-STB-056 | Linked clips numbered as sub-clips (4, 4.1, 4.2) | P9 | IN_REVIEW | USER 2026-07-27 "indicate at timeline which clips are linked, e.g. 4, 4.1, 4.2" | tests/chain-labels.spec.ts (7) | chainLabels, rail + timeline + shot header |
 | REQ-STB-057 | A sub-clip's start frame is given, not chosen or bought | P9 | IN_REVIEW | USER 2026-07-27 "show only the last frame and hide other starting images? skip the starting frame creation for subclips?" | verified live on both a sub-clip and an ordinary shot | page.tsx start-frame + GENERATE panel |
@@ -546,6 +547,20 @@ Totals: 30 DONE · 27 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 3 PROPOSED · 0 D
   - GIVEN a sub-clip THEN no start-frame picker and no paid frame control is offered (REQ-STB-057 regression).
   - GIVEN a sub-clip whose start frame did not come from its source take THEN the panel says so and offers the refresh (REQ-STB-058 regression).
 - **Deferred / notes:** depends on REQ-STB-060 — panels must be extractable before they are renderable. These three tests are the specific escapes; the harness is the general fix.
+
+### REQ-STB-062 — A sub-clip never buys a start frame
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-27: "are we still generating images for sub-scenes in the beginning when approving the script?" — yes, we were. Five of the ten shots on their MP Burton project bought a start frame the tail-frame handoff discards.
+- **Statement:** A shot that continues another shall never generate a start frame. Its first frame IS the previous take's last frame (REQ-STB-054), so a generated one is money spent on an image that is thrown away. REQ-STB-057 hid the controls in the UI, but "Apply + frames" and "generate missing frames" are different paths and spent it anyway.
+- **Acceptance criteria:**
+  - GIVEN a sub-clip THEN `requestFrame` is refused with a message naming the shot it continues; the batch is refused too, since the batch is how the money is actually spent.
+  - GIVEN a chain head or an unchained shot THEN generation proceeds unchanged.
+  - GIVEN the chain is broken THEN generation is allowed again — the escape hatch.
+  - GIVEN "Apply + frames" or "generate missing frames" over a plan containing sub-clips THEN those shots are SKIPPED, not failed: refusing one shot must not fail the whole apply.
+- **Tests:** `tests/continuity.int.spec.ts` (REQ-STB-062, 4)
+- **Code:** `src/service.ts` (`requestFrame` guard) · `apps/web/app/actions.ts` (`applyPlanAction`, `generateMissingFramesAction` skip)
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** the frames already bought on existing projects are not refunded or removed; they are simply replaced when the handoff runs. Skip-vs-refuse is deliberate: a single-shot request is a mistake worth naming, a batch is a bulk gesture where one ineligible shot must not abort the rest.
 
 ### REQ-STB-058 — A sub-clip admits when its start frame is not the real last frame
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must

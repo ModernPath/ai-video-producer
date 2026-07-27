@@ -189,6 +189,9 @@ export async function applyPlanAction(formData: FormData) {
         if (anim?.text) {
           // REQ-STB-024: pure-graphic shot — render the free animation take instead of buying a frame
           genIds.push(await requestAnimationTake(db(), { shotId, text: anim.text, template: anim.template ?? "title", principal: PRINCIPAL, aspectRatio: p.aspectRatio }));
+        } else if (rows.find((r) => r.id === shotId)?.continuesFromShotId) {
+          // REQ-STB-062: a sub-clip starts from the previous take's last frame. Skip it — buying a
+          // frame here is money the handoff throws away, and failing the whole apply would be worse.
         } else {
           genIds.push(await requestFrame(db(), { shotId, slot: "start", principal: PRINCIPAL, aspectRatio: p.aspectRatio }));
         }
@@ -209,6 +212,7 @@ export async function generateMissingFramesAction(formData: FormData) {
   const shots = await listShots(db(), projectId);
   const genIds: string[] = [];
   for (const s of shots) {
+    if (s.continuesFromShotId) continue; // REQ-STB-062: its frame comes from the previous take
     const { frames } = await listCandidates(db(), s.id);
     if (frames.length === 0) {
       genIds.push(await requestFrame(db(), { shotId: s.id, slot: "start", principal: PRINCIPAL, aspectRatio: p.aspectRatio }));

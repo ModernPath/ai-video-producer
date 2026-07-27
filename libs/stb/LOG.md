@@ -1,5 +1,12 @@
 # Build Log — STB
 
+## 2026-07-27 — REQ-STB-062 a sub-clip never buys a start frame (→ IN_REVIEW)
+**Done:** USER asked whether sub-scenes still generate images on approving the script. They did. Measured on their MP Burton project before answering: 5 of 10 shots are sub-clips and every one had bought a start frame the handoff discards — $0.34 of the $0.34 spent on that project was ~50% waste. `requestFrame` now refuses a sub-clip by name, and the two BATCH paths skip them.
+**Decisions:** (1) The refusal goes in the SERVICE, not only the UI. REQ-STB-057 hid the controls and I stopped there; "Apply + frames" and "generate missing frames" are different paths and spent the money anyway. This is the rule I had already written for takes in REQ-STB-055 — "a disabled button is guidance, the service is the guarantee" — applied inconsistently one requirement later. (2) Single request REFUSES, batch SKIPS: a one-shot request is a mistake worth naming, while a bulk gesture must not abort because one shot is ineligible.
+**Discovered:** this is the second instance of the same shape in two days — a rail enforced on one path and not another (the first was the prompt pipeline, ADR-010). Per `CLAUDE.md` §13, a repeated shape is a design signal: any control that guards SPEND should be audited across every path that can reach it, not fixed where it was noticed.
+**Follow-ups:** none for this slice; the audit suggested above is worth a §13 sweep when REQ-STB-059/060 land.
+**Gate:** 4/4 new tests red first (2 genuinely red); 361 passed / 5 skipped across stb+gen+web; tsc clean. Verified against the user's real project: both sampled sub-clips refused by name, the chain head still allowed, verification rows cleaned up afterwards.
+
 ## 2026-07-27 — architecture review (USER-requested)
 **Done:** Reviewed the codebase against the code as it stands, not from memory (`docs/88-architecture-review.md`). Five refactors recorded as PROPOSED: REQ-GEN-032 (one prompt pipeline + golden-file tests), REQ-GEN-033 (lint/config hardening), REQ-STB-059 (split `service.ts` by aggregate), REQ-STB-060 (decompose `page.tsx`), REQ-STB-061 (render harness + the three UI escapes).
 **Decisions:** the review's central finding — the suite was green while the product was wrong, for every single defect of this run — is recorded as a new Definition-of-Done clause in root `CLAUDE.md` §9.9, not only as prose in a document. A finding that lives only in a doc changes nothing.
