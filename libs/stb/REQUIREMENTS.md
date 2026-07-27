@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 59 DONE · 0 IN_REVIEW · 2 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 60 DONE · 0 IN_REVIEW · 1 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -28,7 +28,7 @@ Totals: 59 DONE · 0 IN_REVIEW · 2 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-049 | Per-shot cast: only who is in the shot conditions it | P9 | DONE | USER 2026-07-27 "modernpath logo is put to almost every scene… AI to decide which of the cast scene by scene" | tests/casting.spec.ts resolveShotCast (7) | stb/casting.ts, applyShotPlan, resolveCast(entityIds) |
 | REQ-STB-050 | Shots long enough for what happens in them | P9 | DONE | USER 2026-07-27 "video/audio is cut… time understanding in scene planning is poor" | tests/grammar.spec.ts REQ-STB-050 (5) | speechSeconds, line-too-long rule, plan TIME BUDGET |
 | REQ-STB-059 | Split stb/service.ts by aggregate | P10 | DONE | `docs/88-architecture-review.md` §3 (1,136 lines · 42 exports) | — | — |
-| REQ-STB-060 | Decompose p/[id]/page.tsx into panel components | P10 | IN_PROGRESS | `docs/88-architecture-review.md` §3 (1,180 lines · 29% of apps/web) | — | — |
+| REQ-STB-060 | Decompose p/[id]/page.tsx into panel components | P10 | DONE | `docs/88-architecture-review.md` §3 (1,180 lines · 29% of apps/web) | — | — |
 | REQ-STB-061 | Render harness for apps/web + tests for the three UI escapes | P10 | IN_PROGRESS | `docs/88-architecture-review.md` §4b | — | — |
 | REQ-STB-062 | A sub-clip never buys a start frame | P9 | DONE | USER 2026-07-27 "are we still generating images for sub-scenes in the beginning when approving the script?" | tests/continuity.int.spec.ts REQ-STB-062 (4) | requestFrame guard, applyPlanAction + generateMissingFramesAction skip |
 | REQ-STB-058 | A sub-clip admits when its start frame is not the real last frame | P9 | DONE | USER 2026-07-27 "there was already a generated image, so I can't actually go to real last frame of previous video" | tests/handoff-state.spec.ts (6) | handoffState, refreshHandoffAction, honest START FRAME heading |
@@ -530,14 +530,16 @@ Totals: 59 DONE · 0 IN_REVIEW · 2 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Deferred / notes:** 1,147L → largest module 211L. All 7 private helpers were cross-aggregate (used by 2–14 exports each) so all moved to `common.ts`; only `StbValidationError` and `DirectionJson` are re-exported publicly from it. Cross-module imports are of PUBLIC exports only, and the graph is acyclic (common → shots/script → continuity/music → takes/plan/materialize). No test changed.
 
 ### REQ-STB-060 — Decompose p/[id]/page.tsx into panel components
-- **Status:** IN_PROGRESS · **Stage:** P10 · **Priority:** should
+- **Status:** DONE · **Stage:** P10 · **Priority:** should
 - **Raised-by:** `docs/88-architecture-review.md` §3 — 1,180 lines, 29% of all `apps/web` source, in one server component.
 - **Statement:** The workspace page shall compose panel components rather than build every panel inline. It currently assembles the rail, timeline, ~9 stage panels, 4 drawer panels, casting, continuity, exports and failure banners in a single function.
 - **Acceptance criteria:**
   - GIVEN the decomposition THEN each panel is a component taking explicit props, and the page is data-loading plus composition.
   - GIVEN a panel THEN it is renderable in a test without a database (the precondition for REQ-STB-061).
   - GIVEN the refactor THEN the rendered output is unchanged, verified by walking the shot rail, drawer tabs and film panel in the browser.
-- **Deferred / notes:** the file was edited ~30 times this session by anchored string replacement and broke twice — a JSX ternary split, and an insertion landing in the wrong function. Editability is the symptom; testability is the reason.
+- **Tests:** `apps/web/tests/panels.render.spec.tsx` (5 — every panel mounts with plain values; one asserts no panel imports the db helper) · `stage-panel.render.spec.tsx`
+- **Code:** `apps/web/app/p/[id]/panels/{ui,StagePanel,CommandBar,FilmPanel,AddShotPanel,ScriptPanel,MusicPanel,CastPanel,OutputPanel}.tsx`
+- **Deferred / notes:** 1,211 → **333** lines; the page is data loading + composition. Output verified UNCHANGED against the pre-refactor baseline by diffing the served HTML of a real 10-shot project: 222 visible text nodes and 98 title tooltips, 0 differences. The 7 later panels destructure props in the signature so their JSX moved verbatim — StagePanel was extracted by prefixing identifiers instead, which corrupted 7 pieces of user-visible text and needed the HTML diff to catch. `StagePanel.tsx` is 525 lines, still over §10B's ~300 signal; splitting it further is a separate call.
 
 ### REQ-STB-061 — Render harness for apps/web + tests for the three UI escapes
 - **Status:** IN_PROGRESS · **Stage:** P10 · **Priority:** must

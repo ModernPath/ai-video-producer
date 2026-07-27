@@ -1,5 +1,13 @@
 # Build Log — STB
 
+## 2026-07-27 — REQ-STB-060 decompose page.tsx (IN_PROGRESS → DONE)
+**Done:** 1,211 → **333** lines. Nine modules under `p/[id]/panels/`: `ui` (style tokens + Section), `StagePanel`, `CommandBar`, `FilmPanel`, `AddShotPanel`, `ScriptPanel`, `MusicPanel`, `CastPanel`, `OutputPanel`. The page now loads data and composes.
+**Decisions:** (1) **The 7 later panels destructure props in the SIGNATURE, so their JSX moved verbatim.** StagePanel was extracted the other way — prefixing every identifier with `props.` — and that corrupted 7 pieces of user-visible text, including a button that read "use whole props.cast" and 5 tooltips. Zero-rewrite extraction removes the whole failure class. (2) `p` stays named `p` in the four panels that use the project row, for the same reason. (3) AC 2 ("renderable without a database") is now a TEST, not a claim: `panels.render.spec.tsx` mounts four panels from plain values and asserts no panel module imports the db helper.
+**Deferred:** `StagePanel.tsx` is 525 lines — still over §10B's ~300 signal. Splitting it further is a separate call, not smuggled into this row.
+**Discovered:** the HTML diff is the control that made this safe. Both extractions were verified by diffing the SERVED page of the user's real 10-shot project against the pre-refactor baseline — 222 visible text nodes and 98 title tooltips, **0 differences**. It caught the corruption in pass one; typecheck and 505 green tests did not, because nothing asserts English. This is §9.9 working exactly as written, and it is the second time this session that looking at the artifact caught what the suite could not.
+**Follow-ups:** REQ-STB-045 still needs browser-level coverage (REQ-STB-061); consider splitting StagePanel.
+**Gate:** typecheck 0 (libs + web); **516 passed / 14 skipped**; `apps/web` 19 tests across 4 files, from 1 at the start of the day; served HTML identical to baseline.
+
 ## 2026-07-27 — REQ-STB-061 render harness: 2 of 3 escapes covered, the third proven UNCOVERABLE here
 **Done:** `apps/web` has a render harness — happy-dom + `@testing-library/react`, automatic JSX runtime, per-file `@vitest-environment` pragma. `StagePanel` renders from a plain fixture with no database. Six tests; the suite goes 505 → 511.
 **Decisions:** (1) **Every test was mutation-tested** — I broke the fix and required the test to go red. REQ-STB-057 (sub-clip offered a paid frame) and REQ-STB-058 (start-frame provenance mislabelled) both caught their mutation. (2) `environmentMatchGlobs` was removed in vitest 4, so the DOM environment is a per-file pragma instead — more explicit, and integration specs stay in node.
