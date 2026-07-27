@@ -16,7 +16,7 @@
     "@avd/shared": "workspace:*",
     "@avd/stb": "workspace:*",
     "drizzle-orm": "^0.45.2",
-    "pg-boss": "^10.1.0",
+    "pg-boss": "^10.4.2",
     "tsx": "^4.19.0"
   }
 }

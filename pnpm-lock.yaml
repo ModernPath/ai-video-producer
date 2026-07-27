@@ -107,7 +107,7 @@ importers:
         specifier: ^0.45.2
         version: 0.45.2(pg@8.22.0)(postgres@3.4.9)
       pg-boss:
-        specifier: ^10.1.0
+        specifier: ^10.4.2
         version: 10.4.2
       tsx:
         specifier: ^4.19.0
@@ -275,7 +275,7 @@ importers:
         specifier: ^0.45.2
         version: 0.45.2(pg@8.22.0)(postgres@3.4.9)
       pg-boss:
-        specifier: ^10.1.0
+        specifier: ^10.4.2
         version: 10.4.2
       postgres:
         specifier: ^3.4.5
