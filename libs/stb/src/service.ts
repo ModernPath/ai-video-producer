@@ -691,6 +691,61 @@ export async function updateShotDialogue(db: Db, input: { shotId: string; dialog
 }
 
 /**
+ * REQ-STB-052 (USER 2026-07-27: "shouldn't it be run for the script?") — critique the SCRIPT and
+ * redraft it, before it is broken into shots.
+ *
+ * The earlier place to catch a fault. Runtime, structure and who is in the film are decided here;
+ * finding them in the shot plan means finding them after they have been split across ten shots.
+ * Result is a new script VERSION, so the original stays in the history and nothing is overwritten.
+ */
+export async function critiqueAndRedraftScript(
+  db: Db,
+  input: { projectId: string; principal: string }
+): Promise<{ versionId: string; issues: number } | null> {
+  const p = await getProjectOrThrow(db, input.projectId);
+  const current = await latestScript(db, input.projectId);
+  if (!current?.content?.trim()) throw new StbValidationError("validation_failed", "There is no script to critique yet");
+  const card = await projectCard(db, input.projectId);
+  const targetDurationS = Math.round(Number(p.targetDurationS));
+
+  const { SCRIPT_LENSES, assembleScriptCritiquePrompt, assembleScriptRedraftPrompt, mergeCritiques } = await import("./critique");
+  const { textJson } = await import("@avd/gen/text-json");
+
+  // Read in parallel and in isolation — reviewers who talk converge, and then there is one reviewer.
+  const critiques = await Promise.all(
+    SCRIPT_LENSES.map(async (lens) => ({
+      lens: lens.id,
+      issues: (await textJson<{ issues?: unknown[] }>(
+        assembleScriptCritiquePrompt({ lens, scriptText: current.content, card: card ?? undefined, targetDurationS }), {}
+      )).issues ?? [],
+    }))
+  );
+  const issues = mergeCritiques(critiques as never);
+  if (!issues.length) return { versionId: current.id, issues: 0 }; // nothing to answer; do not invent a redraft
+
+  const { createGeminiProvider, mockProvider, mockEnabled: mocked } = await import("@avd/gen");
+  const provider = mocked() ? mockProvider : createGeminiProvider();
+  const { modelRoutes } = await import("@avd/shared/config");
+  const res = await provider.generateText({
+    model: modelRoutes.script,
+    prompt: assembleScriptRedraftPrompt({ scriptText: current.content, issues, card: card ?? undefined, targetDurationS }),
+  });
+  const text = (res.text ?? "").trim();
+  if (!text) return null; // a redraft we cannot read is not an improvement
+
+  const id = uuidv7();
+  await db.insert(scriptVersion).values({
+    id,
+    projectId: input.projectId,
+    version: current.version + 1,
+    content: text,
+    source: "revised",
+    generationId: null,
+  });
+  return { versionId: id, issues: issues.length };
+}
+
+/**
  * REQ-STB-051 — critique the draft plan from several angles, then revise it.
  *
  * USER 2026-07-27: "script planning could include some more iterations of adding critique steps

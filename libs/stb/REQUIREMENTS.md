@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 20 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 21 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -27,6 +27,7 @@ Totals: 30 DONE · 20 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
 | REQ-STB-049 | Per-shot cast: only who is in the shot conditions it | P9 | IN_REVIEW | USER 2026-07-27 "modernpath logo is put to almost every scene… AI to decide which of the cast scene by scene" | tests/casting.spec.ts resolveShotCast (7) | stb/casting.ts, applyShotPlan, resolveCast(entityIds) |
 | REQ-STB-050 | Shots long enough for what happens in them | P9 | IN_REVIEW | USER 2026-07-27 "video/audio is cut… time understanding in scene planning is poor" | tests/grammar.spec.ts REQ-STB-050 (5) | speechSeconds, line-too-long rule, plan TIME BUDGET |
+| REQ-STB-052 | Critique the SCRIPT, before it becomes shots | P9 | IN_REVIEW | USER 2026-07-27 "shouldn't it be run for the script?" | tests/script-critique.spec.ts (11) | stb/critique.ts SCRIPT_LENSES, critiqueAndRedraftScript, script Critique & improve |
 | REQ-STB-051 | Multi-angle critique of the plan, then revise | P9 | IN_REVIEW | USER 2026-07-27 "critique steps from few angles and improve" | tests/critique.spec.ts (11) | stb/critique.ts, critiqueAndRevise, Critique & improve |
 | REQ-STB-048 | The plan casts the film; missing characters get a portrait | P9 | IN_REVIEW | USER 2026-07-27 "other characters than Pasi are not kept… director should think of cast and list them" | tests/casting.spec.ts (14) + casting-portrait.int.spec.ts (5) + prompt.spec.ts REQ-GEN-030 (5) | stb/casting.ts, requestEntityPortrait/castFromPortrait, toPortraitStyle, casting UI |
 | REQ-STB-047 | Prompt drift audit + restore from plan | P9 | IN_REVIEW | USER 2026-07-27 "this does not sound like the prompt that was used for this image / video?" | manual audit + restore verified on the live project | scripts/audit-prompts.ts, pnpm audit:prompts |
@@ -505,6 +506,22 @@ Totals: 30 DONE · 20 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 - **Code:** `libs/shared/src/config/grammar.ts` (`wordsPerSecond`, `speechHeadroom`) · `src/grammar.ts` (`speechSeconds`, `line-too-long`) · `src/director-pass.ts` (passes dialogue) · `libs/gen/src/prompt.ts` (TIME BUDGET)
 - **Log:** see LOG 2026-07-27
 - **Deferred / notes:** speech rate is one global constant; a style card could carry its own (deadpan is slower than hype). Physical-action duration is guidance to the planner, not measured — only dialogue is checkable.
+
+### REQ-STB-052 — Critique the SCRIPT, before it becomes shots
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-27, on a project with a script and no shots: "shouldn't it be run for the script?"
+- **Statement:** The script shall be critiqued and redrafted before it is broken into shots. Runtime, structure and who is in the film are decided in the SCRIPT; REQ-STB-051 caught those faults only in the shot plan, i.e. after each had already been split across ten shots.
+- **Acceptance criteria:**
+  - GIVEN the script lenses THEN there are ≥3 with distinct briefs judging what a SCRIPT decides — runtime against content, structure, cast, voice against the film's own style — and NOT framing or shot length, which do not exist yet.
+  - GIVEN a lens prompt THEN it carries the script itself, the target runtime, and the card's directing block; the card's `provenance` never appears.
+  - GIVEN issues THEN the redraft prompt carries every one of them, keeps the original script (a revision, not a fresh idea), holds the stated runtime, and asks for prose back rather than a JSON contract.
+  - GIVEN no issues THEN no redraft is invented.
+  - GIVEN a redraft THEN it is stored as a new script VERSION, so the original stays in the history.
+  - GIVEN no script yet THEN critiquing is refused.
+- **Tests:** `tests/script-critique.spec.ts` (11)
+- **Code:** `src/critique.ts` (`SCRIPT_LENSES`, `assembleScriptCritiquePrompt`, `assembleScriptRedraftPrompt`) · `src/service.ts` (`critiqueAndRedraftScript`) · `apps/web` (`critiqueScriptAction`, button beside Redraft)
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** the redraft replaces the whole script rather than proposing a diff — OQ-109 covers diff UX and applies here too. Critique costs four text calls and stays off the generation ledger, matching `research.ts`. The script's own text is NOT scrubbed of reference names: it is the user's own writing going to a TEXT model, and SCN-DIR-002 governs visual prompts.
 
 ### REQ-STB-051 — Multi-angle critique of the plan, then revise
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should

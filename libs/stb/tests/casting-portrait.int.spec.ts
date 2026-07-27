@@ -62,8 +62,11 @@ describe("REQ-STB-048: casting a character from a generated portrait", () => {
   });
 
   it("creates the cast member from the finished portrait and attaches them to the project", async () => {
-    const { runNextGeneration } = await import("@avd/gen");
-    await runNextGeneration(db);
+    // Run THIS generation, not "the next queued one" — `runNextGeneration` claims any queued row,
+    // so under a parallel suite it ran another file's work and left the portrait unrendered. This
+    // mirrors the production fix in `castMemberAction`.
+    const { runGenerationById } = await import("@avd/gen");
+    await runGenerationById(db, genId);
     const entityId = await castFromPortrait(db, {
       projectId, generationId: genId, name: "The Colleague", kind: "character",
       description: "Pasi's silent co-worker",

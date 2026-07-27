@@ -28,7 +28,7 @@ import {
   generateMusicTrackAction, generateTakeAction, moveShotTo, musicBriefAction, overlayTakeAction, proposePlanAction,
   removeCandidateAction, removeShotAction, retakeAction, retryExportAction,
   retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction,
-  castMemberAction, compileStyleCardAction, critiquePlanAction, setArchetypeAction, setProjectStyleAction, setTargetDurationAction, transcribeTrackAction,
+  castMemberAction, compileStyleCardAction, critiquePlanAction, critiqueScriptAction, setArchetypeAction, setProjectStyleAction, setTargetDurationAction, transcribeTrackAction,
   updateBriefAction, updateShotDurationAction, updateShotRefsAction, uploadTrackAction,
 } from "../../actions";
 import { CastBar } from "../../../components/CastBar";
@@ -797,6 +797,16 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         title={latestScript ? `SCRIPT · v${latestScript.version} · ${versions.length} version${versions.length > 1 ? "s" : ""}` : "SCRIPT"}
         action={
           <>
+            {latestScript && (
+              // REQ-STB-052: catch runtime, structure and casting faults HERE, before the script
+              // is broken into shots and the fault is split across ten of them.
+              <form action={critiqueScriptAction}>
+                <input type="hidden" name="projectId" value={id} />
+                <SubmitButton small disabled={activeKinds.has("script")}
+                  title="Four reviewers read the script — runtime, story, cast, voice — and write an improved version"
+                  pendingLabel="Reviewing…">↻ Critique &amp; improve</SubmitButton>
+              </form>
+            )}
             <form action={draftScriptAction}>
               <input type="hidden" name="projectId" value={id} />
               <SubmitButton small primary={!latestScript} disabled={activeKinds.has("script")} pendingLabel="Drafting…">

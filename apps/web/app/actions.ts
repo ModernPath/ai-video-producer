@@ -314,6 +314,14 @@ export async function castMemberAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/** REQ-STB-052: read the SCRIPT from several angles and write an improved version. */
+export async function critiqueScriptAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { critiqueAndRedraftScript } = await import("@avd/stb");
+  await critiqueAndRedraftScript(db(), { projectId, principal: PRINCIPAL });
+  revalidatePath(`/p/${projectId}`);
+}
+
 /** REQ-STB-051: read the draft plan from several angles and propose an improved one. */
 export async function critiquePlanAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));
