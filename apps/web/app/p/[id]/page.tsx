@@ -42,28 +42,12 @@ import { AudioModePicker } from "../../../components/AudioModePicker";
 import { ClipPlayer } from "../../../components/ClipPlayer";
 import { Workspace, type DrawerTab, type RailShot } from "../../../components/Workspace";
 import { db } from "../../../lib/db";
+import { btn, btnPrimary, card, input, label, sub, tiny, Section } from "./panels/ui";
+import { StagePanel } from "./panels/StagePanel";
 
 export const dynamic = "force-dynamic";
 
-const card: React.CSSProperties = { border: "1px solid var(--line)", background: "var(--panel)", borderRadius: 10, padding: 14 };
-const sub: React.CSSProperties = { border: "1px solid var(--line)", background: "var(--stage)", borderRadius: 9, padding: 12 };
-const btn: React.CSSProperties = { background: "var(--panel-2)", border: "1px solid var(--line)", borderRadius: 7, padding: "6px 12px", color: "var(--ink)", fontSize: 12, fontWeight: 600, cursor: "pointer" };
-const btnPrimary: React.CSSProperties = { ...btn, background: "var(--accent)", border: "1px solid var(--accent)", color: "#12151b" };
-const input: React.CSSProperties = { background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 7, padding: "7px 9px", color: "var(--ink)", fontSize: 12 };
-const label: React.CSSProperties = { fontSize: 10, letterSpacing: ".1em" };
-const tiny: React.CSSProperties = { background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 5, padding: "2px 6px", color: "var(--ink)", fontSize: 10 };
 
-function Section({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <section style={{ ...card, marginBottom: 12 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-        <p className="mono muted" style={label}>{title}</p>
-        {action && <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center" }}>{action}</div>}
-      </div>
-      {children}
-    </section>
-  );
-}
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -291,445 +275,43 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     const estDiffers = est.effectiveSeconds !== Number(s.durationS);
 
     stagePanels[s.id] = (
-      // REQ-STB-045: the stage swaps ONE panel in place, and every panel has the same element
-      // shape — without a key React reuses the DOM and the uncontrolled `defaultValue` prompt
-      // boxes keep the previous shot's text (USER: "the image prompt is not retained").
-      <div key={s.id} style={{ maxWidth: 1460 }}>
-        {/* Shot header — order & removal live where you're looking at the shot */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
-          <span className="mono muted" style={{ fontSize: 12 }}>{shotLabels.get(s.id) ?? s.position}</span>
-          <h2 className="disp" style={{ fontSize: 15 }}>{s.title}</h2>
-          <span className="mono muted" style={{ fontSize: 11 }}>{s.durationS}s</span>
-          <span className="mono" style={{ fontSize: 10, color: status === "generated" ? "var(--ok)" : status === "framed" ? "var(--accent)" : "var(--ink-2)" }}>{status}</span>
-          {(s.animation as { text?: string } | null)?.text && (
-            <span className="mono" style={{ fontSize: 9.5, color: "var(--accent)", border: "1px dashed var(--accent)", borderRadius: 4, padding: "1px 6px" }} title="Plan-authored animation shot — renders free via Remotion">✦ animation</span>
-          )}
-          {(busy.frame > 0 || busy.take > 0) && <span className="mono gen-pulse" style={{ fontSize: 10 }}>● generating…</span>}
-          <div style={{ marginLeft: "auto", display: "flex", gap: 5, alignItems: "center" }}>
-            <form action={removeShotAction}>
-              <input type="hidden" name="projectId" value={id} />
-              <input type="hidden" name="shotId" value={s.id} />
-              {s.selectedTakeId && <input type="hidden" name="confirmPaid" value="1" />}
-              <SubmitButton small title={s.selectedTakeId ? "Removes this cut AND its paid take" : "Remove this cut"}>
-                ✕ {s.selectedTakeId ? "cut (discards take)" : "cut"}
-              </SubmitButton>
-            </form>
-          </div>
-        </div>
-        {dd.synopsis && <p className="muted" style={{ fontSize: 12.5, marginBottom: 10 }}>{dd.synopsis}</p>}
-
-        {/* REQ-STB-040: length editing where the consequence is spelled out — crop is free,
-            a shortfall needs a regenerate (USER 2026-07-25). */}
-        {(() => {
-          const tb = timelineByShot.get(s.id);
-          if (!tb) return null;
-          return (
-            <div style={{ ...sub, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 14 }}>
-              <span className="mono muted" style={{ fontSize: 9.5 }}>
-                {`${Math.floor(tb.startS / 60)}:${String(Math.round(tb.startS % 60)).padStart(2, "0")}`}
-                {" → "}
-                {`${Math.floor(tb.endS / 60)}:${String(Math.round(tb.endS % 60)).padStart(2, "0")}`}
-                {" in the cut"}
-              </span>
-              {timeline.boundaries.length > 0 && (
-                <span className="mono" style={{ fontSize: 9.5, color: tb.onBoundary ? "var(--ok)" : "var(--ink-2)" }}
-                  title={tb.onBoundary ? "This cut lands exactly on a music section change" : "This cut falls mid-section — try a sync suggestion in the Music panel"}>
-                  {tb.onBoundary ? "♪ on the beat" : "♪ off the beat"}
-                </span>
-              )}
-              <form action={updateShotDurationAction} style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                <input type="hidden" name="projectId" value={id} />
-                <input type="hidden" name="shotId" value={s.id} />
-                <label className="mono muted" style={{ fontSize: 9.5 }}>length</label>
-                <input name="durationS" type="number" step="0.5" min={config.shot.minSeconds} max={config.shot.maxSeconds}
-                  defaultValue={Number(s.durationS)} style={{ ...tiny, width: 62 }} />
-                <SubmitButton small pendingLabel="…">Set length</SubmitButton>
-              </form>
-              {tb.trimmedS > 0 && (
-                <span className="mono" style={{ fontSize: 9.5, color: "var(--ok)" }} title="The export normalizes each clip with ffmpeg -t, so the extra footage is simply cropped — no regeneration, no cost">
-                  ✂ export crops {tb.trimmedS}s of this take · free
-                </span>
-              )}
-              {tb.shortfallS > 0 && (
-                <span className="mono" style={{ fontSize: 9.5, color: "#e0763a" }} title="The take has less footage than this length — the clip runs out. Regenerate the take at the new length.">
-                  ⚠ take is {tb.shortfallS}s short — regenerate to fill
-                </span>
-              )}
-              {!s.selectedTakeId && <span className="mono muted" style={{ fontSize: 9.5 }}>no take yet — length only sets what gets generated</span>}
-            </div>
-          );
-        })()}
-
-        {/* Selected take plays big — this is what the cut will use */}
-        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}>
-          <div style={{ flex: "1 1 520px", minWidth: 320 }}>
-            {selectedTake ? (
-              // REQ-ASM-014: the clip plays with the project track under it, from its own position
-              <ClipPlayer
-                videoAssetId={selectedTake.videoAssetId}
-                musicAssetId={music?.activeTrackAssetId ?? null}
-                startS={timelineByShot.get(s.id)?.startS ?? 0}
-                durationS={Number(s.durationS)}
-                mixMode={p.audioMixMode as "native" | "music" | "mix"}
-                label={`selected take ${selectedTake.id.slice(-4)} · ${selectedTake.durationActualS ?? s.durationS}s — this is what the export uses`}
-              />
-            ) : selFrame ? (
-              <ZoomImage src={`/api/assets/${selFrame.imageAssetId}`} alt="start frame"
-                style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", borderRadius: 10, border: "1px solid var(--line)" }} />
-            ) : (
-              <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 10, border: "1px dashed var(--line)", display: "grid", placeItems: "center" }}>
-                <p className="mono muted" style={{ fontSize: 11 }}>no frame yet — generate one below</p>
-              </div>
-            )}
-            {!selectedTake && (
-              <p className="mono muted" style={{ fontSize: 9.5, marginTop: 5 }}>
-                {selFrame ? "selected start frame — no take yet" : "planned"}
-              </p>
-            )}
-            {/* REQ-ASM-015: choose take audio / music / both right where you hear it */}
-            {selectedTake && (
-              <div style={{ ...sub, marginTop: 8 }}>
-                <AudioModePicker projectId={id} mode={p.audioMixMode as "native" | "music" | "mix"} hasTrack={Boolean(music?.activeTrackAssetId)} compact />
-              </div>
-            )}
-          </div>
-
-          {/* Buy actions sit next to the preview, not two screens away */}
-          <div style={{ flex: "0 1 300px", display: "grid", gap: 8 }}>
-            <div style={sub}>
-              <p className="mono muted" style={{ ...label, marginBottom: 8 }}>GENERATE</p>
-              <div style={{ display: "grid", gap: 6 }}>
-                {/* REQ-STB-057: a sub-clip already HAS its first frame — the previous take's last.
-                    Buying more would only offer a way to break the chain. */}
-                {s.continuesFromShotId ? (
-                  <p className="mono muted" style={{ fontSize: 10, lineHeight: 1.5 }}>
-                    ↳ start frame comes from the previous take — no frames to buy
-                  </p>
-                ) : (
-                  <form action={generateFrameAction}>
-                    <input type="hidden" name="projectId" value={id} />
-                    <input type="hidden" name="shotId" value={s.id} />
-                    <SubmitButton disabled={busy.frame > 0} pendingLabel="Framing…">
-                      ＋ {config.frame.candidatesDefault} frames ≈ ${(config.frame.candidatesDefault * priceTable.imagePerImageUsd.standard).toFixed(2)}
-                    </SubmitButton>
-                  </form>
-                )}
-                <form action={generateTakeAction}>
-                  <input type="hidden" name="projectId" value={id} />
-                  <input type="hidden" name="shotId" value={s.id} />
-                  <SubmitButton primary disabled={busy.take > 0} pendingLabel="Generating take…"
-                    {...(estDiffers ? { title: `${config.gen.videoRoute} runs this as ${est.effectiveSeconds}s (shot says ${Number(s.durationS)}s)` } : {})}>
-                    ▸ Take ≈ ${est.usd.toFixed(2)}{estDiffers ? ` · ${est.effectiveSeconds}s` : ""}
-                  </SubmitButton>
-                </form>
-              </div>
-              <form action={animationTakeAction} style={{ display: "grid", gap: 5, marginTop: 10, borderTop: "1px solid var(--line)", paddingTop: 10 }}>
-                <input type="hidden" name="projectId" value={id} />
-                <input type="hidden" name="shotId" value={s.id} />
-                <p className="mono muted" style={{ fontSize: 9.5 }}>OR RENDER A GRAPHIC — free, local</p>
-                {/* REQ-STB-036: every full-frame template is choosable */}
-                <select name="template" defaultValue={((s.animation as { template?: string } | null)?.template) ?? "title"} className="mono" title="title card · kinetic type · stat count-up · quote card · checklist reveal" style={tiny}>
-                  {fullFrameAnimationTemplates.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-                <input name="text" required defaultValue={(s.animation as { text?: string } | null)?.text ?? ""} placeholder="✦ headline text…" className="mono" style={tiny} />
-                <input name="subtext" defaultValue={(s.animation as { subtext?: string } | null)?.subtext ?? ""} placeholder="subtext · quote author · items a|b|c" className="mono" title="Subtitle (title/stat), attribution (quote), or | separated items (checklist)" style={tiny} />
-                <SubmitButton small disabled={busy.take > 0} pendingLabel="Rendering…">✦ Animate · free</SubmitButton>
-              </form>
-            </div>
-          </div>
-        </div>
-
-        {/* Takes — side by side, big enough to actually judge */}
-        <div style={{ ...card, marginTop: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-            <p className="mono muted" style={label}>TAKES · {cands.takes.length}</p>
-            <ABCompare takes={cands.takes.map((t) => ({ id: t.id, videoAssetId: t.videoAssetId, label: `take ${t.id.slice(-4)}${t.retakeOf ? " (retake)" : ""}` }))} />
-            {busy.take > 0 && <span className="mono gen-pulse" style={{ fontSize: 10 }}>● generating video…</span>}
-          </div>
-          {cands.takes.length === 0 ? (
-            <p className="muted" style={{ fontSize: 11.5 }}>No takes yet.</p>
-          ) : (
-            <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 4 }}>
-              {cands.takes.map((t) => {
-                const isSel = s.selectedTakeId === t.id;
-                const cond = takeCondFrame.get(t.generationId);
-                const staleFrame = cond && selFrame && cond !== selFrame.imageAssetId;
-                return (
-                  <div key={t.id} style={{ flex: "0 0 268px", display: "grid", gap: 6 }}>
-                    <video src={`/api/assets/${t.videoAssetId}`} controls playsInline preload="metadata"
-                      style={{ width: "100%", aspectRatio: "16/9", borderRadius: 8, background: "#000", border: isSel ? "2px solid var(--accent)" : "1px solid var(--line)" }} />
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                      <span className="mono muted" style={{ fontSize: 9.5 }}>take {t.id.slice(-4)} · {t.durationActualS ?? s.durationS}s</span>
-                      {isSel ? (
-                        <span className="mono" style={{ fontSize: 9.5, color: "var(--accent)" }}>✓ selected</span>
-                      ) : (
-                        <>
-                          <form action={selectTakeAction}>
-                            <input type="hidden" name="projectId" value={id} />
-                            <input type="hidden" name="shotId" value={s.id} />
-                            <input type="hidden" name="takeId" value={t.id} />
-                            <SubmitButton small pendingLabel="…">Use this</SubmitButton>
-                          </form>
-                          <form action={removeCandidateAction}>
-                            <input type="hidden" name="projectId" value={id} />
-                            <input type="hidden" name="kind" value="take" />
-                            <input type="hidden" name="id" value={t.id} />
-                            <button type="submit" className="mono" title="Remove take (asset kept)" style={{ background: "none", border: "1px solid var(--line)", borderRadius: 5, color: "var(--ink-2)", fontSize: 9, padding: "1px 6px", cursor: "pointer" }}>✕</button>
-                          </form>
-                        </>
-                      )}
-                      {staleFrame && (
-                        <span className="mono muted" title="Generated from a previously selected start frame (INV-STB-006 — preserved, not regenerated)" style={{ fontSize: 9, border: "1px dashed var(--line)", borderRadius: 4, padding: "0 5px" }}>older frame</span>
-                      )}
-                    </div>
-                    <form action={retakeAction} style={{ display: "flex", gap: 4 }}>
-                      <input type="hidden" name="projectId" value={id} />
-                      <input type="hidden" name="takeId" value={t.id} />
-                      <input name="instruction" required placeholder="retake: slower camera…" className="mono" style={{ ...tiny, flex: 1, minWidth: 0 }} />
-                      <SubmitButton small disabled={busy.take > 0} title="Adjusted take, conditioned like this one (same price)" pendingLabel="…">↻</SubmitButton>
-                    </form>
-                    <form action={overlayTakeAction} style={{ display: "flex", gap: 4 }}>
-                      <input type="hidden" name="projectId" value={id} />
-                      <input type="hidden" name="takeId" value={t.id} />
-                      <input name="text" required placeholder="overlay text…" className="mono" style={{ ...tiny, flex: 1, minWidth: 0 }} />
-                      <SubmitButton small disabled={busy.take > 0} title="Composite an animated lower-third onto this take — free, local" pendingLabel="…">✦</SubmitButton>
-                    </form>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Start frames */}
-        <div style={{ ...card, marginTop: 12 }}>
-          <p className="mono muted" style={{ ...label, marginBottom: 8 }}>
-            {/* REQ-STB-057: a sub-clip's first frame is DECIDED by the previous take — there is
-                nothing to pick, and picking would break the chain it exists to preserve. */}
-            {handoff === "current"
-              ? "START FRAME · handed over from the previous take — not a choice"
-              : handoff === "stale"
-                ? "START FRAME · NOT from the previous take yet"
-                : handoff === "waiting"
-                  ? "START FRAME · waiting for the previous take"
-                  : "START FRAMES · pick 1 — only the selected frame conditions the video model"}
-            {busy.frame > 0 && <span className="gen-pulse"> ● generating image…</span>}
-          </p>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            {(s.continuesFromShotId
-              ? cands.frames.filter((f) => f.id === s.selectedStartFrameId)
-              : cands.frames
-            ).map((f) => (
-              <div key={f.id} style={{ display: "grid", gap: 4, justifyItems: "start" }}>
-                <form action={selectFrameAction}>
-                  <input type="hidden" name="projectId" value={id} />
-                  <input type="hidden" name="shotId" value={s.id} />
-                  <input type="hidden" name="frameCandidateId" value={f.id} />
-                  <button type="submit" style={{ all: "unset", cursor: "pointer", display: "block" }} title="Use this frame">
-                    <div style={{ width: 158, aspectRatio: "16/9", borderRadius: 7, overflow: "hidden", position: "relative", background: "#0a0c10", border: s.selectedStartFrameId === f.id ? "2px solid var(--accent)" : "1px solid var(--line)" }}>
-                      <ZoomImage src={`/api/assets/${f.imageAssetId}?thumb=1`} alt={`frame ${f.id.slice(-4)}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      {s.selectedStartFrameId === f.id && (
-                        <span style={{ position: "absolute", right: 5, top: 5, width: 15, height: 15, borderRadius: "50%", background: "var(--accent)", color: "#12151b", fontSize: 10, fontWeight: 700, display: "grid", placeItems: "center" }}>✓</span>
-                      )}
-                    </div>
-                  </button>
-                </form>
-                {s.selectedStartFrameId !== f.id && (
-                  <form action={removeCandidateAction}>
-                    <input type="hidden" name="projectId" value={id} />
-                    <input type="hidden" name="kind" value="frame" />
-                    <input type="hidden" name="id" value={f.id} />
-                    <button type="submit" className="mono" title="Remove candidate (asset kept)" style={{ background: "none", border: "1px solid var(--line)", borderRadius: 5, color: "var(--ink-2)", fontSize: 9, padding: "1px 6px", cursor: "pointer" }}>✕ remove</button>
-                  </form>
-                )}
-              </div>
-            ))}
-            {cands.frames.length === 0 && <p className="muted" style={{ fontSize: 11.5 }}>No frames yet.</p>}
-          </div>
-        </div>
-
-        {/* REQ-GEN-034: what is in flight on this shot, how long it has been, and a way out.
-            Before this, a run under the 30-minute sweep window had no exit at all. */}
-        {(activeRowsByShot.get(s.id) ?? []).length > 0 && (
-          <div style={{ ...sub, marginTop: 12, display: "grid", gap: 6 }}>
-            {(activeRowsByShot.get(s.id) ?? []).map((g) => {
-              const mins = Math.floor((Date.now() - new Date(g.since).getTime()) / 60_000);
-              const slow = mins >= 3;
-              return (
-                <form key={g.id} action={cancelGenerationAction} style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                  <input type="hidden" name="projectId" value={id} />
-                  <input type="hidden" name="generationId" value={g.id} />
-                  <span className="mono gen-pulse" style={{ fontSize: 10.5 }}>● {g.kind} running</span>
-                  <span className="mono muted" style={{ fontSize: 10 }}>
-                    {mins < 1 ? "just started" : `${mins} min`}
-                  </span>
-                  {slow && (
-                    <span className="mono" style={{ fontSize: 10, color: "#e0763a" }}>
-                      longer than expected — cancel and try again if it is not moving
-                    </span>
-                  )}
-                  <SubmitButton small pendingLabel="Cancelling…">✕ cancel</SubmitButton>
-                </form>
-              );
-            })}
-          </div>
-        )}
-
-        {/* REQ-STB-054: the continuity chain — a sub-clip of the shot before it, starting from
-            that take's last frame. Shown where the dependency matters, on the shot itself. */}
-        {(() => {
-          const prev = shots[i - 1];
-          const continues = s.continuesFromShotId;
-          const source = continues ? shots.find((x) => x.id === continues) : undefined;
-          const srcHasTake = source ? Boolean(source.selectedTakeId) : false;
-          if (!prev && !continues) return null;
-          return (
-            <form action={setContinuityAction} style={{ ...sub, marginTop: 12, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", borderColor: continues ? "var(--accent)" : "var(--line)" }}>
-              <input type="hidden" name="projectId" value={id} />
-              <input type="hidden" name="shotId" value={s.id} />
-              <p className="mono muted" style={{ ...label, margin: 0 }}>
-                CONTINUITY{chain ? ` · ${chain.index + 1} of ${chain.length}` : ""}
-              </p>
-              {continues ? (
-                <>
-                  <span style={{ fontSize: 11.5 }}>
-                    ↳ sub-clip of <b>{source?.title ?? "a removed shot"}</b>
-                    <span className="mono muted" style={{ fontSize: 10, marginLeft: 6 }}>
-                      {s.selectedStartFrameId
-                        ? "starts from its last frame"
-                        : srcHasTake ? "waiting for the handoff" : "starts once that shot has a chosen take"}
-                    </span>
-                  </span>
-                  <input type="hidden" name="continuesFromShotId" value="" />
-                  <SubmitButton small pendingLabel="…">✕ break the chain</SubmitButton>
-                  {blocked && (
-                    <span className="mono" style={{ fontSize: 10, color: "#e0763a", flexBasis: "100%" }}>{blocked}</span>
-                  )}
-                  {handoff === "stale" && (
-                    <span style={{ flexBasis: "100%", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 4 }}>
-                      <span className="mono" style={{ fontSize: 10, color: "#e0763a" }}>
-                        This shot still starts from an older frame — the handoff will not overwrite one you chose.
-                      </span>
-                      <SubmitButton small primary formAction={refreshHandoffAction}
-                        title="Cuts the last frame of the source take and makes it this shot's start frame, replacing the current one"
-                        pendingLabel="Taking the last frame…">↻ use its last frame now</SubmitButton>
-                    </span>
-                  )}
-                  <input type="hidden" name="sourceShotId" value={s.continuesFromShotId ?? ""} />
-                </>
-              ) : (
-                <>
-                  <span className="mono muted" style={{ fontSize: 10.5 }}>
-                    same moment as <b>{prev!.title}</b>? Its last frame becomes this shot&apos;s first — poses,
-                    wardrobe and props carry over exactly.
-                  </span>
-                  <input type="hidden" name="continuesFromShotId" value={prev!.id} />
-                  <SubmitButton small pendingLabel="…">↳ continue that shot</SubmitButton>
-                </>
-              )}
-              {/* REQ-STB-055: only the HEAD offers this — a chain must be generated from its start,
-                  because each shot's first frame is the previous take's last. */}
-              {chain && chain.index === 0 && (
-                <SubmitButton small primary formAction={generateChainAction}
-                  title="Generates each shot in order, choosing each take so the next starts from its last frame"
-                  pendingLabel={`Generating ${chain.length} shots…`}>
-                  ▸ Generate the chain ({chain.length} shots)
-                </SubmitButton>
-              )}
-            </form>
-          );
-        })()}
-
-        {/* REQ-GEN-027: name the failure on the shot it happened to, with one click to retry. */}
-        {(() => {
-          const f = failedByShot.get(s.id);
-          if (!f || (activeByShot.get(s.id)?.take ?? 0) > 0 || (activeByShot.get(s.id)?.frame ?? 0) > 0) return null;
-          const orphaned = f.errorCode === "orphaned";
-          return (
-            <section style={{ ...card, marginTop: 12, borderColor: "#7a4b3a" }}>
-              <p className="mono" style={{ fontSize: 10.5, color: "#e0763a" }}>
-                {f.kind} failed · {f.errorCode}
-              </p>
-              <p className="muted" style={{ fontSize: 10.5, marginTop: 4 }}>
-                {orphaned
-                  ? "This run was interrupted before it finished — usually the dev server restarting mid-generation. Nothing was charged."
-                  : (f.errorDetail?.slice(0, 220) ?? "Failures are never charged.")}
-              </p>
-              <form action={retryGenerationAction} style={{ marginTop: 8 }}>
-                <input type="hidden" name="projectId" value={id} />
-                <input type="hidden" name="generationId" value={f.id} />
-                <SubmitButton small pendingLabel="Retrying…">↻ Retry this {f.kind}</SubmitButton>
-              </form>
-            </section>
-          );
-        })()}
-
-        {/* Prompts */}
-        <form action={saveScriptsAndGenerateAction} style={{ ...card, marginTop: 12 }}>
-          <input type="hidden" name="projectId" value={id} />
-          <input type="hidden" name="shotId" value={s.id} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-            <div>
-              <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 5 }}>
-                <p className="mono muted" style={label}>IMAGE SCRIPT {s.imagePrompt ? "· custom" : "· auto"}</p>
-                {effectiveRefs.map((rid) => (
-                  <ZoomImage key={rid} src={`/api/assets/${rid}?thumb=1`} alt="reference" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
-                ))}
-              </div>
-              <textarea name="imagePrompt" rows={4} defaultValue={s.imagePrompt ?? ""} placeholder={autoImage}
-                style={{ width: "100%", background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "6px 8px", color: "var(--ink)", fontSize: 11, fontFamily: "var(--mono)", resize: "vertical" }} />
-            </div>
-            <div>
-              <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 5 }}>
-                <p className="mono muted" style={label}>VIDEO SCRIPT {s.videoPrompt ? "· custom" : "· auto"}</p>
-                {selFrame && <ZoomImage src={`/api/assets/${selFrame.imageAssetId}?thumb=1`} alt="start frame" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--accent)" }} />}
-                {effectiveRefs.map((rid) => (
-                  <ZoomImage key={rid} src={`/api/assets/${rid}?thumb=1`} alt="reference" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
-                ))}
-              </div>
-              <textarea name="videoPrompt" rows={4} defaultValue={s.videoPrompt ?? ""} placeholder={autoVideo}
-                style={{ width: "100%", background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "6px 8px", color: "var(--ink)", fontSize: 11, fontFamily: "var(--mono)", resize: "vertical" }} />
-            </div>
-          </div>
-          {/* REQ-GEN-028 / REQ-STB-046: the words spoken in this shot. The video model performs
-              them; without this the plan described someone speaking but never said what. */}
-          <div style={{ marginTop: 10 }}>
-            <p className="mono muted" style={{ ...label, marginBottom: 4 }}>SPOKEN LINE {dd.dialogue ? "" : "· none"}</p>
-            <input name="dialogue" defaultValue={dd.dialogue ?? ""} placeholder="the exact words spoken in this shot — leave empty for a silent shot"
-              style={{ width: "100%", background: "var(--stage)", border: "1px solid var(--line)", borderRadius: 6, padding: "6px 8px", color: "var(--ink)", fontSize: 11, fontFamily: "var(--mono)" }} />
-          </div>
-
-          <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            <button type="submit" name="generate" value="none" style={btn}>Save</button>
-            <button type="submit" name="generate" value="frame" disabled={busy.frame > 0 || Boolean(s.continuesFromShotId)} title={s.continuesFromShotId ? "This sub-clip starts from the previous take\u2019s last frame — generating one would replace it and break the chain." : undefined} style={{ ...btnPrimary, opacity: busy.frame > 0 || s.continuesFromShotId ? 0.45 : 1 }}>Save &amp; generate frame</button>
-            <button type="submit" name="generate" value="take" disabled={busy.take > 0 || Boolean(blocked)} title={blocked ?? undefined} style={{ ...btnPrimary, opacity: busy.take > 0 || blocked ? 0.45 : 1 }}>Save &amp; generate take</button>
-            <span className="mono muted" style={{ fontSize: 9 }}>empty = auto · custom text sent verbatim</span>
-          </div>
-          {cast.length > 0 && (
-            <details style={{ marginTop: 8 }}>
-              <summary className="mono muted" style={{ fontSize: 10, cursor: "pointer" }}>
-                refs for this shot: {s.refAssetIds === null ? "whole cast (default)" : `${effectiveRefs.length} selected`} · edit
-              </summary>
-            </details>
-          )}
-        </form>
-        {cast.length > 0 && (
-          <form action={updateShotRefsAction} style={{ ...card, marginTop: 8, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-            <input type="hidden" name="projectId" value={id} />
-            <input type="hidden" name="shotId" value={s.id} />
-            <p className="mono muted" style={label}>REFS FOR THIS SHOT</p>
-            {cast.map((e) => e.refAssetIds.map((rid) => (
-              <label key={rid} className="mono muted" style={{ display: "flex", gap: 5, alignItems: "center", fontSize: 10 }}>
-                <input type="checkbox" name="refAssetIds" value={rid} defaultChecked={(s.refAssetIds ?? castRefs).includes(rid)} />
-                <ZoomImage src={`/api/assets/${rid}?thumb=1`} alt={`${e.name} ref`} style={{ width: 24, height: 24, borderRadius: 4, objectFit: "cover", border: "1px solid var(--line)" }} />
-                {e.name}
-              </label>
-            )))}
-            <SubmitButton small pendingLabel="Saving…">Save refs</SubmitButton>
-            <SubmitButton small name="reset" value="1" pendingLabel="…">use whole cast</SubmitButton>
-          </form>
-        )}
-      </div>
+      // REQ-STB-045: the key stays HERE. Without it React reuses the DOM across shots and the
+      // uncontrolled prompt boxes keep the previous shot's text.
+      <StagePanel
+        key={s.id}
+        shot={s}
+        index={i}
+        projectId={id}
+        shotCount={shots.length}
+        cost={cost}
+        dd={dd}
+        cands={cands}
+        busy={busy}
+        status={status}
+        selectedTake={selectedTake}
+        selFrame={selFrame}
+        autoImage={autoImage}
+        autoVideo={autoVideo}
+        castRefs={castRefs}
+        effectiveRefs={effectiveRefs}
+        chain={chain}
+        handoff={handoff}
+        blocked={blocked}
+        est={est}
+        estDiffers={estDiffers}
+        cast={cast}
+        music={music}
+        sync={sync}
+        shotLabels={shotLabels}
+        takeCondFrame={takeCondFrame}
+        shots={shots}
+        activeByShot={activeByShot}
+        activeRowsByShot={activeRowsByShot}
+        failedByShot={failedByShot}
+        timeline={timeline}
+        timelineByShot={timelineByShot}
+        audioMixMode={p.audioMixMode}
+      />
     );
   }
 
