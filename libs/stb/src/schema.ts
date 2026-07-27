@@ -14,6 +14,8 @@ export const shot = stb.table("shot", {
   imagePrompt: text("image_prompt"), // REQ-STB-013: user-authored image script (null = auto)
   videoPrompt: text("video_prompt"), // REQ-STB-013: user-authored video script (null = auto)
   refAssetIds: uuid("ref_asset_ids").array(), // REQ-STB-016: per-shot ref images (null = whole-cast default)
+  /** REQ-STB-054: this shot continues that one — its start frame is that shot's last frame. */
+  continuesFromShotId: uuid("continues_from_shot_id"),
   animation: jsonb("animation"), // REQ-STB-024: plan-authored animation props
   selectedStartFrameId: uuid("selected_start_frame_id"),
   selectedEndFrameId: uuid("selected_end_frame_id"),

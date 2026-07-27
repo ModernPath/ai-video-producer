@@ -314,6 +314,17 @@ export async function castMemberAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/** REQ-STB-054: mark this shot as continuing the previous one (or stop). */
+export async function setContinuityAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const raw = String(formData.get("continuesFromShotId") ?? "");
+  const { setShotContinuity, handoffTailFrame } = await import("@avd/stb");
+  await setShotContinuity(db(), { shotId: String(formData.get("shotId")), continuesFromShotId: raw || null });
+  // If the source already has a chosen take, hand its last frame over immediately.
+  if (raw) await handoffTailFrame(db(), { shotId: raw, force: true }).catch(() => []);
+  revalidatePath(`/p/${projectId}`);
+}
+
 /** REQ-STB-052: read the SCRIPT from several angles and write an improved version. */
 export async function critiqueScriptAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));

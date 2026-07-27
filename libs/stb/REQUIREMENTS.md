@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 22 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 23 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -27,6 +27,7 @@ Totals: 30 DONE · 22 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
 | REQ-STB-049 | Per-shot cast: only who is in the shot conditions it | P9 | IN_REVIEW | USER 2026-07-27 "modernpath logo is put to almost every scene… AI to decide which of the cast scene by scene" | tests/casting.spec.ts resolveShotCast (7) | stb/casting.ts, applyShotPlan, resolveCast(entityIds) |
 | REQ-STB-050 | Shots long enough for what happens in them | P9 | IN_REVIEW | USER 2026-07-27 "video/audio is cut… time understanding in scene planning is poor" | tests/grammar.spec.ts REQ-STB-050 (5) | speechSeconds, line-too-long rule, plan TIME BUDGET |
+| REQ-STB-054 | Continuity chains: a shot continues another from its last frame | P9 | IN_REVIEW | USER 2026-07-27 "clothing and positions of persons sitting are changing… sub-clips for the main clip" | tests/continuity.int.spec.ts (11) | shot.continues_from_shot_id, setShotContinuity, handoffTailFrame |
 | REQ-STB-053 | A scene is cast: locations get a reference plate | P9 | IN_REVIEW | USER 2026-07-27 "the cafe setting all the time changes… generate a scene reference image for clips that belong at same scene?" | tests/casting.spec.ts REQ-STB-053 (4) + style-card.spec.ts plate (4) | entityKinds location, migration 0024, toScenePlateStyle, plan prompt |
 | REQ-STB-052 | Critique the SCRIPT, before it becomes shots | P9 | IN_REVIEW | USER 2026-07-27 "shouldn't it be run for the script?" | tests/script-critique.spec.ts (11) | stb/critique.ts SCRIPT_LENSES, critiqueAndRedraftScript, script Critique & improve |
 | REQ-STB-051 | Multi-angle critique of the plan, then revise | P9 | IN_REVIEW | USER 2026-07-27 "critique steps from few angles and improve" | tests/critique.spec.ts (11) | stb/critique.ts, critiqueAndRevise, Critique & improve |
@@ -507,6 +508,22 @@ Totals: 30 DONE · 22 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 - **Code:** `libs/shared/src/config/grammar.ts` (`wordsPerSecond`, `speechHeadroom`) · `src/grammar.ts` (`speechSeconds`, `line-too-long`) · `src/director-pass.ts` (passes dialogue) · `libs/gen/src/prompt.ts` (TIME BUDGET)
 - **Log:** see LOG 2026-07-27
 - **Deferred / notes:** speech rate is one global constant; a style card could carry its own (deadpan is slower than hype). Physical-action duration is guidance to the planner, not measured — only dialogue is checkable.
+
+### REQ-STB-054 — Continuity chains: a shot continues another from its last frame
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-27: "the clothing and positions of persons sitting are changing? Maybe we should plan for continuity in some stages where it's required and store the last frame of video as reference starting image for next clip? They should be considered as sub-clips for the main clip, so we can see the dependency and continue as the video for first is generated."
+- **Statement:** A shot may CONTINUE another — the same unbroken moment — and shall then start from that shot's last frame. Reference images hold a face and a room, but a description cannot hold a pose or the exact drape of a coat; only the previous frame can. The dependency shall be explicit and visible.
+- **Acceptance criteria:**
+  - GIVEN two shots THEN the continuation is recorded and clearable; a shot cannot continue itself, cannot form a cycle, and cannot continue a shot in another project.
+  - GIVEN a source shot with a selected take THEN every shot continuing from it receives a start frame extracted from that take (REQ-AST-013), as a frame candidate, selected.
+  - GIVEN a shot that continues nothing THEN it is untouched.
+  - GIVEN automatic handoff (on take selection) THEN a start frame the user already chose is NOT clobbered; GIVEN an explicit "continue that shot" THEN it IS replaced, and the frame it replaced is retired so the shot never offers two start frames.
+  - GIVEN a source shot with no selected take THEN nothing happens.
+  - GIVEN the plan THEN it marks `continuesPrevious` for shots carrying straight on, and applying it links the chain.
+- **Tests:** `tests/continuity.int.spec.ts` (11)
+- **Code:** `migrations/0025_shot_continuity.sql` · `src/service.ts` (`setShotContinuity`, `handoffTailFrame`, `selectTake` hook, `applyShotPlan` linking) · `libs/gen/src/prompt.ts` · `apps/web` (`setContinuityAction`, CONTINUITY panel)
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** the chain conditions the START of the next take; the video model still drifts within a clip, so a long chain accumulates drift. Generation order is not enforced — a continuing shot generated before its source simply has no frame yet and says so. Shots already generated keep their frames until the chain is set explicitly.
 
 ### REQ-STB-053 — A scene is cast: locations get a reference plate
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must

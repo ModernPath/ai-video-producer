@@ -1,7 +1,7 @@
 # Requirements Ledger — AST (Asset Library)
 
 ## Dashboard — AST (Asset Library)
-Totals: 8 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED · 1 OBSOLETE
+Totals: 8 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED · 1 OBSOLETE
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -17,6 +17,7 @@ Totals: 8 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 | REQ-AST-006 | Entity library: org entities, refs, project cast | P4 | DONE | INV-AST-004/006, BR-AST-001/003 | tests/entities.int.spec.ts, ../stb/tests/cast.int.spec.ts + browser | src/entities.ts, apps/web (library, cast) |
 | REQ-AST-007 | Style kits org-scoped + project attachment | P4 | DONE | INV-AST-006, BR-AST-001 | tests/style-kits.int.spec.ts + stb/tests/style-in-prompts + browser E2E | migration 0015, entities.ts, prj setProjectStyleKit, library + storyboard UI |
 | REQ-AST-008 | Soft-delete protection for referenced assets | P2 | OBSOLETE | INV-AST-003 · superseded: REQ-AST-010 (no hard-delete path exists) | — | — |
+| REQ-AST-013 | Last frame of a take, as an image | P9 | IN_REVIEW | USER 2026-07-27 "store the last frame of video as reference starting image for next clip" | tests/tail-frame.int.spec.ts (3) | src/tail-frame.ts |
 
 ---
 
@@ -139,3 +140,16 @@ Totals: 8 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
   - GIVEN the library THEN company/product cards offer the profile textarea + save (browser-verified; person cards do not).
 - **Tests:** `libs/gen/tests/prompt.spec.ts` REQ-AST-012 block + browser · **Code:** migration 0022, `src/schema.ts`, `src/entities.ts` updateEntityProfile, stb resolveCast, gen castBlock + config cap, library UI · **Log:** LOG 2026-07-24
 - **Deferred / notes:** person/character profiles (bios) excluded until a use case shows up.
+
+### REQ-AST-013 — Last frame of a take, as an image
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-27: "store the last frame of video as reference starting image for next clip?"
+- **Statement:** The final frame of a clip shall be extractable as a JPEG. Takes could already be CONDITIONED on a start frame (REQ-GEN-009); nothing could produce one from the END of a previous take, which is the missing link for continuous action.
+- **Acceptance criteria:**
+  - GIVEN a clip THEN JPEG bytes are returned (SOI `ff d8`), not the source video.
+  - GIVEN a clip that changes from black to red THEN the frame comes from the END — a luma check proves it is not the first frame.
+  - GIVEN bytes that are not a video THEN null, never a throw: a missing tail frame must degrade to "no start frame for the next shot", not fail the take that produced it.
+- **Tests:** `tests/tail-frame.int.spec.ts` (3)
+- **Code:** `src/tail-frame.ts` (docker ffmpeg `-sseof -0.2`, ADR-007)
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** `-sseof` seeks from the end rather than decoding the clip to find its duration first — cheaper, and exact enough for a reference frame. Skippable via `RUN_FFMPEG=0` for environments without docker.

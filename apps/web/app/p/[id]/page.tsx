@@ -28,7 +28,7 @@ import {
   generateMusicTrackAction, generateTakeAction, moveShotTo, musicBriefAction, overlayTakeAction, proposePlanAction,
   removeCandidateAction, removeShotAction, retakeAction, retryExportAction,
   retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction,
-  castMemberAction, compileStyleCardAction, critiquePlanAction, critiqueScriptAction, setArchetypeAction, setProjectStyleAction, setTargetDurationAction, transcribeTrackAction,
+  castMemberAction, compileStyleCardAction, critiquePlanAction, critiqueScriptAction, setArchetypeAction, setContinuityAction, setProjectStyleAction, setTargetDurationAction, transcribeTrackAction,
   updateBriefAction, updateShotDurationAction, updateShotRefsAction, uploadTrackAction,
 } from "../../actions";
 import { CastBar } from "../../../components/CastBar";
@@ -243,7 +243,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
   // ── Stage: one shot ─────────────────────────────────────────────────────
   const stagePanels: Record<string, React.ReactNode> = {};
-  for (const s of shots) {
+  for (const [i, s] of shots.entries()) {
     const dd = s.direction as { synopsis?: string; subject?: string; action?: string; camera?: string; mood?: string; dialogue?: string; audioNotes?: string };
     const cands = candidatesByShot.get(s.id)!;
     const busy = activeByShot.get(s.id) ?? { frame: 0, take: 0 };
@@ -500,6 +500,46 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             {cands.frames.length === 0 && <p className="muted" style={{ fontSize: 11.5 }}>No frames yet.</p>}
           </div>
         </div>
+
+        {/* REQ-STB-054: the continuity chain — a sub-clip of the shot before it, starting from
+            that take's last frame. Shown where the dependency matters, on the shot itself. */}
+        {(() => {
+          const prev = shots[i - 1];
+          const continues = s.continuesFromShotId;
+          const source = continues ? shots.find((x) => x.id === continues) : undefined;
+          const srcHasTake = source ? Boolean(source.selectedTakeId) : false;
+          if (!prev && !continues) return null;
+          return (
+            <form action={setContinuityAction} style={{ ...sub, marginTop: 12, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", borderColor: continues ? "var(--accent)" : "var(--line)" }}>
+              <input type="hidden" name="projectId" value={id} />
+              <input type="hidden" name="shotId" value={s.id} />
+              <p className="mono muted" style={{ ...label, margin: 0 }}>CONTINUITY</p>
+              {continues ? (
+                <>
+                  <span style={{ fontSize: 11.5 }}>
+                    ↳ sub-clip of <b>{source?.title ?? "a removed shot"}</b>
+                    <span className="mono muted" style={{ fontSize: 10, marginLeft: 6 }}>
+                      {s.selectedStartFrameId
+                        ? "starts from its last frame"
+                        : srcHasTake ? "waiting for the handoff" : "starts once that shot has a chosen take"}
+                    </span>
+                  </span>
+                  <input type="hidden" name="continuesFromShotId" value="" />
+                  <SubmitButton small pendingLabel="…">✕ break the chain</SubmitButton>
+                </>
+              ) : (
+                <>
+                  <span className="mono muted" style={{ fontSize: 10.5 }}>
+                    same moment as <b>{prev!.title}</b>? Its last frame becomes this shot&apos;s first — poses,
+                    wardrobe and props carry over exactly.
+                  </span>
+                  <input type="hidden" name="continuesFromShotId" value={prev!.id} />
+                  <SubmitButton small pendingLabel="…">↳ continue that shot</SubmitButton>
+                </>
+              )}
+            </form>
+          );
+        })()}
 
         {/* REQ-GEN-027: name the failure on the shot it happened to, with one click to retry. */}
         {(() => {

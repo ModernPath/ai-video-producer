@@ -30,6 +30,8 @@ export interface NormalizedPlannedShot {
   grammar: PlannedGrammar;
   /** REQ-STB-049: names of the cast physically in THIS shot — drives its reference images. */
   cast: string[];
+  /** REQ-STB-054: this shot carries straight on from the previous one, with no cut in time. */
+  continuesPrevious: boolean;
   direction: DirectionJson;
   imagePrompt?: string | undefined;
   videoPrompt?: string | undefined;
@@ -104,6 +106,7 @@ export function normalizePlannedShots(raw: unknown): NormalizedPlannedShot[] {
     out.push({
       title: str(s.title) || str(s.name) || `Shot ${i + 1}`,
       durationS: snapDuration(s.durationS ?? s.duration ?? s.durationSeconds ?? s.duration_seconds),
+      continuesPrevious: s.continuesPrevious === true || s.continues_previous === true,
       cast: Array.isArray(s.cast)
         ? (s.cast as unknown[]).filter((c): c is string => typeof c === "string" && c.trim().length > 0).map((c) => c.trim())
         : [],
