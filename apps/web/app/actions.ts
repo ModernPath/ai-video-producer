@@ -344,6 +344,19 @@ export async function generateChainAction(formData: FormData) {
   revalidatePath(`/p/${projectId}`);
 }
 
+/**
+ * REQ-STB-058: pull the source take's last frame over now, replacing whatever is there.
+ *
+ * Explicit, because the automatic handoff deliberately will not overwrite a frame the user chose —
+ * so a shot chained after its frames were generated keeps showing the old one until asked.
+ */
+export async function refreshHandoffAction(formData: FormData) {
+  const projectId = String(formData.get("projectId"));
+  const { handoffTailFrame } = await import("@avd/stb");
+  await handoffTailFrame(db(), { shotId: String(formData.get("sourceShotId")), force: true });
+  revalidatePath(`/p/${projectId}`);
+}
+
 /** REQ-STB-054: mark this shot as continuing the previous one (or stop). */
 export async function setContinuityAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));

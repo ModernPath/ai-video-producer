@@ -17,7 +17,7 @@ import { boardProgress, shotStatus } from "@avd/stb/board";
 import { buildTimeline } from "@avd/stb/timeline";
 import { normalizePlannedShots } from "@avd/stb/plan-normalize";
 import { castingGaps, normalizePlannedCast } from "@avd/stb/casting"; // REQ-STB-048
-import { chainFor, chainLabels, generationBlocker } from "@avd/stb/chain"; // REQ-STB-055/056
+import { chainFor, chainLabels, generationBlocker, handoffState } from "@avd/stb/chain"; // REQ-STB-055/056/058
 import { assembleFramePrompt, assembleTakePrompt, estimateTake } from "@avd/gen";
 import { listEntities, listProjectEntities, listStyleKits } from "@avd/ast";
 import { asset } from "@avd/ast/schema";
@@ -29,7 +29,7 @@ import {
   generateMusicTrackAction, generateTakeAction, moveShotTo, musicBriefAction, overlayTakeAction, proposePlanAction,
   removeCandidateAction, removeShotAction, retakeAction, retryExportAction,
   retryGenerationAction, saveScriptsAndGenerateAction, selectFrameAction, selectTakeAction,
-  castMemberAction, compileStyleCardAction, critiquePlanAction, critiqueScriptAction, generateChainAction, setArchetypeAction, setContinuityAction, setProjectStyleAction, setTargetDurationAction, transcribeTrackAction,
+  castMemberAction, compileStyleCardAction, critiquePlanAction, critiqueScriptAction, generateChainAction, refreshHandoffAction, setArchetypeAction, setContinuityAction, setProjectStyleAction, setTargetDurationAction, transcribeTrackAction,
   updateBriefAction, updateShotDurationAction, updateShotRefsAction, uploadTrackAction,
 } from "../../actions";
 import { CastBar } from "../../../components/CastBar";
@@ -270,6 +270,18 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     // REQ-STB-055: where this shot sits in its continuity chain, and whether it can be generated yet.
     const chainShots = shots.map((x) => ({ id: x.id, title: x.title, position: x.position, continuesFromShotId: x.continuesFromShotId, selectedTakeId: x.selectedTakeId }));
     const chain = chainFor(chainShots, s.id);
+    // REQ-STB-058: did this shot's start frame ACTUALLY come from the source take, or is it an
+    // older frame the automatic handoff refused to overwrite?
+    const contSource = s.continuesFromShotId ? shots.find((x) => x.id === s.continuesFromShotId) : undefined;
+    const sourceTake = contSource
+      ? candidatesByShot.get(contSource.id)?.takes.find((t) => t.id === contSource.selectedTakeId)
+      : undefined;
+    const startFrameGenerationId = cands.frames.find((f) => f.id === s.selectedStartFrameId)?.generationId ?? null;
+    const handoff = handoffState({
+      hasSource: Boolean(s.continuesFromShotId),
+      sourceTakeGenerationId: sourceTake?.generationId ?? null,
+      startFrameGenerationId,
+    });
     const blocked = generationBlocker(chainShots, s.id);
     const est = estimateTake(Number(s.durationS));
     const estDiffers = est.effectiveSeconds !== Number(s.durationS);
@@ -490,9 +502,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <p className="mono muted" style={{ ...label, marginBottom: 8 }}>
             {/* REQ-STB-057: a sub-clip's first frame is DECIDED by the previous take — there is
                 nothing to pick, and picking would break the chain it exists to preserve. */}
-            {s.continuesFromShotId
+            {handoff === "current"
               ? "START FRAME · handed over from the previous take — not a choice"
-              : "START FRAMES · pick 1 — only the selected frame conditions the video model"}
+              : handoff === "stale"
+                ? "START FRAME · NOT from the previous take yet"
+                : handoff === "waiting"
+                  ? "START FRAME · waiting for the previous take"
+                  : "START FRAMES · pick 1 — only the selected frame conditions the video model"}
             {busy.frame > 0 && <span className="gen-pulse"> ● generating image…</span>}
           </p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -558,6 +574,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                   {blocked && (
                     <span className="mono" style={{ fontSize: 10, color: "#e0763a", flexBasis: "100%" }}>{blocked}</span>
                   )}
+                  {handoff === "stale" && (
+                    <span style={{ flexBasis: "100%", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 4 }}>
+                      <span className="mono" style={{ fontSize: 10, color: "#e0763a" }}>
+                        This shot still starts from an older frame — the handoff will not overwrite one you chose.
+                      </span>
+                      <SubmitButton small primary formAction={refreshHandoffAction}
+                        title="Cuts the last frame of the source take and makes it this shot's start frame, replacing the current one"
+                        pendingLabel="Taking the last frame…">↻ use its last frame now</SubmitButton>
+                    </span>
+                  )}
+                  <input type="hidden" name="sourceShotId" value={s.continuesFromShotId ?? ""} />
                 </>
               ) : (
                 <>

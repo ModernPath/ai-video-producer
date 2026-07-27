@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 30 DONE · 26 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 30 DONE · 27 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -27,6 +27,7 @@ Totals: 30 DONE · 26 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 | REQ-STB-036 | Animation template variety: plan varies, user chooses | P8 | IN_REVIEW | USER 2026-07-24 "animations are really limited, always repeating one" | plan-normalize spec REQ-STB-036 + prompt.spec template-set block | plan schema/guidance, normalize via shared template list, executor dispatch fix, UI picker + subtext field |
 | REQ-STB-049 | Per-shot cast: only who is in the shot conditions it | P9 | IN_REVIEW | USER 2026-07-27 "modernpath logo is put to almost every scene… AI to decide which of the cast scene by scene" | tests/casting.spec.ts resolveShotCast (7) | stb/casting.ts, applyShotPlan, resolveCast(entityIds) |
 | REQ-STB-050 | Shots long enough for what happens in them | P9 | IN_REVIEW | USER 2026-07-27 "video/audio is cut… time understanding in scene planning is poor" | tests/grammar.spec.ts REQ-STB-050 (5) | speechSeconds, line-too-long rule, plan TIME BUDGET |
+| REQ-STB-058 | A sub-clip admits when its start frame is not the real last frame | P9 | IN_REVIEW | USER 2026-07-27 "there was already a generated image, so I can't actually go to real last frame of previous video" | tests/handoff-state.spec.ts (6) | handoffState, refreshHandoffAction, honest START FRAME heading |
 | REQ-STB-056 | Linked clips numbered as sub-clips (4, 4.1, 4.2) | P9 | IN_REVIEW | USER 2026-07-27 "indicate at timeline which clips are linked, e.g. 4, 4.1, 4.2" | tests/chain-labels.spec.ts (7) | chainLabels, rail + timeline + shot header |
 | REQ-STB-057 | A sub-clip's start frame is given, not chosen or bought | P9 | IN_REVIEW | USER 2026-07-27 "show only the last frame and hide other starting images? skip the starting frame creation for subclips?" | verified live on both a sub-clip and an ordinary shot | page.tsx start-frame + GENERATE panel |
 | REQ-STB-055 | Chains generate in order; out-of-order takes refused | P9 | IN_REVIEW | USER 2026-07-27 "continue as the video for first is generated" | tests/chain.spec.ts (12) + continuity.int.spec.ts (3) | src/chain.ts, requestTake guard, generateChainAction |
@@ -511,6 +512,21 @@ Totals: 30 DONE · 26 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 D
 - **Code:** `libs/shared/src/config/grammar.ts` (`wordsPerSecond`, `speechHeadroom`) · `src/grammar.ts` (`speechSeconds`, `line-too-long`) · `src/director-pass.ts` (passes dialogue) · `libs/gen/src/prompt.ts` (TIME BUDGET)
 - **Log:** see LOG 2026-07-27
 - **Deferred / notes:** speech rate is one global constant; a style card could carry its own (deadpan is slower than hype). Physical-action duration is guidance to the planner, not measured — only dialogue is checkable.
+
+### REQ-STB-058 — A sub-clip admits when its start frame is not the real last frame
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-27: "In my other video, there was already a generated image, so I can't actually go to real last frame of previous video."
+- **Statement:** A sub-clip shall state truthfully whether its start frame came from the source take, and shall offer to pull the real one. The automatic handoff refuses to overwrite a frame the user chose (REQ-STB-054) — correct, but the panel then claimed "starts from its last frame" over a frame generated before the chain existed, and nothing offered a way out. A safe default that lies on screen is worse than one that admits what it did.
+- **Acceptance criteria:**
+  - GIVEN a start frame carrying the source take's generation id THEN `current`; GIVEN any other frame, or none, while the source HAS a chosen take THEN `stale`.
+  - GIVEN a source with no chosen take THEN `waiting`, never `current`, whatever frame is present.
+  - GIVEN a shot continuing nothing THEN `none`.
+  - GIVEN `stale` THEN the heading reads "NOT from the previous take yet", the reason is stated, and one action replaces the frame with the source take's last.
+  - GIVEN `current` THEN the claim is made and the refresh disappears.
+- **Tests:** `tests/handoff-state.spec.ts` (6)
+- **Code:** `src/chain.ts` (`handoffState` — provenance via the frame candidate's `generationId`) · `apps/web/app/actions.ts` (`refreshHandoffAction`) · `apps/web/app/p/[id]/page.tsx`
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** provenance is inferred from the frame candidate's generation id rather than stored explicitly — a frame cut from a take carries that take's generation, which is unambiguous today but would need a real column if frames ever gained other origins.
 
 ### REQ-STB-056 — Linked clips numbered as sub-clips
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** should

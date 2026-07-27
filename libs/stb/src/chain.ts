@@ -96,3 +96,26 @@ export function chainLabels(shots: ChainShot[]): Map<string, string> {
   }
   return out;
 }
+
+/**
+ * REQ-STB-058 (USER 2026-07-27: "there was already a generated image, so I can't actually go to
+ * real last frame of previous video").
+ *
+ * Whether a sub-clip's start frame ACTUALLY came from its source take.
+ *
+ * The automatic handoff refuses to clobber a frame the user chose (REQ-STB-054), which is right —
+ * but the panel then claimed "starts from its last frame" over a frame generated before the chain
+ * existed. A safe default that lies on screen is worse than one that admits what it did.
+ *
+ * Provenance is the frame candidate's `generationId`: a handed-over frame carries the SOURCE TAKE's
+ * generation id, because that is the generation it was cut from.
+ */
+export function handoffState(input: {
+  hasSource: boolean;
+  sourceTakeGenerationId: string | null;
+  startFrameGenerationId: string | null;
+}): "none" | "waiting" | "stale" | "current" {
+  if (!input.hasSource) return "none";
+  if (!input.sourceTakeGenerationId) return "waiting"; // nothing to hand over yet
+  return input.startFrameGenerationId === input.sourceTakeGenerationId ? "current" : "stale";
+}
