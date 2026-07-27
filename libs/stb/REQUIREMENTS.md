@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 59 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 2 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 59 DONE · 0 IN_REVIEW · 2 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -28,8 +28,8 @@ Totals: 59 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 2 READY · 0 PROPOSED · 0 DE
 | REQ-STB-049 | Per-shot cast: only who is in the shot conditions it | P9 | DONE | USER 2026-07-27 "modernpath logo is put to almost every scene… AI to decide which of the cast scene by scene" | tests/casting.spec.ts resolveShotCast (7) | stb/casting.ts, applyShotPlan, resolveCast(entityIds) |
 | REQ-STB-050 | Shots long enough for what happens in them | P9 | DONE | USER 2026-07-27 "video/audio is cut… time understanding in scene planning is poor" | tests/grammar.spec.ts REQ-STB-050 (5) | speechSeconds, line-too-long rule, plan TIME BUDGET |
 | REQ-STB-059 | Split stb/service.ts by aggregate | P10 | DONE | `docs/88-architecture-review.md` §3 (1,136 lines · 42 exports) | — | — |
-| REQ-STB-060 | Decompose p/[id]/page.tsx into panel components | P10 | READY | `docs/88-architecture-review.md` §3 (1,180 lines · 29% of apps/web) | — | — |
-| REQ-STB-061 | Render harness for apps/web + tests for the three UI escapes | P10 | READY | `docs/88-architecture-review.md` §4b | — | — |
+| REQ-STB-060 | Decompose p/[id]/page.tsx into panel components | P10 | IN_PROGRESS | `docs/88-architecture-review.md` §3 (1,180 lines · 29% of apps/web) | — | — |
+| REQ-STB-061 | Render harness for apps/web + tests for the three UI escapes | P10 | IN_PROGRESS | `docs/88-architecture-review.md` §4b | — | — |
 | REQ-STB-062 | A sub-clip never buys a start frame | P9 | DONE | USER 2026-07-27 "are we still generating images for sub-scenes in the beginning when approving the script?" | tests/continuity.int.spec.ts REQ-STB-062 (4) | requestFrame guard, applyPlanAction + generateMissingFramesAction skip |
 | REQ-STB-058 | A sub-clip admits when its start frame is not the real last frame | P9 | DONE | USER 2026-07-27 "there was already a generated image, so I can't actually go to real last frame of previous video" | tests/handoff-state.spec.ts (6) | handoffState, refreshHandoffAction, honest START FRAME heading |
 | REQ-STB-056 | Linked clips numbered as sub-clips (4, 4.1, 4.2) | P9 | DONE | USER 2026-07-27 "indicate at timeline which clips are linked, e.g. 4, 4.1, 4.2" | tests/chain-labels.spec.ts (7) | chainLabels, rail + timeline + shot header |
@@ -530,7 +530,7 @@ Totals: 59 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 2 READY · 0 PROPOSED · 0 DE
 - **Deferred / notes:** 1,147L → largest module 211L. All 7 private helpers were cross-aggregate (used by 2–14 exports each) so all moved to `common.ts`; only `StbValidationError` and `DirectionJson` are re-exported publicly from it. Cross-module imports are of PUBLIC exports only, and the graph is acyclic (common → shots/script → continuity/music → takes/plan/materialize). No test changed.
 
 ### REQ-STB-060 — Decompose p/[id]/page.tsx into panel components
-- **Status:** READY · **Stage:** P10 · **Priority:** should
+- **Status:** IN_PROGRESS · **Stage:** P10 · **Priority:** should
 - **Raised-by:** `docs/88-architecture-review.md` §3 — 1,180 lines, 29% of all `apps/web` source, in one server component.
 - **Statement:** The workspace page shall compose panel components rather than build every panel inline. It currently assembles the rail, timeline, ~9 stage panels, 4 drawer panels, casting, continuity, exports and failure banners in a single function.
 - **Acceptance criteria:**
@@ -540,7 +540,7 @@ Totals: 59 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 2 READY · 0 PROPOSED · 0 DE
 - **Deferred / notes:** the file was edited ~30 times this session by anchored string replacement and broke twice — a JSX ternary split, and an insertion landing in the wrong function. Editability is the symptom; testability is the reason.
 
 ### REQ-STB-061 — Render harness for apps/web + tests for the three UI escapes
-- **Status:** READY · **Stage:** P10 · **Priority:** must
+- **Status:** IN_PROGRESS · **Stage:** P10 · **Priority:** must
 - **Raised-by:** `docs/88-architecture-review.md` §4b — `apps/web` has one test, a source-text assertion, and three reported defects were pure UI state.
 - **Statement:** The web app shall have a component-render test setup, and the three defects that escaped through it shall be covered by tests that fail against the old code.
 - **Acceptance criteria:**
@@ -548,7 +548,9 @@ Totals: 59 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 2 READY · 0 PROPOSED · 0 DE
   - GIVEN the stage panels THEN switching focus does not carry one shot's uncontrolled prompt text into another (REQ-STB-045 regression).
   - GIVEN a sub-clip THEN no start-frame picker and no paid frame control is offered (REQ-STB-057 regression).
   - GIVEN a sub-clip whose start frame did not come from its source take THEN the panel says so and offers the refresh (REQ-STB-058 regression).
-- **Deferred / notes:** depends on REQ-STB-060 — panels must be extractable before they are renderable. These three tests are the specific escapes; the harness is the general fix.
+- **Tests:** `apps/web/tests/stage-panel.render.spec.tsx` (6) + `tests/fixtures/stage-panel.ts`; harness = happy-dom + @testing-library/react
+- **Code:** `vitest.config.ts` (automatic JSX runtime); per-file `@vitest-environment happy-dom`
+- **Deferred / notes:** IN_PROGRESS — 2 of the 3 escapes covered, each MUTATION-VERIFIED (breaking the fix turns the test red): REQ-STB-057 sub-clip frame control, REQ-STB-058 start-frame provenance. **REQ-STB-045 is NOT covered and cannot be, in this harness** — happy-dom implements no DOM dirty-value flag and RTL's `rerender` remounts with and without `key`, so three successive versions of that test passed against the removed fix. Its guard stays the source-level assertion in `stage-panel-identity.spec.tsx`. Faithful coverage needs a real browser (Playwright) — a bigger call than this row.
 
 ### REQ-STB-062 — A sub-clip never buys a start frame
 - **Status:** DONE · **Stage:** P9 · **Priority:** must

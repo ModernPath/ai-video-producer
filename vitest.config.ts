@@ -2,6 +2,8 @@ import { defineConfig } from "vitest/config";
 import { TEST_DATABASE_URL } from "./scripts/test-db-url";
 
 export default defineConfig({
+  // REQ-STB-061 — the automatic JSX runtime, so panel specs need no `import React`.
+  esbuild: { jsx: "automatic" },
   test: {
     exclude: ["**/node_modules/**", "**/.claude/**", "**/dist/**", "**/.next/**"],
     globalSetup: ["./scripts/test-setup.ts"],

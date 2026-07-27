@@ -177,7 +177,7 @@ export function StagePanel(props: StagePanelProps) {
               {props.selFrame ? "selected start frame — no take yet" : "planned"}
             </p>
           )}
-          {/* REQ-ASM-015: choose take audio / props.music / both right where you hear it */}
+          {/* REQ-ASM-015: choose take audio / music / both right where you hear it */}
           {props.selectedTake && (
             <div style={{ ...sub, marginTop: 8 }}>
               <AudioModePicker projectId={props.projectId} mode={props.audioMixMode as "native" | "music" | "mix"} hasTrack={Boolean(props.music?.activeTrackAssetId)} compact />
@@ -191,7 +191,7 @@ export function StagePanel(props: StagePanelProps) {
             <p className="mono muted" style={{ ...label, marginBottom: 8 }}>GENERATE</p>
             <div style={{ display: "grid", gap: 6 }}>
               {/* REQ-STB-057: a sub-clip already HAS its first frame — the previous take's last.
-                  Buying more would only offer a way to break the props.chain. */}
+                  Buying more would only offer a way to break the chain. */}
               {props.shot.continuesFromShotId ? (
                 <p className="mono muted" style={{ fontSize: 10, lineHeight: 1.5 }}>
                   ↳ start frame comes from the previous take — no frames to buy
@@ -296,7 +296,7 @@ export function StagePanel(props: StagePanelProps) {
       <div style={{ ...card, marginTop: 12 }}>
         <p className="mono muted" style={{ ...label, marginBottom: 8 }}>
           {/* REQ-STB-057: a sub-clip's first frame is DECIDED by the previous take — there is
-              nothing to pick, and picking would break the props.chain it exists to preserve. */}
+              nothing to pick, and picking would break the chain it exists to preserve. */}
           {props.handoff === "current"
             ? "START FRAME · handed over from the previous take — not a choice"
             : props.handoff === "stale"
@@ -366,7 +366,7 @@ export function StagePanel(props: StagePanelProps) {
         </div>
       )}
 
-      {/* REQ-STB-054: the continuity props.chain — a sub-clip of the shot before it, starting from
+      {/* REQ-STB-054: the continuity chain — a sub-clip of the shot before it, starting from
           that take's last frame. Shown where the dependency matters, on the shot itself. */}
       {(() => {
         const prev = props.shots[props.index - 1];
@@ -418,7 +418,7 @@ export function StagePanel(props: StagePanelProps) {
                 <SubmitButton small pendingLabel="…">↳ continue that shot</SubmitButton>
               </>
             )}
-            {/* REQ-STB-055: only the HEAD offers this — a props.chain must be generated from its start,
+            {/* REQ-STB-055: only the HEAD offers this — a chain must be generated from its start,
                 because each shot's first frame is the previous take's last. */}
             {props.chain && props.chain.index === 0 && (
               <SubmitButton small primary formAction={generateChainAction}
