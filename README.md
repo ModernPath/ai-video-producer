@@ -112,7 +112,7 @@ and code cross-linked, and every session's discoveries are written down.
 | File | Role |
 |---|---|
 | [`CLAUDE.md`](CLAUDE.md) | the process manual — non-negotiables, build loop, what to test where |
-| [`AGENTS.md`](AGENTS.md) | agent entry point |
+| [`AGENTS.md`](AGENTS.md) | routing map — same process, the filename other agent tools look for |
 | [`prompts.md`](prompts.md) | copy-paste prompts, including the architecture-baseline and review passes |
 | `libs/<ctx>/REQUIREMENTS.md` | requirement ledgers with status and traceability |
 | `libs/<ctx>/LOG.md` | append-only build logs — 120+ recorded discoveries, with reasoning |

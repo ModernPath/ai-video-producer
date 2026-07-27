@@ -1,45 +1,44 @@
 # Agent Instructions — AI Video Producer
 
-This repository builds an **AI-native video editor / producer**. Follow the process defined here and in the linked manuals.
+**The process manual is [`CLAUDE.md`](CLAUDE.md). Read it first, then return here for the map.**
 
-## Read first (every session)
+This file exists because agent tools look for different filenames — `AGENTS.md` is the cross-vendor
+convention, `CLAUDE.md` is Claude Code's. They are not alternative processes. There is one process,
+it lives in `CLAUDE.md`, and this file only routes you to it.
 
-1. **`CLAUDE.md`** — requirement-driven build loop (ledger → red → green → trace).
-2. **`CLAUDE.md` §5B** — V-model traceability (UR → EPIC → SCN → SR → TASK).
-3. **`WORKLIST.md`** — top-level V-model progress rollup and active work rows.
-4. **`docs/00-overview.md`** — product thesis, conventions, document map.
-5. **`prompts.md` Prompt E** — when discussing scope, epics, or acceptance scenarios.
+Nothing here restates a rule, a model id, or a product fact. If you need one, follow the link — a
+copy in two places is a copy that will drift.
 
-## Two coordinated loops
+## Where the process lives
 
-| Loop | Manual | Artifacts |
-|------|--------|-----------|
-| **Requirements ledger** | `CLAUDE.md` §6 | `libs/<ctx>/REQUIREMENTS.md`, `LOG.md`, `PROGRESS.md` |
-| **V-model / epics** | `CLAUDE.md` §5B | `epics/`, `WORKLIST.md` |
+| You need to… | Read |
+|---|---|
+| Understand the rules that override everything | `CLAUDE.md` §1 — the non-negotiables |
+| Do day-to-day implementation work | `CLAUDE.md` §6 — the build loop |
+| Know what to test, and at which layer | `CLAUDE.md` §6B |
+| Deliver a user-visible capability with BDD/E2E evidence | `CLAUDE.md` §5B — the V-model |
+| Record or read an architecture decision | `CLAUDE.md` §4B, then `docs/adr/` |
+| Know when something is finished | `CLAUDE.md` §9 — definition of done |
+| Start or end a session correctly | `CLAUDE.md` §11 — session ritual |
+| Run a review or audit pass | `CLAUDE.md` §13 |
+| Find any other document | `CLAUDE.md` §12 — quick reference |
 
-Use the ledger loop for day-to-day implementation slices. Use the V-model loop when defining or delivering user-visible capabilities as epics with BDD/E2E evidence. Keep `WORKLIST.md`, parent epic records, and ledger rows in sync when both apply.
+## Where the work lives
 
-## Working rules
+| Artifact | Role |
+|---|---|
+| `WORKLIST.md` | V-model rollup — epic and task rows |
+| `libs/<ctx>/REQUIREMENTS.md` | requirement ledgers — current state, status, traceability |
+| `libs/<ctx>/LOG.md` | append-only history and reasoning |
+| `libs/<ctx>/CLAUDE.md` | per-context build guide — boundary, contracts, commands |
+| `BACKLOG.md` | triage inbox for discoveries with no obvious owner |
+| `docs/` | canonical design truth — domain behaviour derives from here |
+| `prompts.md` | copy-paste session drivers |
 
-- **Design truth:** `docs/` — derive requirements from domain docs; do not invent domain behavior without a doc or sourced user input.
-- **Start work from:** next `READY` row in `WORKLIST.md` and/or next `READY` requirement in the target context ledger — not ad-hoc tasks.
-- **TDD both ways:** failing acceptance/E2E tests before user scenarios complete; failing unit/component/API tests before implementation (`CLAUDE.md` §5B/§6).
-- **Grounding:** record facts and decisions with sources (`USER:`, `DOC:`, `CODE:`, `TEST:`). Unsourced claims → open questions in `docs/08-open-questions.md`.
-- **Discoveries:** route to `BACKLOG.md`, a `PROPOSED` ledger row, or `docs/gap-register.md` — never silent deferral.
-- **Done gates:** nothing `DONE` / `VALIDATED` / `LOWER_VERIFIED` / `UPPER_VALIDATED` without linked tests, code, and (for epics) recorded human approval per V-model rules.
+## Starting a session
 
-## Prompts
+Pick up the next `READY` row in `WORKLIST.md`, or the next `READY` requirement in the target
+context's ledger. Not ad-hoc tasks — see `CLAUDE.md` §11.
 
-Copy-paste session drivers live in **`prompts.md`** (discovery, bootstrap, seed ledger, build loop, triage).
-
-## Product focus (orientation)
-
-**AI Video Director** — idea → script (`gemini-3.6-flash`) → storyboard of 4–10s **Shots** → start/end **frames** (Nano Banana) → video **takes** (Gemini Omni Flash) → assembly + music (Suno round-trip) → export.
-
-- **Projects (PRJ)** — brief, format, members, cost meter.
-- **Story & Storyboard (STB)** — script, shots, selections, music brief — **system of record**.
-- **Generation (GEN)** — all model calls: routing, prompt assembly, provenance, cost.
-- **Asset Library (AST)** — immutable assets; org-level Entities (companies/products/people/characters) & Style Kits with AI-editable reference images.
-- **Assembly & Export (ASM)** — animatic, concat + audio mix, presets, share links.
-
-Detailed terms and contexts: `docs/01-ubiquitous-language.md`, `docs/02-bounded-contexts.md`.
+For product orientation (what this system is and how the pipeline runs), read
+[`README.md`](README.md) and `docs/00-overview.md`.

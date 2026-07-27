@@ -2,7 +2,9 @@
 
 Operating manual for building the **AI Video Producer** with full traceability from design docs → requirements → tests → code. Every contributor — human or AI agent — reads it at the start of a session and follows the loop in §6.
 
-This file defines **how** we build. The *what* (domain specs, data models, business rules) lives in `docs/`. Epic-scale work with BDD/E2E evidence also uses **`WORKLIST.md`** and the V-model process in **§5B** (see root **`AGENTS.md`**).
+This file defines **how** we build. The *what* (domain specs, data models, business rules) lives in `docs/`. Epic-scale work with BDD/E2E evidence also uses **`WORKLIST.md`** and the V-model process in **§5B**.
+
+**This file is the process — there is no second copy.** `AGENTS.md` exists only because other agent tools look for that filename; it is a routing map to the sections below and deliberately restates none of them.
 
 ---
 
@@ -98,7 +100,7 @@ OQ and building answers it.
 ## 3. Where Everything Lives
 
 ```
-/AGENTS.md                      ← agent entry (read first)
+/AGENTS.md                      ← routing map (filename alias for non-Claude agents)
 /CLAUDE.md                      ← this file (the process)
 /PROGRESS.md                    ← generated rollup of context ledgers (do not hand-edit)
 /BACKLOG.md                     ← triage inbox (§6A)
@@ -480,7 +482,7 @@ it — see the REQ-GEN-032 reversal of the v3 "guidelines only shape auto prompt
 
 | Need | Doc |
 |---|---|
-| Agent entry | `AGENTS.md` |
+| Routing map (non-Claude agents) | `AGENTS.md` |
 | Terms | `docs/01-ubiquitous-language.md` |
 | Contexts | `docs/02-bounded-contexts.md` |
 | Domain | `docs/10–17` |
