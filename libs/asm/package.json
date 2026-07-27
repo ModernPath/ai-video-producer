@@ -11,15 +11,15 @@
     "./preview": "./src/preview.ts"
   },
   "dependencies": {
-    "@avd/shared": "workspace:*",
-    "zod": "^3.24.0",
-    "drizzle-orm": "^0.44.0",
-    "uuid": "^11.0.0",
+    "@avd/anm": "workspace:*",
     "@avd/ast": "workspace:*",
-    "@avd/stb": "workspace:*",
     "@avd/gen": "workspace:*",
     "@avd/plt": "workspace:*",
     "@avd/prj": "workspace:*",
-    "@avd/anm": "workspace:*"
+    "@avd/shared": "workspace:*",
+    "@avd/stb": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "uuid": "^11.0.0",
+    "zod": "^3.24.0"
   }
 }

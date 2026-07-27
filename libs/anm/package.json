@@ -10,12 +10,12 @@
   },
   "dependencies": {
     "@avd/shared": "workspace:*",
-    "@remotion/animation-utils": "^4.0.498",
-    "@remotion/bundler": "^4.0.0",
-    "@remotion/noise": "^4.0.498",
-    "@remotion/renderer": "^4.0.0",
+    "@remotion/animation-utils": "^4.0.499",
+    "@remotion/bundler": "^4.0.499",
+    "@remotion/noise": "^4.0.499",
+    "@remotion/renderer": "^4.0.499",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "remotion": "^4.0.0"
+    "remotion": "^4.0.499"
   }
 }
