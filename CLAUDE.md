@@ -18,6 +18,15 @@ These govern every change. A change that violates one is wrong even if its tests
 6. **The log tells the truth.** Deferrals, decisions, discoveries in the context `LOG.md` the same session. (§7.)
 7. **Discoveries are captured, not carried.** `PROPOSED` ledger row or `/BACKLOG.md` line immediately — never silent merge into current work. (§6A.)
 8. **Status is updated in ALL places, atomically.** Ledger: dashboard row, detail block `Status:`, and `Totals:` together. V-model: parent epic, task file (if any), and `WORKLIST.md` together. (§5, §5B.)
+9. **Assert the OUTPUT, not the wiring.** For anything that produces an artifact — a prompt, an
+   image, a screen — at least one test asserts the artifact itself (golden file, snapshot, rendered
+   output). *Added 2026-07-27: every defect of the P8–P9 run shipped green because tests asserted
+   that the building code existed and never asserted what it built. See `docs/88-architecture-review.md`.*
+10. **One path per pipeline.** No `if (special) return early` that skips shared rails. If a caller
+   needs different content, it substitutes a STAGE; it never bypasses the pipeline. *A single early
+   return in prompt assembly cost four user-visible defects (REQ-GEN-032).*
+11. **Vocabularies are derived, never copied.** One `as const` per list; every consumer imports it.
+   *A second copy of the entity kinds silently returned `character` for `location`.*
 
 ---
 
@@ -216,6 +225,9 @@ This §5B is the canonical V-model reference.
         │                                                             │
  4. GATE     full test suite green                                    │
         │                                                             │
+ 4b. LOOK    run it: inspect the produced artifact (prompt/image/     │
+             screen) in the product; record what you saw (§9.9)        │
+        │                                                             │
  5. TRACE    link code + tests; status → IN_REVIEW (all 3 places)     │
         │                                                             │
  6. REVIEW   human sign-off                                           │
@@ -228,6 +240,14 @@ This §5B is the canonical V-model reference.
 ```
 
 **Key rules:** red before green; one requirement at a time (or one thin slice); discoveries don't derail — capture and continue.
+
+**Step 4b is not optional and not a formality.** A green suite means the code you wrote does what you
+told it to. It does not mean the product does what the user asked. Look at the thing.
+
+**Red means red for the RIGHT reason.** Before writing the fix, read the failure message and confirm
+it fails because the behaviour is missing — not because a fixture, an import or an assertion is
+wrong. *This session: a guard test passed against live buggy code because it asserted on its own
+fixture; two "red" tests were red because of a bad `base` reference and a self-matching regex.*
 
 When the active unit of work is a **WORKLIST** task row, also run lower/upper loop evidence and update epic + `WORKLIST.md` per §5B.
 
@@ -257,6 +277,36 @@ At session start, when `BACKLOG.md` fills up, after each slice, or when docs cha
 2. Reconcile **docs ↔ ledgers** (and epics if used)
 3. Re-prioritize; promote **`PROPOSED → READY`**
 4. Record in affected **`LOG.md`** files; refresh **`PROGRESS.md`**
+
+---
+
+## 6B. What to Test, and Where
+
+Layered by what each layer can actually catch. *Added 2026-07-27 after
+`docs/88-architecture-review.md` found 59 integration specs against 25 unit specs and 1 web test,
+with every real defect escaping all three.*
+
+| Layer | Tests | Catches | Cost |
+|---|---|---|---|
+| **Pure** | unit specs on total functions | logic, edge cases, invariants | free, run always |
+| **Artifact** | golden files of the produced text/props | rails silently missing, prompt drift, leaked names | free, and the diff IS the review |
+| **Render** | component tests on UI panels | stale state, wrong affordances, lying labels | cheap |
+| **Integration** | DB/storage/provider boundaries | wiring, contracts, migrations | slow, flaky under load |
+| **Real ring** | `pnpm test:real` | provider behaviour and cost | paid, budget-capped (§9.8) |
+
+**Rules of thumb**
+- **Prefer pure.** Extract the decision from the plumbing and unit-test the decision. The best code
+  in this repo is the pure core (`timeline.ts`, `grammar.ts`, `chain.ts`, `casting.ts`) and none of
+  it has needed a bug fix.
+- **Every artifact gets a golden file.** `libs/gen/tests/__prompts__/` is the pattern. Update with
+  `vitest -u` deliberately and READ the diff — an unexpected line is a bug, not noise.
+- **Integration tests must be scoped.** Never operate on "all rows" — two specs reaped each other's
+  fixtures because a sweep was global. If a test needs a global, the CODE probably shouldn't be.
+- **Run your own generation, not "the next queued one".** `runGenerationById`, not
+  `runNextGeneration`; the latter claims whatever is queued and made both a test and a production
+  action non-deterministic.
+- **Under load, integration specs flake.** Before believing a red suite, check `uptime` and re-run
+  the failing file alone. Report the distinction; never fold a flake into a pass.
 
 ---
 
@@ -329,11 +379,33 @@ Epic / UR completion additionally requires §5B gates and human approval on the 
 
 ---
 
+## 10B. Code Shape
+
+*Added 2026-07-27 (`docs/88-architecture-review.md` §3).*
+
+- **~300 lines is the signal.** When a module passes it, look for the seam and split by aggregate.
+  A file that can only be edited by careful anchoring is too large — for agents and for humans.
+  Current offenders, tracked: `stb/service.ts` (REQ-STB-059), `p/[id]/page.tsx` (REQ-STB-060).
+- **Boundary discipline applies WITHIN a context, not only between them.** The lib boundaries here
+  held perfectly while one service module grew to 42 exports.
+- **A server component loads data and composes.** It does not build panels inline; panels are
+  components with explicit props, which is also the only way they become testable.
+- **Prefer a named stage over a boolean.** `subjectStage()` beats `if (custom)`; the first is a
+  pipeline, the second is a fork that will drift.
+
+---
+
 ## 11. Session Ritual
 
 **Start:** §1 + §6; open target `REQUIREMENTS.md` + `LOG.md` tail; if epic work, open `WORKLIST.md` + epic record; planning pass (§6A) if backlog or docs changed.
 
 **End:** tests green; ledger (+ epic/`WORKLIST` if touched) updated; `LOG.md` entry; coherent stopping state.
+
+**Reporting rule.** State what was verified and how. "Tests pass" and "I looked at the output and it
+was right" are different claims — make whichever one is true. If a suite is red for environmental
+reasons, say so with the evidence (load average, isolation re-run), and never describe a flake as a
+pass. If a previously recorded decision is being reversed, say that explicitly and cite what changed
+it — see the REQ-GEN-032 reversal of the v3 "guidelines only shape auto prompts" rule.
 
 ---
 

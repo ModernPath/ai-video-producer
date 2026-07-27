@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 21 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 21 DONE · 9 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -26,7 +26,7 @@ Totals: 21 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 | REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | DONE | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
 | REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | DONE | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
 | REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
-| REQ-GEN-032 | One prompt pipeline; golden-file tests on assembled output | P10 | PROPOSED | `docs/88-architecture-review.md` §2 · four shipped defects | — | — |
+| REQ-GEN-032 | One prompt pipeline; golden-file tests on assembled output | P10 | IN_REVIEW | `docs/88-architecture-review.md` §2 · four shipped defects | tests/prompt-pipeline.spec.ts (12) + prompt-golden.spec.ts (5) | src/prompt.ts (subjectStage/lookStages/soundStages/assemble) |
 | REQ-GEN-033 | Lint + config hardening: no-dupe-keys, derived vocabularies | P10 | PROPOSED | `docs/88-architecture-review.md` §5 | — | — |
 | REQ-GEN-031 | Filmed prompts carry no typography and forbid on-screen text | P9 | IN_REVIEW | USER 2026-07-27 "where these gibberish texts in middle of video come from?" | prompt.spec.ts REQ-GEN-031 (4) + style-card.spec.ts (4) | style-card toVisualStyle, prompt.ts NO_ON_SCREEN_TEXT |
 | REQ-GEN-029 | Live refresh coalesced — SSE no longer races a form action's commit | P9 | IN_REVIEW | USER 2026-07-27 runtime TypeError "fiber.reset is not a function" | apps/web/tests/refresh-coalesce.spec.ts (5) | apps/web/lib/coalesce.ts, LiveRefresh |
@@ -254,7 +254,7 @@ Totals: 21 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Deferred / notes:** STB still snaps shot durations to {4,6,8} at plan level — exposing free durations (9–10s shots) in the UI is a follow-up STB slice. Conversational multi-turn retake untested. No UI switch — route is config/env by design (taste iteration without deploy, Tips #5).
 
 ### REQ-GEN-032 — One prompt pipeline; golden-file tests on assembled output
-- **Status:** PROPOSED · **Stage:** P10 · **Priority:** must
+- **Status:** IN_REVIEW · **Stage:** P10 · **Priority:** must
 - **Raised-by:** `docs/88-architecture-review.md` §2 — `assembleTakePrompt`/`assembleFramePrompt` return early on `customPrompt`, and the planner writes one for every shot, so the composed branch carrying the craft and safety rails never executes in a real film.
 - **Statement:** Visual prompt assembly shall have ONE path. A custom prompt shall substitute the subject stage only; look, continuity, dialogue, rails and format shall append unconditionally. The assembled output of representative shots shall be asserted against committed golden files, so every prompt change is a reviewable diff.
 - **Acceptance criteria:**
@@ -262,7 +262,10 @@ Totals: 21 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
   - GIVEN a representative shot per kind (filmed, dialogue, sub-clip, portrait, scene plate) THEN its assembled prompt matches a committed golden file.
   - GIVEN a change to any rail THEN the golden files diff, and the diff is the review.
   - GIVEN the refactor THEN no existing prompt test changes meaning — behaviour is preserved, structure is not.
-- **Deferred / notes:** four shipped defects trace to the split (REQ-GEN-028, REQ-GEN-031, REQ-STB-044, and the reference leak fixed in REQ-STB-045). Highest-value refactor identified in the review; contained to `libs/gen/src/prompt.ts` and its tests.
+- **Tests:** `tests/prompt-pipeline.spec.ts` (12 — seven of them red against the old code) · `tests/prompt-golden.spec.ts` (5 golden files in `tests/__prompts__/`)
+- **Code:** `src/prompt.ts` — `subjectStage`, `lookStages`, `soundStages`, `assemble`; both visual builders are now stage lists with no early return
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** four shipped defects traced to the split (REQ-GEN-028, REQ-GEN-031, REQ-STB-044, and the reference leak fixed in REQ-STB-045). **Two deliberate behaviour changes**, both recorded: (a) planner-authored prompts now receive the composed format tail ("A cinematic 16:9 video clip, 6 seconds, natural motion.") rather than the terser custom one; (b) the v3 decision "guidelines only shape auto prompts" (USER 2026-07-23) is REVERSED for rails — the verbatim half stands, the rails now apply, and the reversal is recorded in the v3 test itself. `prompt.ts` went 262 → 278 lines while removing a whole branch, because the stages are now named and commented.
 
 ### REQ-GEN-033 — Lint + config hardening
 - **Status:** PROPOSED · **Stage:** P10 · **Priority:** should

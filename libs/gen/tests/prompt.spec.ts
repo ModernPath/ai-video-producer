@@ -81,10 +81,17 @@ describe("REQ-GEN-013 v3: model prompt guidelines (USER 2026-07-23 Omni/Nano Ban
     expect(p).toMatch(/preserving the original style, lighting, and composition/);
   });
 
-  it("custom user text stays verbatim — guidelines only shape auto prompts", () => {
+  // REQ-GEN-032 REVERSES half of this. The v3 decision (USER 2026-07-23) was "custom text is
+  // verbatim, guidelines only shape auto prompts". The verbatim half stands and is asserted below.
+  // The second half — that RAILS do not apply to custom text — was wrong, and cost four shipped
+  // defects: on-screen text in a corridor take, dialogue never reaching the video model, the style
+  // card never applying, and a reference director's name reaching the image model. The planner
+  // authors a custom prompt for EVERY shot, so "guidelines only shape auto prompts" meant
+  // "guidelines never apply". See docs/88-architecture-review.md §2.
+  it("custom user text stays verbatim, first — but the rails still apply (REQ-GEN-032)", () => {
     const p = assembleTakePrompt({ ...base, customPrompt: "My exact vision" });
-    expect(p.startsWith("My exact vision")).toBe(true);
-    expect(p).not.toMatch(/single continuous shot/i);
+    expect(p.startsWith("My exact vision")).toBe(true); // the author's words, unrewritten
+    expect(p).toMatch(/single continuous shot/i);       // …and the rails, appended after them
   });
 });
 

@@ -90,39 +90,67 @@ const BRAND_SAFETY = `Use only this project's own named brands; never depict rea
  */
 const NO_ON_SCREEN_TEXT = `No on-screen text, timestamps, titles, captions, lettering or interface graphics of any kind.`;
 
-/** Natural-prose video prompt (template v2). Custom text is verbatim + safety rail + format tail. */
-export function assembleTakePrompt(i: TakePromptInput): string {
-  if (i.customPrompt?.trim()) {
-    const look = cardLook(i.card);
-    // A custom videoPrompt is what the PLANNER writes for every shot, so returning here dropped
-    // dialogue on every single take — the line could not reach the video model by any path
-    // (USER 2026-07-27: "Pasi is talking something… in video prompt all of that is missing").
-    // Skipped when the prompt already quotes the line, so it is never said twice.
-    const line = i.direction.dialogue?.trim();
-    const spoken = line && !i.customPrompt.includes(line) ? `${spokenLine(line)}\n` : "";
-    return guard(`${i.customPrompt.trim()}\n${spoken}${look ? `${look}\n` : ""}${NO_ON_SCREEN_TEXT}\n${BRAND_SAFETY}\n${i.aspectRatio} video, ${i.durationSeconds} seconds.`, i.card);
-  }
+/**
+ * REQ-GEN-032 — ONE pipeline for visual prompts (`docs/88-architecture-review.md` §2).
+ *
+ * Both builders used to open with `if (customPrompt) return …`, and the shot planner authors a
+ * custom prompt for EVERY shot — so the composed branch below it, where the craft and safety rails
+ * were maintained, never ran in a real film. Four shipped defects came from that one shape.
+ *
+ * Now a custom prompt substitutes the SUBJECT stage only. Look, dialogue, rails and format append
+ * unconditionally, so a rail cannot be added to a branch nobody takes.
+ */
+type Stage = string | false | undefined | null;
+
+/** Subject stage: the author's own words, or the direction composed into prose. */
+function subjectStage(i: Omit<TakePromptInput, "durationSeconds">): string {
+  if (i.customPrompt?.trim()) return i.customPrompt.trim();
   const d = i.direction;
-  const parts: string[] = [];
-  parts.push(sentence(d.synopsis));
-  parts.push(sentence(`${d.subject} — ${d.action}`));
+  const parts = [sentence(d.synopsis), sentence(`${d.subject} — ${d.action}`)];
   if (d.camera) parts.push(sentence(`Camera: ${d.camera}`));
   if (d.mood) parts.push(sentence(d.mood));
   for (const e of i.entities) {
+    // skip echo descriptions ("Pasi, Pasi")
     const desc = e.description.trim().toLowerCase() === e.name.trim().toLowerCase() ? "" : `, ${e.description}`;
-    parts.push(sentence(`Featuring ${e.name}${desc}`)); // skip echo descriptions ("Pasi, Pasi")
+    parts.push(sentence(`Featuring ${e.name}${desc}`));
   }
-  parts.push(BRAND_SAFETY); // unconditional rail — drift happened with kind "character" and no product cast
-  const takeLook = cardLook(i.card);
-  if (takeLook) parts.push(takeLook); // SR-DIR-005 — before the style kit, which may refine it
-  if (i.stylePrompt) parts.push(sentence(i.stylePrompt));
-  // v3 guideline: our takes are single shots — pin it so the model doesn't invent cuts.
-  parts.push(`A single continuous shot, no scene cuts. ${NO_ON_SCREEN_TEXT}`);
-  if (d.dialogue) parts.push(spokenLine(d.dialogue));
-  if (d.audioNotes) parts.push(sentence(`Sound design: ${d.audioNotes}`));
-  if (!d.dialogue && !d.audioNotes) parts.push(`No dialogue; natural ambient sound only.`);
-  parts.push(`A cinematic ${i.aspectRatio} video clip, ${i.durationSeconds} seconds, natural motion.`);
-  return guard(parts.join(" "), i.card);
+  return parts.join(" ");
+}
+
+/** Look stage: the film's card, then the project style kit which may refine it (SR-DIR-005). */
+function lookStages(i: Omit<TakePromptInput, "durationSeconds">): Stage[] {
+  return [cardLook(i.card), i.stylePrompt && sentence(i.stylePrompt)];
+}
+
+/** Sound stage: what is heard. A shot with neither is explicitly silent, never left to the model. */
+function soundStages(d: DirectionInput): Stage[] {
+  if (!d.dialogue && !d.audioNotes) return [`No dialogue; natural ambient sound only.`];
+  return [
+    d.dialogue && spokenLine(d.dialogue),
+    d.audioNotes && sentence(`Sound design: ${d.audioNotes}`),
+  ];
+}
+
+/** Assemble, dropping empty stages. `guard` strips any reference name last (SCN-DIR-002). */
+function assemble(stages: Stage[], card: TakePromptInput["card"]): string {
+  return guard(stages.filter((x): x is string => Boolean(x && x.trim())).join(" "), card);
+}
+
+/** Natural-prose video prompt. One pipeline; custom text replaces the subject stage (REQ-GEN-032). */
+export function assembleTakePrompt(i: TakePromptInput): string {
+  const spoken = i.direction.dialogue?.trim();
+  return assemble([
+    subjectStage(i),
+    BRAND_SAFETY, // unconditional rail — drift happened with kind "character" and no product cast
+    ...lookStages(i),
+    // v3 guideline: our takes are single shots — pin it so the model doesn't invent cuts.
+    `A single continuous shot, no scene cuts. ${NO_ON_SCREEN_TEXT}`,
+    // A custom prompt that already quotes the line must not have it said twice.
+    ...soundStages(spoken && i.customPrompt?.includes(spoken)
+      ? { ...i.direction, dialogue: undefined, audioNotes: i.direction.audioNotes ?? "as written above" }
+      : i.direction),
+    `A cinematic ${i.aspectRatio} video clip, ${i.durationSeconds} seconds, natural motion.`,
+  ], i.card);
 }
 
 export interface TextPromptInput {
@@ -229,34 +257,22 @@ export function assembleEditPrompt(i: EditPromptInput): string {
   ].join(" ");
 }
 
-/** Natural-prose still-image prompt (template v2). Custom text is verbatim + safety rail + format tail. */
+/** Natural-prose still-image prompt. One pipeline; custom text replaces the subject stage. */
 export function assembleFramePrompt(i: Omit<TakePromptInput, "durationSeconds">): string {
-  if (i.customPrompt?.trim()) {
-    const look = cardLook(i.card);
-    return guard(`${i.customPrompt.trim()}\n${look ? `${look}\n` : ""}${NO_ON_SCREEN_TEXT}\n${BRAND_SAFETY}\n${i.aspectRatio} still image.`, i.card);
-  }
-  const d = i.direction;
-  const parts: string[] = [];
-  parts.push(sentence(d.synopsis));
-  parts.push(sentence(`${d.subject} — ${d.action}`));
-  if (d.camera) parts.push(sentence(`Camera: ${d.camera}`));
-  if (d.mood) parts.push(sentence(d.mood));
-  for (const e of i.entities) {
-    const desc = e.description.trim().toLowerCase() === e.name.trim().toLowerCase() ? "" : `, ${e.description}`;
-    parts.push(sentence(`Featuring ${e.name}${desc}`)); // skip echo descriptions ("Pasi, Pasi")
-  }
-  const frameLook = cardLook(i.card);
-  if (frameLook) parts.push(frameLook); // SR-DIR-005
-  if (i.stylePrompt) parts.push(sentence(i.stylePrompt));
-  if (i.referenceImageCount) {
+  return assemble([
+    subjectStage(i),
+    ...lookStages(i),
     // v3 guideline: high-fidelity detail preservation when composing from reference images.
-    parts.push(`Use the provided reference images for the depicted subjects; keep each subject's features completely unchanged and integrate them naturally into the scene.`);
-  }
-  if (i.entities.some((e) => e.kind === "product" || e.kind === "company")) {
+    i.referenceImageCount
+      ? `Use the provided reference images for the depicted subjects; keep each subject's features completely unchanged and integrate them naturally into the scene.`
+      : false,
     // evals #2/#5: generated printed micro-text garbles — keep labels legible or de-emphasized.
-    parts.push(`Any label or printed text on products must be either clearly legible exactly as named, or naturally de-emphasized (angle, focus) — avoid extreme close-ups of printed text.`);
-  }
-  parts.push(BRAND_SAFETY); // unconditional rail — drift happened with kind "character" and no product cast
-  parts.push(`A cinematic still image, ${i.aspectRatio}, high detail.`);
-  return guard(parts.join(" "), i.card);
+    i.entities.some((e) => e.kind === "product" || e.kind === "company")
+      ? `Any label or printed text on products must be either clearly legible exactly as named, or naturally de-emphasized (angle, focus) — avoid extreme close-ups of printed text.`
+      : false,
+    NO_ON_SCREEN_TEXT,
+    BRAND_SAFETY, // unconditional rail — drift happened with kind "character" and no product cast
+    `A cinematic still image, ${i.aspectRatio}, high detail.`,
+  ], i.card);
 }
+
