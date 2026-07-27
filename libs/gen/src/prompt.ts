@@ -82,6 +82,14 @@ function sentence(text: string): string {
 // frame model drew a real competitor's mark. Branding must always be original — trademark safety.
 const BRAND_SAFETY = `Use only this project's own named brands; never depict real-world third-party brand logos, marks, or trade dress.`;
 
+/**
+ * Filmed shots carry no lettering. Graphic shots are rendered locally by Remotion, where text is
+ * real text — a video model asked for a title produces pseudo-words ("The Luting an Dof", USER
+ * 2026-07-27). The composed path always said this; the CUSTOM path returned before it, and the
+ * planner writes a custom prompt for every shot, so in practice no filmed prompt ever said it.
+ */
+const NO_ON_SCREEN_TEXT = `No on-screen text, timestamps, titles, captions, lettering or interface graphics of any kind.`;
+
 /** Natural-prose video prompt (template v2). Custom text is verbatim + safety rail + format tail. */
 export function assembleTakePrompt(i: TakePromptInput): string {
   if (i.customPrompt?.trim()) {
@@ -92,7 +100,7 @@ export function assembleTakePrompt(i: TakePromptInput): string {
     // Skipped when the prompt already quotes the line, so it is never said twice.
     const line = i.direction.dialogue?.trim();
     const spoken = line && !i.customPrompt.includes(line) ? `${spokenLine(line)}\n` : "";
-    return guard(`${i.customPrompt.trim()}\n${spoken}${look ? `${look}\n` : ""}${BRAND_SAFETY}\n${i.aspectRatio} video, ${i.durationSeconds} seconds.`, i.card);
+    return guard(`${i.customPrompt.trim()}\n${spoken}${look ? `${look}\n` : ""}${NO_ON_SCREEN_TEXT}\n${BRAND_SAFETY}\n${i.aspectRatio} video, ${i.durationSeconds} seconds.`, i.card);
   }
   const d = i.direction;
   const parts: string[] = [];
@@ -109,7 +117,7 @@ export function assembleTakePrompt(i: TakePromptInput): string {
   if (takeLook) parts.push(takeLook); // SR-DIR-005 — before the style kit, which may refine it
   if (i.stylePrompt) parts.push(sentence(i.stylePrompt));
   // v3 guideline: our takes are single shots — pin it so the model doesn't invent cuts.
-  parts.push(`A single continuous shot, no scene cuts. No on-screen text, timestamps, or interface graphics.`);
+  parts.push(`A single continuous shot, no scene cuts. ${NO_ON_SCREEN_TEXT}`);
   if (d.dialogue) parts.push(spokenLine(d.dialogue));
   if (d.audioNotes) parts.push(sentence(`Sound design: ${d.audioNotes}`));
   if (!d.dialogue && !d.audioNotes) parts.push(`No dialogue; natural ambient sound only.`);
@@ -220,7 +228,7 @@ export function assembleEditPrompt(i: EditPromptInput): string {
 export function assembleFramePrompt(i: Omit<TakePromptInput, "durationSeconds">): string {
   if (i.customPrompt?.trim()) {
     const look = cardLook(i.card);
-    return guard(`${i.customPrompt.trim()}\n${look ? `${look}\n` : ""}${BRAND_SAFETY}\n${i.aspectRatio} still image.`, i.card);
+    return guard(`${i.customPrompt.trim()}\n${look ? `${look}\n` : ""}${NO_ON_SCREEN_TEXT}\n${BRAND_SAFETY}\n${i.aspectRatio} still image.`, i.card);
   }
   const d = i.direction;
   const parts: string[] = [];

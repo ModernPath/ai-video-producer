@@ -200,3 +200,40 @@ describe("REQ-STB-042: a reference portrait uses the world, not the staging", ()
     expect(toPortraitStyle(card)).toMatch(/no text|no lettering|no words/i);
   });
 });
+
+// USER 2026-07-27, on a generated take of a CORRIDOR: "I do not understand where these gibberish
+// texts in middle of video come from?" — the video showed "The Luting an Dof" in yellow on navy.
+//
+// `toVisualStyle` fed the card's TYPOGRAPHY axis into every filmed frame and take, so a corridor
+// prompt ended with "Minimalist centered mid-century sans-serif title text in bright mustard yellow
+// rendered against solid dark navy background cards". The model rendered exactly that, and a video
+// model asked for lettering produces pseudo-words. Typography describes GRAPHIC shots — title and
+// end cards, rendered locally by Remotion — and has no business in footage.
+describe("REQ-STB-042: typography never reaches a filmed prompt", () => {
+  const card: StyleCard = {
+    ...kaurismaki,
+    typography: "Minimalist centered mid-century sans-serif title text in bright mustard yellow on solid dark navy cards.",
+  };
+
+  it("keeps the card's type direction out of the visual style", () => {
+    const v = toVisualStyle(card);
+    expect(v).not.toContain(card.typography);
+    expect(v).not.toMatch(/title text|sans-serif|lettering/i);
+  });
+
+  it("still carries everything a photograph actually needs", () => {
+    const v = toVisualStyle(card);
+    expect(v).toContain("Locked off");            // camera
+    expect(v).toContain("Hard practical sources"); // light
+    expect(v).toContain("Saturated primary blocks"); // palette
+    expect(v).toContain("Deadpan");                // performance
+  });
+
+  it("keeps typography where it belongs — the plan bias, which drives graphic shots", () => {
+    expect(toPlanBias(card)).toContain(card.typography);
+  });
+
+  it("still tells the planner about type in the directing block", () => {
+    expect(toDirectingBlock(card)).toContain(card.typography);
+  });
+});

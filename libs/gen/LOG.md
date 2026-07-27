@@ -1,5 +1,13 @@
 # Build Log — GEN (Generation)
 
+## 2026-07-27 — REQ-GEN-031 filmed prompts carry no typography (→ IN_REVIEW)
+**Done:** USER on a corridor take showing "The Luting an Dof": "where these gibberish texts in middle of video come from?" Read the actual stored prompt — it ended with "Minimalist centered mid-century sans-serif title text in bright mustard yellow rendered against solid dark navy background cards". `toVisualStyle` was feeding the card's TYPOGRAPHY axis into every filmed frame and take. The model was not hallucinating; it was obeying. Removed typography from the filmed look, and put the no-on-screen-text rail on the custom-prompt path.
+**Decisions:** typography stays in `toDirectingBlock` and `toPlanBias`, because the planner genuinely needs it for GRAPHIC shots — those render locally through Remotion where text is real text rather than a diffusion model's impression of letters. The axis was never wrong; the audience for it was.
+**Discovered:** the pipeline was contradicting itself. The composed take path has said "No on-screen text, timestamps, or interface graphics" since v3 — but the CUSTOM path returns before it, and the planner writes a custom prompt for every shot, so no filmed prompt in practice ever carried that rail. Two instructions, one forbidding text and one demanding a yellow title on navy, and the specific one won. Also kept the word "timestamps" in the new wording: an existing v3 test pins it, and it was there for a reason.
+**Deferred:** takes already generated keep their old prompts — regenerate any shot showing lettering.
+**Gate:** 8 new tests red-first; full suite 416 passed / 14 skipped / 0 failed; tsc clean. Re-assembled the user's real Corridor Standoff take prompt: the title-card sentence is gone and the prompt now forbids lettering outright.
+
+
 ## 2026-07-27 — REQ-GEN-029 live refresh coalesced (→ IN_REVIEW)
 **Done:** USER hit `TypeError: fiber.reset is not a function`. Read the compiled react-dom: `recursivelyResetForms` calls `stateNode.reset()` on any host fiber carrying the FormReset flag, so React had flagged something that was no longer a `<form>`. Cause: `LiveRefresh` fired `router.refresh()` on EVERY SSE `changed` event, and a server action's own `revalidatePath` emits one — the refresh replaced the subtree while React was still committing the submitted action. Coalesced the refresh (350ms trailing) and moved it inside `startTransition`.
 **Decisions:** coalescing rather than suppressing — a refresh must still happen, just after the commit settles; and it collapses a generation's queued → running → succeeded burst into one re-render instead of three. The debounce lives in a pure `createCoalescer` so the behaviour is unit-testable without a DOM or an EventSource.

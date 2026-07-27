@@ -407,3 +407,43 @@ describe("REQ-GEN-030: the shot plan names the cast the film needs", () => {
     expect(plan()).toMatch(/by name/i);
   });
 });
+
+// The custom-prompt branch returned BEFORE the "no on-screen text" rail, and the planner writes a
+// custom prompt for every shot — so the only text-related instruction a filmed take ever received
+// was the card telling it to render titles (USER 2026-07-27: "gibberish texts in middle of video").
+describe("REQ-GEN-031: filmed prompts forbid on-screen text", () => {
+  const card = {
+    id: "c", name: "Deadpan", provenance: { references: [] },
+    structure: { arc: "flat" },
+    camera: { allowedMovements: ["static"] as const, preferredSizes: ["MW"] as const, angles: ["eye"] as const, notes: "Locked off." },
+    pacing: { durationWindowS: [6, 8] as [number, number] },
+    palette: { accent: "#c8202a", background: "#4a4a32", notes: "Slate and crimson." },
+    light: "Hard tungsten.", performance: "Deadpan.", humour: "", sound: "", continuity: "",
+    typography: "Bright mustard title text on navy cards.",
+    antiNotes: ["no handheld"],
+  };
+
+  it("forbids on-screen text in a planner-authored take prompt", () => {
+    const p = assembleTakePrompt({ ...input, durationSeconds: 6, card, customPrompt: "A long dark corridor." } as never);
+    expect(p).toMatch(/no on-screen text|no text/i);
+  });
+
+  it("forbids it in a planner-authored frame prompt too", () => {
+    const p = assembleFramePrompt({ ...input, card, customPrompt: "A long dark corridor." } as never);
+    expect(p).toMatch(/no on-screen text|no text/i);
+  });
+
+  it("never asks a filmed prompt for the card's title typography", () => {
+    const p = assembleTakePrompt({ ...input, durationSeconds: 6, card, customPrompt: "A long dark corridor." } as never);
+    expect(p).not.toContain("Bright mustard title text");
+  });
+
+  it("leaves a spoken line intact — dialogue is heard, not written on screen", () => {
+    const p = assembleTakePrompt({
+      ...input, durationSeconds: 6, card, customPrompt: "A close-up.",
+      direction: { ...input.direction, dialogue: "We need structure." },
+    } as never);
+    expect(p).toContain('Spoken line: "We need structure."');
+    expect(p).toMatch(/no on-screen text|no text/i);
+  });
+});

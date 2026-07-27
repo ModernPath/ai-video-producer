@@ -146,7 +146,11 @@ export function toPortraitStyle(card: StyleCard): string {
 /** VISUAL prompts (frame + take). Craft axes only — never `provenance`. */
 export function toVisualStyle(card: StyleCard): string {
   return [
-    card.camera.notes, card.light, card.palette.notes, card.performance, card.typography,
+    // NOT `typography`. It describes GRAPHIC shots — title and end cards, rendered locally by
+    // Remotion — and feeding it to a photograph told the video model to put lettering in a corridor.
+    // It came back as "The Luting an Dof" in yellow on navy (USER 2026-07-27). Type direction
+    // reaches the planner through `toDirectingBlock` and `toPlanBias`, which is where it belongs.
+    card.camera.notes, card.light, card.palette.notes, card.performance,
     card.continuity,
     // The refusals belong in the picture prompt too: "no cartoon or illustrated rendering" has to
     // be said to be obeyed — one shot of the user's film came back as an illustration.

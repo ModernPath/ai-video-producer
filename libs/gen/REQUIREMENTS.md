@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 21 DONE · 7 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 21 DONE · 8 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -26,6 +26,7 @@ Totals: 21 DONE · 7 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-GEN-021 | Dialogue captions (transcribe the export's own audio) | P7 | DONE | eval #6 finding | asm/tests/dialogue-captions.int.spec.ts + real E2E frame | gen/transcribe.ts, asm captionSource pipeline, captions select UI |
 | REQ-GEN-022 | Stale-running reaper (orphan crash recovery) | P5 | DONE | console-sweep finding: 5h-stuck take on user's project | tests/reaper.int.spec.ts + real orphan reaped | executor reapStaleGenerations (claim-time), config staleRunningMinutes |
 | REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
+| REQ-GEN-031 | Filmed prompts carry no typography and forbid on-screen text | P9 | IN_REVIEW | USER 2026-07-27 "where these gibberish texts in middle of video come from?" | prompt.spec.ts REQ-GEN-031 (4) + style-card.spec.ts (4) | style-card toVisualStyle, prompt.ts NO_ON_SCREEN_TEXT |
 | REQ-GEN-029 | Live refresh coalesced — SSE no longer races a form action's commit | P9 | IN_REVIEW | USER 2026-07-27 runtime TypeError "fiber.reset is not a function" | apps/web/tests/refresh-coalesce.spec.ts (5) | apps/web/lib/coalesce.ts, LiveRefresh |
 | REQ-GEN-028 | Spoken lines survive from script to video model | P9 | IN_REVIEW | USER 2026-07-27 "Pasi is talking something… in video prompt all of that is missing" | tests/prompt.spec.ts REQ-GEN-028 (7) | prompt.ts dialogue in plan schema + custom-prompt path |
 | REQ-GEN-027 | Stuck runs recover on page load, and failed pictures are visible | P9 | IN_REVIEW | USER 2026-07-26 "two videos seem stuck" | tests/stale-sweep.int.spec.ts (5) | executor sweepStuckGenerations, page.tsx sweep + per-shot failure banner |
@@ -249,6 +250,20 @@ Totals: 21 DONE · 7 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a 5s omni take through the real pipeline THEN it succeeds, keeps durationS=5 (no {4,6,8} snap), and records cost 5×5792×$17.50/M ≈ $0.5068 (real E2E, RUN_REAL_OMNI).
 - **Tests:** `tests/omni-video.spec.ts` (7) · real E2E `tests/real-api.e2e.spec.ts` RUN_REAL_OMNI ($0.5068 verified) · **Code:** `src/provider.ts` (buildOmniVideoRequest + interactions branch), `src/routing.ts`, `src/cost.ts`, `src/executor.ts` (refs + model cost), shared config (omniVideoModel, priceTable omni rates, gen.videoRoute) · **Log:** LOG 2026-07-24
 - **Deferred / notes:** STB still snaps shot durations to {4,6,8} at plan level — exposing free durations (9–10s shots) in the UI is a follow-up STB slice. Conversational multi-turn retake untested. No UI switch — route is config/env by design (taste iteration without deploy, Tips #5).
+
+### REQ-GEN-031 — Filmed prompts carry no typography and forbid on-screen text
+- **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
+- **Raised-by:** USER 2026-07-27, on a generated take of a CORRIDOR reading "The Luting an Dof" in yellow on navy: "I do not understand where these gibberish texts in middle of video come from?"
+- **Statement:** A filmed frame or take shall never be asked for lettering. `toVisualStyle` fed the Style Card's `typography` axis into every filmed prompt, so a corridor prompt ended with "Minimalist centered mid-century sans-serif title text in bright mustard yellow rendered against solid dark navy background cards" — and the video model rendered exactly that, as pseudo-words. Typography describes GRAPHIC shots, rendered locally by Remotion where text is real text.
+- **Acceptance criteria:**
+  - GIVEN a card with typography THEN `toVisualStyle` excludes it, while camera, light, palette, performance and continuity survive.
+  - GIVEN the same card THEN `toDirectingBlock` and `toPlanBias` still carry it — the planner needs it for graphic shots.
+  - GIVEN a planner-authored (custom) frame or take prompt THEN it forbids on-screen text; the composed path always said this, but the custom path returned before it, and the planner writes a custom prompt for every shot.
+  - GIVEN a shot with dialogue THEN the spoken line survives alongside the no-text rail — dialogue is heard, not written on screen.
+- **Tests:** `tests/prompt.spec.ts` (REQ-GEN-031, 4) · `libs/shared/tests/style-card.spec.ts` (4)
+- **Code:** `libs/shared/src/contracts/style-card.ts` (`toVisualStyle`) · `src/prompt.ts` (`NO_ON_SCREEN_TEXT` on both the custom and composed paths)
+- **Log:** see LOG 2026-07-27
+- **Deferred / notes:** takes already generated keep their old prompts — regenerate any shot showing lettering. The pipeline was contradicting itself: the composed path forbade on-screen text while the card demanded titles, and the more specific instruction won.
 
 ### REQ-GEN-029 — Live refresh coalesced so SSE cannot race a form action
 - **Status:** IN_REVIEW · **Stage:** P9 · **Priority:** must
