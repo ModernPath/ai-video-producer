@@ -12,34 +12,38 @@ import { describe, expect, it } from "vitest";
 // shots left the previous shot's text in the box, and saving would have written it to the wrong
 // shot and generated a paid frame from it.
 //
-// UPDATED 2026-07-27 (REQ-STB-060). This spec used to justify itself: "there is nothing to render
-// in a unit test" — the panel was 439 lines of JSX inside a loop inside an async server component
-// that reads the database. That premise is now FALSE: the panel is `<StagePanel {...props} />` and
-// takes no database. These assertions still read source because they guard WHERE a value is
-// written, but REQ-STB-061 replaces them with a test that renders the component and reads the DOM,
-// which is the assertion that would actually have caught the bug.
+// UPDATED 2026-07-27 (REQ-STB-060/061). This spec used to justify itself: "there is nothing to
+// render in a unit test" — the panel was 439 lines of JSX inside a loop inside an async server
+// component that reads the database. That premise is now false: the panel takes no database, and
+// `stage-panel.render.spec.tsx` renders it and reads the DOM. These source assertions remain only
+// as cheap guards on where the mechanism is written.
 const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
 const page = read("apps/web/app/p/[id]/page.tsx");
 const panel = read("apps/web/app/p/[id]/panels/StagePanel.tsx");
 
 describe("REQ-STB-045: each shot's stage panel has its own React identity", () => {
-  it("keys the panel by shot id, so switching shots remounts the prompt boxes", () => {
+  // CORRECTED 2026-07-27. This used to assert the key on <StagePanel> in page.tsx, and to claim
+  // the defect was unreachable by a render test. Both were wrong, and mutation testing proved it:
+  // removing the OUTER key changes nothing, because the panel's own root carries the key and that
+  // is what forces the remount. `stage-panel.render.spec.tsx` now covers the behaviour properly —
+  // these remain as cheap source guards on the two places the mechanism lives.
+  it("the panel ROOT is keyed by shot id — this is the load-bearing one", () => {
+    expect(panel, "StagePanel's root <div> must carry key={props.shot.id}; without it React reuses the previous shot's DOM")
+      .toMatch(/<div key=\{props\.shot\.id\}/);
+  });
+
+  it("the page also keys the element, belt and braces", () => {
     const assignment = page.slice(page.indexOf("stagePanels[s.id] = ("));
-    const element = assignment.slice(0, assignment.indexOf("/>") + 2);
-    expect(element, "the <StagePanel> element must carry key={s.id} — without it React reuses the previous shot's DOM and its prompt text")
-      .toMatch(/key=\{s\.id\}/);
+    expect(assignment.slice(0, assignment.indexOf("/>") + 2)).toMatch(/key=\{s\.id\}/);
   });
 
   it("still uses uncontrolled defaults for the prompt boxes, which is what makes the key load-bearing", () => {
-    // If these ever become controlled inputs the key stops being the mechanism, and this guard
-    // should be revisited rather than silently left in place.
     expect(panel).toMatch(/name="imagePrompt"[\s\S]{0,140}defaultValue=\{props\.shot\.imagePrompt/);
     expect(panel).toMatch(/name="videoPrompt"[\s\S]{0,140}defaultValue=\{props\.shot\.videoPrompt/);
   });
 
   it("the panel is a component with explicit props — the precondition for rendering it (REQ-STB-060)", () => {
     expect(panel).toMatch(/export function StagePanel\(props: StagePanelProps\)/);
-    // It must not reach for the database itself; that is what keeps it renderable in a test.
     expect(panel).not.toMatch(/from "\.\.\/\.\.\/\.\.\/\.\.\/lib\/db"/);
     expect(panel).not.toMatch(/\bawait db\(/);
   });

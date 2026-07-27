@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 60 DONE · 0 IN_REVIEW · 1 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 61 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 1 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -29,7 +29,7 @@ Totals: 60 DONE · 0 IN_REVIEW · 1 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-STB-050 | Shots long enough for what happens in them | P9 | DONE | USER 2026-07-27 "video/audio is cut… time understanding in scene planning is poor" | tests/grammar.spec.ts REQ-STB-050 (5) | speechSeconds, line-too-long rule, plan TIME BUDGET |
 | REQ-STB-059 | Split stb/service.ts by aggregate | P10 | DONE | `docs/88-architecture-review.md` §3 (1,136 lines · 42 exports) | — | — |
 | REQ-STB-060 | Decompose p/[id]/page.tsx into panel components | P10 | DONE | `docs/88-architecture-review.md` §3 (1,180 lines · 29% of apps/web) | — | — |
-| REQ-STB-061 | Render harness for apps/web + tests for the three UI escapes | P10 | IN_PROGRESS | `docs/88-architecture-review.md` §4b | — | — |
+| REQ-STB-061 | Render harness for apps/web + tests for the three UI escapes | P10 | DONE | `docs/88-architecture-review.md` §4b | — | — |
 | REQ-STB-062 | A sub-clip never buys a start frame | P9 | DONE | USER 2026-07-27 "are we still generating images for sub-scenes in the beginning when approving the script?" | tests/continuity.int.spec.ts REQ-STB-062 (4) | requestFrame guard, applyPlanAction + generateMissingFramesAction skip |
 | REQ-STB-058 | A sub-clip admits when its start frame is not the real last frame | P9 | DONE | USER 2026-07-27 "there was already a generated image, so I can't actually go to real last frame of previous video" | tests/handoff-state.spec.ts (6) | handoffState, refreshHandoffAction, honest START FRAME heading |
 | REQ-STB-056 | Linked clips numbered as sub-clips (4, 4.1, 4.2) | P9 | DONE | USER 2026-07-27 "indicate at timeline which clips are linked, e.g. 4, 4.1, 4.2" | tests/chain-labels.spec.ts (7) | chainLabels, rail + timeline + shot header |
@@ -542,7 +542,7 @@ Totals: 60 DONE · 0 IN_REVIEW · 1 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Deferred / notes:** 1,211 → **333** lines; the page is data loading + composition. Output verified UNCHANGED against the pre-refactor baseline by diffing the served HTML of a real 10-shot project: 222 visible text nodes and 98 title tooltips, 0 differences. The 7 later panels destructure props in the signature so their JSX moved verbatim — StagePanel was extracted by prefixing identifiers instead, which corrupted 7 pieces of user-visible text and needed the HTML diff to catch. `StagePanel.tsx` is 525 lines, still over §10B's ~300 signal; splitting it further is a separate call.
 
 ### REQ-STB-061 — Render harness for apps/web + tests for the three UI escapes
-- **Status:** IN_PROGRESS · **Stage:** P10 · **Priority:** must
+- **Status:** DONE · **Stage:** P10 · **Priority:** must
 - **Raised-by:** `docs/88-architecture-review.md` §4b — `apps/web` has one test, a source-text assertion, and three reported defects were pure UI state.
 - **Statement:** The web app shall have a component-render test setup, and the three defects that escaped through it shall be covered by tests that fail against the old code.
 - **Acceptance criteria:**
@@ -552,7 +552,7 @@ Totals: 60 DONE · 0 IN_REVIEW · 1 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
   - GIVEN a sub-clip whose start frame did not come from its source take THEN the panel says so and offers the refresh (REQ-STB-058 regression).
 - **Tests:** `apps/web/tests/stage-panel.render.spec.tsx` (6) + `tests/fixtures/stage-panel.ts`; harness = happy-dom + @testing-library/react
 - **Code:** `vitest.config.ts` (automatic JSX runtime); per-file `@vitest-environment happy-dom`
-- **Deferred / notes:** IN_PROGRESS — 2 of the 3 escapes covered, each MUTATION-VERIFIED (breaking the fix turns the test red): REQ-STB-057 sub-clip frame control, REQ-STB-058 start-frame provenance. **REQ-STB-045 is NOT covered and cannot be, in this harness** — happy-dom implements no DOM dirty-value flag and RTL's `rerender` remounts with and without `key`, so three successive versions of that test passed against the removed fix. Its guard stays the source-level assertion in `stage-panel-identity.spec.tsx`. Faithful coverage needs a real browser (Playwright) — a bigger call than this row.
+- **Deferred / notes:** all **3 escapes covered and MUTATION-VERIFIED** — breaking each fix turns its test red. REQ-STB-045 reproduces the user's exact symptom when the key is removed (`Received: "MY UNSAVED EDIT"`). **Corrects an earlier note in this row** that called 045 uncoverable and said it needed Playwright: I had mutated the OUTER key in page.tsx, but the load-bearing key is on StagePanel's own root, so the test passed either way and I misread that as a harness limit. Environment is jsdom (implements the DOM dirty-value flag; happy-dom does not). No browser tier needed.
 
 ### REQ-STB-062 — A sub-clip never buys a start frame
 - **Status:** DONE · **Stage:** P9 · **Priority:** must

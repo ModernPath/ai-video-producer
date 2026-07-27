@@ -1,4 +1,4 @@
-// @vitest-environment happy-dom
+// @vitest-environment jsdom
 // REQ-STB-061 — the three UI defects that reached the user, as tests that RENDER.
 //
 // `docs/88-architecture-review.md` §4b. Every one of these shipped with a green suite, because the
@@ -20,40 +20,40 @@ afterEach(cleanup);
 // React reconciles them as the same element, keeps the DOM, and `defaultValue` — an UNCONTROLLED
 // initial value applied only on mount — never re-applies. The previous shot's text stays in the
 // box, and saving writes it to the wrong shot and buys a frame from it.
-// The panel renders each shot's own text — necessary, but NOT the REQ-STB-045 guard. See below.
-describe("REQ-STB-045: the panel renders the shot it was given", () => {
-  const panelFor = (shot: ReturnType<typeof aShot>) => (
-    <StagePanel key={shot.id} {...stagePanelProps({ shot, shots: [shot] })} />
-  );
+// USER 2026-07-26: "for some reason the image prompt is not retained, so I could actually generate
+// alternative images if I'm not happy? Now having two Pasi's drinking is not what I was after."
+// Focused on shot 15, the IMAGE SCRIPT box showed shot 7's text — and saving would have written it
+// to the wrong shot and bought a paid frame from it.
+//
+// The stage swaps ONE panel in place and every panel has the same element shape, so React reuses
+// the DOM. `defaultValue` is an UNCONTROLLED initial value applied only on mount, so the previous
+// shot's text survives. The fix is identity: the panel ROOT carries `key={props.shot.id}`, which
+// makes a shot swap unmount and remount the subtree.
+//
+// Mutation-verified: delete that key and both tests below fail — the second reports the previous
+// shot's edited text, which is precisely the user's report. An earlier version of this spec mutated
+// the OUTER key in page.tsx instead and passed either way, because the inner key was doing the work.
+describe("REQ-STB-045: switching shots does not carry the previous shot's prompt text", () => {
+  const panel = (shot: ReturnType<typeof aShot>) => <StagePanel {...stagePanelProps({ shot, shots: [shot] })} />;
   const promptBox = (c: HTMLElement) => c.querySelector('[name="imagePrompt"]') as HTMLTextAreaElement;
+  const shotA = () => aShot({ id: "shot-a", imagePrompt: "a tram at dusk, wide" });
+  const shotB = () => aShot({ id: "shot-b", imagePrompt: "a cafe interior, close" });
 
-  it("puts this shot's image prompt in the box", () => {
-    const { container } = render(<div>{panelFor(aShot({ id: "shot-a", imagePrompt: "a tram at dusk, wide" }))}</div>);
-    expect(promptBox(container).value).toBe("a tram at dusk, wide");
+  it("remounts the prompt box rather than reusing the previous shot's DOM node", () => {
+    const { container, rerender } = render(<div>{panel(shotA())}</div>);
+    const before = promptBox(container);
+    rerender(<div>{panel(shotB())}</div>);
+    expect(promptBox(container), "a reused node keeps the previous shot's text").not.toBe(before);
   });
 
-  it("shows the new shot's prompt after a swap", () => {
-    const { container, rerender } = render(<div>{panelFor(aShot({ id: "shot-a", imagePrompt: "a tram at dusk, wide" }))}</div>);
-    rerender(<div>{panelFor(aShot({ id: "shot-b", imagePrompt: "a cafe interior, close" }))}</div>);
-    expect(promptBox(container).value).toBe("a cafe interior, close");
+  it("drops text the user had TYPED into the previous shot — the case that lost real work", () => {
+    const { container, rerender } = render(<div>{panel(shotA())}</div>);
+    promptBox(container).value = "MY UNSAVED EDIT"; // uncontrolled: the DOM now diverges from props
+    rerender(<div>{panel(shotB())}</div>);
+    expect(promptBox(container).value, "shot A's edited text must not appear in shot B's box")
+      .toBe("a cafe interior, close");
   });
 });
-
-// HONEST LIMIT — the REQ-STB-045 defect is NOT covered by this harness, and these two tests do not
-// cover it either. Both still pass with `key={shot.id}` REMOVED; so did two earlier versions of
-// them, including one that compared node identity across the swap.
-//
-// Two reasons, both measured rather than assumed:
-//   1. happy-dom does not implement the DOM "dirty value flag", so an uncontrolled box appears to
-//      re-read its defaultValue even when React keeps the node — the exact thing that did NOT
-//      happen in the user's browser.
-//   2. Testing Library's `rerender` produced a fresh element here with and without the key, so the
-//      reconciliation-reuse the bug depended on never occurs.
-//
-// The guard for REQ-STB-045 therefore remains the source-level assertion in
-// `stage-panel-identity.spec.tsx`, which fails if `key={s.id}` is removed from page.tsx. Reproducing
-// it faithfully needs a real browser (Playwright), which is a bigger decision than this row —
-// recorded as a follow-up rather than papered over with a test that goes green either way.
 
 // USER 2026-07-27: sub-clips were buying start frames the handoff then discarded — on the user's own
 // project, 5 of 10 shots, every one wasted. REQ-STB-057 hid the control; REQ-STB-062 made the
