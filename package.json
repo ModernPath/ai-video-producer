@@ -17,10 +17,10 @@
     "audit:prompts": "tsx scripts/audit-prompts.ts"
   },
   "devDependencies": {
+    "postgres": "^3.4.5",
     "typescript": "^5.6.0",
-    "vitest": "^3.0.0",
-    "uuid": "^11.0.0",
-    "postgres": "^3.4.5"
+    "uuid": "^14.0.1",
+    "vitest": "^3.0.0"
   },
   "pnpm": {
     "overrides": {
