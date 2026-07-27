@@ -152,6 +152,52 @@ Report: principle-by-principle verdict, defects found/fixed/deferred, total spen
 
 ---
 
+## Prompt 6 — Architecture baseline (CLAUDE.md §2B, before the first slice)
+
+```
+Run Phase 1B for <project/area>. Do NOT write feature code.
+
+Produce, in this order:
+1. Context map — bounded contexts, import rules, table ownership.
+2. Pipeline shapes — for every transform producing an artifact (prompt, render, export), name its
+   STAGES and say where a caller may substitute one. No early returns that skip shared stages.
+3. The seams — name the modules each context will have at 10x size.
+4. Artifact inventory — everything this system produces; each gets a golden test.
+5. Test strategy per layer (CLAUDE.md §6B) — and CREATE each harness now, with one trivial case.
+   A layer with no harness on day one has no tests on day ninety.
+6. ADRs (docs/adr/, CLAUDE.md §4B) for every irreversible choice, with alternatives and costs.
+7. One thin vertical spike end-to-end — to test the shape, not to ship.
+
+Then state the gate honestly: which of the seven are done, which are open questions, and whether
+building may start. Timebox: if a question cannot be answered without building, make it an OQ.
+```
+
+---
+
+## Prompt 7 — Review & audit (CLAUDE.md §13)
+
+```
+Run an architecture + decision audit.
+
+MEASURE first, do not recall — module sizes, service surface areas, test-layer counts, and the
+escape rate (grep -c 'Discovered' libs/*/LOG.md). Paste the numbers.
+
+Then review, hardest on the most recent work:
+- Shapes: modules over ~500 lines, services over ~20 exports, pipelines with early returns.
+- Artifacts: does every produced thing have a golden test, and does its current output look right?
+- Decisions: is every ADR still true? Has one been reversed silently? Reversals become new ADRs.
+- Data: did any recent defect WRITE something wrong, and is there a repeatable audit for it?
+
+For each finding, name the defect it already caused. A finding with no incident behind it is a
+preference — record it, but rank it below one that cost real money.
+
+Land every finding as a PROPOSED ledger row with acceptance criteria, an ADR, or a CLAUDE.md
+change. A review that produces only a document changes nothing. Write docs/8N-architecture-review.md,
+update the ledgers and LOGs, refresh PROGRESS.md.
+```
+
+---
+
 ## Prompt E — Epic creation (V-model, CLAUDE.md §5B)
 
 ```

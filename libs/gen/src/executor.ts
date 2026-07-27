@@ -82,36 +82,16 @@ export async function runNextGeneration(
   return null;
 }
 
-/** REQ-GEN-022: fail rows stuck in `running` past the stale window — a crashed executor
- * otherwise leaves them occupying concurrency slots and spinning in the UI forever. */
-export async function reapStaleGenerations(db: Db): Promise<number> {
-  const cutoff = new Date(Date.now() - config.gen.staleRunningMinutes * 60_000);
-  const stale = await db
-    .select({ id: generation.id })
-    .from(generation)
-    .where(and(eq(generation.status, "running"), lt(generation.startedAt, cutoff)));
-  for (const s of stale) {
-    await db.update(generation).set({
-      status: "failed",
-      errorCode: "orphaned",
-      errorDetail: `Generation ran past ${config.gen.staleRunningMinutes} minutes without finishing — the process running it likely died. Retry to regenerate.`,
-      finishedAt: new Date(),
-    }).where(and(eq(generation.id, s.id), eq(generation.status, "running")));
-  }
-  return stale.length;
-}
-
 /**
- * REQ-GEN-027 (USER 2026-07-26: "two videos seem stuck") — the same recovery as REQ-GEN-022, but
- * callable from a page load.
+ * REQ-GEN-022 / REQ-GEN-027 — fail rows stuck in `running` past the stale window. A crashed executor
+ * otherwise leaves them occupying concurrency slots and spinning in the UI forever.
  *
- * `reapStaleGenerations` only ran inside `runNextGeneration`, i.e. when the user DISPATCHED NEW
- * WORK. Someone watching a stuck shot and waiting is exactly the person who never triggers that,
- * so two orphaned takes span "generating video…" for 38 minutes with no way out. Reading the
- * project is enough to recover it now. Safe to call anywhere: it only touches rows that started
- * before the stale window, so work genuinely in flight is untouched.
+ * `projectId` scopes the sweep. Production uses BOTH: unscoped when claiming work (any orphan
+ * anywhere should recover), scoped on a page load (a page has no business failing another project's
+ * running work). Tests scope to their own fixture — an unscoped reap made three specs reap each
+ * other's rows, failing for reasons unrelated to the code under test.
  */
-export async function sweepStuckGenerations(db: Db, projectId?: string): Promise<number> {
+async function reapStale(db: Db, projectId?: string): Promise<number> {
   const cutoff = new Date(Date.now() - config.gen.staleRunningMinutes * 60_000);
   const where = projectId
     ? and(eq(generation.status, "running"), lt(generation.startedAt, cutoff), eq(generation.projectId, projectId))
@@ -126,6 +106,20 @@ export async function sweepStuckGenerations(db: Db, projectId?: string): Promise
     }).where(and(eq(generation.id, s.id), eq(generation.status, "running")));
   }
   return stale.length;
+}
+
+/** REQ-GEN-022: recovery at claim time — unscoped unless a caller narrows it. */
+export async function reapStaleGenerations(db: Db, projectId?: string): Promise<number> {
+  return reapStale(db, projectId);
+}
+
+/**
+ * REQ-GEN-027 (USER 2026-07-26: "two videos seem stuck") — the same recovery, callable from a page
+ * load. `reapStaleGenerations` only ran inside `runNextGeneration`, i.e. when the user DISPATCHED
+ * NEW WORK, and someone watching a stuck shot is exactly the person who never does that.
+ */
+export async function sweepStuckGenerations(db: Db, projectId?: string): Promise<number> {
+  return reapStale(db, projectId);
 }
 
 /** Executes a specific generation by id (worker path, REQ-GEN-016). */

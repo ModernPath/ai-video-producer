@@ -38,7 +38,10 @@ describe("REQ-GEN-022: stale running generations are reaped (orphan crash recove
     const queued = { ...row("queued", 0), startedAt: null };
     await db.insert(generation).values([stale, fresh, queued]);
 
-    const reaped = await reapStaleGenerations(db);
+    // Scoped to THIS fixture. Unscoped, it reaped rows other spec files had left behind — and its
+    // own rows were reaped by theirs — so it failed three times for reasons unrelated to the code
+    // under test. Production still reaps unscoped at claim time. (CLAUDE.md §6B.)
+    const reaped = await reapStaleGenerations(db, projectId);
     expect(reaped).toBe(1);
 
     const [s] = await db.select().from(generation).where(eq(generation.id, stale.id));

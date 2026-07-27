@@ -27,6 +27,9 @@ These govern every change. A change that violates one is wrong even if its tests
    return in prompt assembly cost four user-visible defects (REQ-GEN-032).*
 11. **Vocabularies are derived, never copied.** One `as const` per list; every consumer imports it.
    *A second copy of the entity kinds silently returned `character` for `location`.*
+12. **Expensive-to-reverse decisions get an ADR, when they are made.** Dependencies, boundaries,
+   data shapes, pipelines, protocols. `docs/adr/`, immutable, superseded rather than edited. (§4B.)
+   *A pipeline decision that lived only as a test assertion was reversed after four defects.*
 
 ---
 
@@ -54,6 +57,40 @@ These govern every change. A change that violates one is wrong even if its tests
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+---
+
+## 2B. Phase 1B — Architecture Baseline (before the first slice)
+
+*Added 2026-07-27. The project went from design docs straight to building. Every structural problem
+found in `docs/88-architecture-review.md` — the two-path pipeline, two thousand-line modules, an
+inverted test pyramid, no render harness — was a decision nobody made deliberately, in a place
+nobody had looked, because the work started at "first vertical slice".*
+
+Discovery produces **what**. Phase 1B produces **the shape of the thing that does it**, before code
+exists to argue with. Half a day here is worth weeks later; it is also the cheapest work to redo.
+
+**Deliverables — a short doc plus ADRs, not a design phase:**
+
+| # | Deliverable | The question it answers |
+|---|---|---|
+| 1 | **Context map** | What are the bounded contexts, what may each import, who owns each table? |
+| 2 | **Pipeline shapes** | For every transform that produces an artifact — prompt, render, export — what are its STAGES, and where can a caller substitute one? (ADR-010 exists because this was skipped.) |
+| 3 | **The seams** | Where will this be split when it grows? Name the modules a context will have at 10× size. Splitting later is easy; discovering the seam inside a 1,100-line file is not. |
+| 4 | **Artifact inventory** | What does this system PRODUCE? Each one gets a golden test (§6B) and an owner. Prompts, rendered props, export manifests. |
+| 5 | **Test strategy per layer** | Which layer catches what, and what harness each needs. If a layer has no harness on day one it will have no tests on day ninety. |
+| 6 | **ADRs for the irreversible** | Dependencies, protocols, persisted shapes, pipeline rules (§4B). |
+| 7 | **A vertical spike** | ONE end-to-end path built thin to test the shape — not to ship. If it fights the design, the design is wrong and it is still free to change. |
+
+**Gate — building starts when:** every context has an owner and an import rule · every artifact has a
+golden test harness that runs (even with one trivial case) · every pipeline has named stages ·
+irreversible choices have ADRs · the spike ran end-to-end.
+
+**A gate is not a phase.** Timebox it. The failure mode on the other side — designing everything up
+front — is worse than what it prevents. If a question cannot be answered without building, it is an
+OQ and building answers it.
+
+---
+
 **Outer loop (Prompt 3)** replenishes backlog from discoveries and doc changes. **Inner loop (Prompt 2)** builds `READY` requirements. **V-model loop** runs in parallel for epic rows in `WORKLIST.md` when using `epics/`.
 
 ---
@@ -72,6 +109,8 @@ These govern every change. A change that violates one is wrong even if its tests
    06-ux-architecture.md · 07-api-contracts.md · 08-open-questions.md
    10–17 domain docs · 81-build-plan.md · 82-tech-stack.md
    data/40-data-model.md · data/41-event-catalog.md · gap-register.md
+   adr/                         ← architecture decision records (§4B)
+   88-architecture-review.md    ← latest review (§13)
 /epics/                         ← epic records (V-model)
 /libs/<ctx>/
    ├── CLAUDE.md               ← context build guide (§10)
@@ -98,6 +137,34 @@ We do not invent requirements. Each traces to canonical design:
 - **Data model** (`docs/data/40-data-model.md`) → persistence requirements.
 
 Ambiguity → `docs/08-open-questions.md`, requirement `BLOCKED`. True gap → `docs/gap-register.md`.
+
+---
+
+## 4B. Architecture Decisions (`docs/adr/`)
+
+Requirements say *what the product does*. ADRs say **why the code is shaped the way it is** — and
+that question outlives every requirement in the ledger.
+
+**Write one when the decision is expensive to reverse:** a dependency, a boundary between contexts,
+a persisted data shape, a pipeline, a protocol, or a rule that other code must obey. Not for a
+naming choice or a local refactor — those need a comment.
+
+**Rules**
+
+- **Immutable.** Never edit an `ACCEPTED` ADR except to add `Superseded by: ADR-NNN`. Changing your
+  mind writes a NEW record; the trail is the value.
+- **Alternatives are mandatory.** An ADR with no alternatives considered was not a decision, it was
+  a default. Say what lost, and why.
+- **Consequences must include the costs.** The "hard" half is what makes the record worth reading in
+  two months. An ADR that lists only benefits is marketing.
+- **Reference from code:** `// ADR-003` on the line the decision governs, exactly as `INV-*` is used.
+- **Reconstructed records say so.** Backfilling is allowed; pretending it was contemporaneous is not.
+
+`docs/adr/README.md` holds the template, the index and the status vocabulary.
+
+**Where ADRs come from:** a design choice made in Phase 1B (§2B); an OQ resolved in a way that
+constrains code; a review finding (§13) that changes a rule; or a reversal — reversals are the most
+valuable ADRs and the easiest to skip.
 
 ---
 
@@ -423,5 +490,65 @@ it — see the REQ-GEN-032 reversal of the v3 "guidelines only shape auto prompt
 | Stack | `docs/82-tech-stack.md` |
 | OQs / gaps | `docs/08-open-questions.md`, `docs/gap-register.md` |
 | V-model | §5B (this file), `WORKLIST.md`, `epics/` |
+| Architecture decisions | `docs/adr/` (§4B) |
+| Architecture baseline gate | §2B |
+| What to test, where | §6B |
+| Review & audit | §13 |
+| Latest review | `docs/88-architecture-review.md` |
 
 **The discipline in one sentence:** every change starts as a requirement with acceptance criteria, becomes a failing test, then traced code — and anything we choose not to do is written down as a deferral, not forgotten.
+
+---
+
+## 13. Review & Audit
+
+*Added 2026-07-27. The architecture review that produced `docs/88-architecture-review.md` happened
+because the user asked for one. Nothing in the process would have produced it, and it found five
+structural defects that had been shipping for weeks.*
+
+Reviews are **triggered by conditions, not by the calendar** — a monthly review in a repo moving this
+fast is either late or empty.
+
+### The four audits
+
+| Audit | Asks | Trigger | Output |
+|---|---|---|---|
+| **Architecture** | Are the shapes still right? Modules, pipelines, boundaries, test layers | Any trigger below | `docs/8N-architecture-review.md` + `PROPOSED` rows + ADRs |
+| **Artifact** | Does what we PRODUCE still look right? | Any golden file changes; after a prompt/render change | Updated goldens, read as a diff |
+| **Data integrity** | Did a bug corrupt stored data, and can we detect it? | After any defect that WROTE something wrong | A repeatable script (`pnpm audit:*`), not a one-off query |
+| **Decision** | Are the ADRs still true? Has one been reversed silently? | Same as architecture | New/superseding ADRs (§4B) |
+
+### Triggers
+
+Run an architecture + decision audit when **any** holds:
+
+- A defect class repeats — **the same shape of bug twice is a design signal, not bad luck**
+- A module passes ~500 lines, or a context's service surface passes ~20 exports
+- A user reports something the suite was green for *(this alone justifies it)*
+- Before opening a new epic, or after closing one
+- A decision is being reversed — write the ADR, and ask what else that decision touched
+- Ledger `PROPOSED` hits zero *(nothing queued means nobody is looking up)*
+
+### How to run one — measure, don't recall
+
+The value is in the numbers, and they are cheap:
+
+```bash
+find libs apps -name '*.ts*' | grep -v node_modules | xargs wc -l | sort -rn | head   # module sizes
+for f in libs/*/src/service.ts; do echo "$f $(grep -c '^export ' $f)"; done            # surface area
+ls libs/*/tests/*.int.spec.ts | wc -l ; ls apps/*/tests/* 2>/dev/null | wc -l          # test shape
+grep -c 'Discovered' libs/*/LOG.md                                                     # escape rate
+```
+
+Then, for each finding: **name the defect it already caused.** A finding with no incident behind it
+is a preference — record it, but do not rank it above one that has cost real money.
+
+### Rules
+
+- **A review that produces only a document changes nothing.** Every finding lands as a `PROPOSED`
+  ledger row with acceptance criteria, an ADR, or a line in this manual. The review of 2026-07-27
+  produced five ledger rows, three manual sections and four ADRs — that is the shape.
+- **Review your own recent work hardest.** Most of what that review found, the same session had
+  built.
+- **Escape rate is the metric that matters:** defects found by users ÷ defects found by tests. If
+  it is not falling, the tests are testing the wrong layer (§6B).

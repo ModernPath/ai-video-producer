@@ -47,6 +47,15 @@ All duration bounds, candidate counts, concurrency caps, cost rates in the same 
 | ADR-006 | SSE for progress; no WebSocket until bidirectional need | ACCEPTED 2026-07-23 |
 | ADR-007 | Docker deploy (Fly/Railway) over serverless — worker runtimes | ACCEPTED 2026-07-23 |
 | ADR-008 | No timecode/track model — shots with decimal seconds | ACCEPTED 2026-07-23 |
+| ADR-009 | All thresholds, prices, model ids and vocabularies in versioned config | ACCEPTED 2026-07-23 |
+| ADR-010 | One visual prompt pipeline; custom text substitutes a stage | ACCEPTED 2026-07-27 |
+| ADR-011 | A reference artist is compiled to craft primitives, never forwarded | ACCEPTED 2026-07-26 |
+| ADR-012 | Consistency comes from reference images, not prose | ACCEPTED 2026-07-27 |
+
+> **This table is an INDEX.** The records live in `docs/adr/` with context, alternatives and
+> consequences (`CLAUDE.md` §4B). Until 2026-07-27 this table WAS the record — one line each — which
+> is why a pipeline decision could be reversed after four defects without anyone noticing it had
+> been a decision. Do not add a row here without the file.
 
 ## 4. Provider references (verify each phase)
 
