@@ -10,9 +10,23 @@ import { providerLimits } from "./models";
 export const entityKinds = ["company", "product", "person", "character", "location"] as const;
 export type EntityKind = (typeof entityKinds)[number];
 
+/**
+ * REQ-PLT-003 — caption font. The deployed image has no Arial; libass matches `FontName` against
+ * the font's INTERNAL name, so the name has to travel with the file or the burn falls back to a
+ * default face and the style silently stops applying.
+ */
+const captionFontName = process.env.CAPTION_FONT_NAME ?? "Arial Bold";
+
 export const config = {
+  /** REQ-PLT-003 / ADR-014 — how ffmpeg is reached. `native` in the deployed image (ffmpeg baked in), `docker` on a laptop. */
+  ffmpeg: {
+    mode: (process.env.FFMPEG_MODE === "native" ? "native" : "docker") as "native" | "docker",
+    image: "jrottenberg/ffmpeg:6.1-alpine",
+  },
   platform: {
     devOrgName: "Local Studio", // single-tenant dev org until PLT auth lands; resolution must be by name, deterministic
+    /** REQ-PLT-002 — the only Google Workspace domain that may sign in. */
+    allowedEmailDomain: process.env.AUTH_ALLOWED_DOMAIN ?? "modernpath.ai",
   },
   shot: {
     /** REQ-STB-050: unhurried delivery — the plan budgets dialogue against this. */
@@ -40,9 +54,10 @@ export const config = {
   audio: { duckDb: -12, fadeOutSeconds: 2, lufsTarget: -14 }, // BR-ASM-001..003
   asm: {
     captions: {
-      // host font mounted into the alpine ffmpeg container (no fonts baked in)
+      // host font copied into the work dir (no fonts baked into the alpine ffmpeg image)
       fontFile: process.env.CAPTION_FONT_FILE ?? "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
-      style: "FontName=Arial Bold,FontSize=18,PrimaryColour=&H00FFFFFF,OutlineColour=&H80000000,Outline=2,MarginV=28",
+      fontName: captionFontName,
+      style: `FontName=${captionFontName},FontSize=18,PrimaryColour=&H00FFFFFF,OutlineColour=&H80000000,Outline=2,MarginV=28`,
     },
     maxConcurrentExportsPerOrg: 2,
     // BR-ASM-003 output profile (per aspect ratio); bump to 1080p when real takes warrant

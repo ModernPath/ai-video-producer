@@ -1,0 +1,17 @@
+# Build context hygiene. `data/` alone is ~7 GB of local Postgres + MinIO volumes — shipping it to
+# the remote builder would dominate every deploy.
+node_modules
+**/node_modules
+.git
+.github
+.claude
+.kamal
+data
+**/.next
+**/dist
+**/*.tsbuildinfo
+coverage
+*.log
+.env
+.env.local
+.DS_Store

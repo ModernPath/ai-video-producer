@@ -1,9 +1,7 @@
 // REQ-ASM-001 (snapshot) + REQ-ASM-002/003 (export). ASM reads STB/AST tables read-only
 // per docs/02 §4 (allowed readers); it writes only asm.* and export output assets.
-import { execFile } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { promisify } from "node:util";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import type { Db } from "@avd/shared/db";
@@ -13,10 +11,9 @@ import { musicBrief, shot, take } from "@avd/stb/schema";
 import { project } from "@avd/prj/schema";
 import { getProjectStatus } from "@avd/prj/service";
 import { config } from "@avd/shared/config";
+import { runFfmpeg } from "@avd/shared/ffmpeg";
 import { exportJob, storyboardSnapshot } from "./schema";
 import { transcriptToSrt } from "./captions";
-
-const exec = promisify(execFile);
 
 export class AsmValidationError extends Error {
   constructor(public code: string, message: string) {
@@ -143,13 +140,11 @@ function workDir(): string {
   throw new Error("no writable work dir found for export");
 }
 
-/** ffmpeg via docker image — worker container bakes ffmpeg in prod (ADR-007). */
+/** ffmpeg via the shared runner — native binary in the deployed image (ADR-014). */
 async function ffmpegConcat(dir: string, inputFiles: string[], outFile: string): Promise<void> {
   const listPath = join(dir, "concat.txt");
   writeFileSync(listPath, inputFiles.map((f) => `file '${f}'`).join("\n"));
-  await exec("docker", [
-    "run", "--rm", "-v", `${dir}:/work`,
-    "jrottenberg/ffmpeg:6.1-alpine",
+  await runFfmpeg(dir, [
     "-f", "concat", "-safe", "0", "-i", "/work/concat.txt",
     "-c", "copy", "-movflags", "+faststart", "-y", `/work/${outFile}`,
   ]);
@@ -217,8 +212,7 @@ async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Pro
       const name = `clip-${String(i).padStart(3, "0")}.mp4`;
       writeFileSync(join(dir, raw), Buffer.from(obj.bytes)); // INV-ASM-003: assets in, no generation
       // REQ-ASM-005 / BR-ASM-003: normalize to one profile and trim to the shot's duration (OQ-104 policy)
-      await exec("docker", [
-        "run", "--rm", "-v", `${dir}:/work`, "jrottenberg/ffmpeg:6.1-alpine",
+      await runFfmpeg(dir, [
         "-i", `/work/${raw}`,
         "-t", String(item.durationS),
         "-vf", `scale=${profile.width}:${profile.height}:force_original_aspect_ratio=decrease,pad=${profile.width}:${profile.height}:(ow-iw)/2:(oh-ih)/2,fps=${fps}`,
@@ -262,7 +256,7 @@ async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Pro
               "-c:v", "copy", "-c:a", "aac",
               "-shortest", "-movflags", "+faststart", "-y", `/work/${afterMusicName}`,
             ];
-      await exec("docker", ["run", "--rm", "-v", `${dir}:/work`, "jrottenberg/ffmpeg:6.1-alpine", ...args]);
+      await runFfmpeg(dir, args);
     }
 
     if (needsCaptions) {
@@ -272,8 +266,7 @@ async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Pro
       let transcriptText = audio.transcript ?? null;
       if (audio.captionSource === "dialogue") {
         // REQ-GEN-021: transcribe the export's OWN audio — spoken words, not lyrics
-        await exec("docker", [
-          "run", "--rm", "-v", `${dir}:/work`, "jrottenberg/ffmpeg:6.1-alpine",
+        await runFfmpeg(dir, [
           "-i", "/work/precap.mp4", "-vn", "-c:a", "libmp3lame", "-y", "/work/dialogue.mp3",
         ]);
         const { transcribeAudio } = await import("@avd/gen");
@@ -306,8 +299,7 @@ async function processExportJob(db: Db, job: typeof exportJob.$inferSelect): Pro
         writeFileSync(join(dir, "caps.srt"), srt);
         mkdirSync(join(dir, "fonts"), { recursive: true });
         copyFileSync(config.asm.captions.fontFile, join(dir, "fonts", "caption-font.ttf"));
-        await exec("docker", [
-          "run", "--rm", "-v", `${dir}:/work`, "jrottenberg/ffmpeg:6.1-alpine",
+        await runFfmpeg(dir, [
           "-i", "/work/precap.mp4",
           "-vf", `subtitles=/work/caps.srt:fontsdir=/work/fonts:force_style='${config.asm.captions.style}'`,
           "-c:a", "copy", "-movflags", "+faststart", "-y", "/work/final.mp4",

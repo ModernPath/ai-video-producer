@@ -5,14 +5,11 @@
 // the previous take. That is the missing link for continuous action: the next shot does not need a
 // description of where the actor was left, it needs the actual frame.
 //
-// ffmpeg via docker, as ASM's export pipeline and AST's derivatives do (ADR-007).
-import { execFile } from "node:child_process";
+// ffmpeg via the shared runner, as ASM's export pipeline and AST's derivatives do (ADR-014).
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { promisify } from "node:util";
-
-const exec = promisify(execFile);
+import { runFfmpeg } from "@avd/shared/ffmpeg";
 
 /**
  * The final frame of a clip as JPEG bytes, or null when the bytes are not a readable video.
@@ -25,8 +22,7 @@ export async function extractTailFrame(videoBytes: Uint8Array): Promise<Uint8Arr
   const dir = await mkdtemp(join(tmpdir(), "avd-tail-"));
   try {
     await writeFile(join(dir, "in.mp4"), videoBytes);
-    await exec("docker", [
-      "run", "--rm", "-v", `${dir}:/work`, "jrottenberg/ffmpeg:6.1-alpine",
+    await runFfmpeg(dir, [
       "-v", "error",
       "-sseof", "-0.2",        // seek from the END of the file
       "-i", "/work/in.mp4",

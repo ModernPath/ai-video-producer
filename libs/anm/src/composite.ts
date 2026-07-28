@@ -1,11 +1,8 @@
-// REQ-ANM-002: ffmpeg composite — alpha webm overlay onto an h264 take (dockerized, ADR-007).
-import { execFile } from "node:child_process";
+// REQ-ANM-002: ffmpeg composite — alpha webm overlay onto an h264 take (ADR-014 runner).
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { promisify } from "node:util";
-
-const exec = promisify(execFile);
+import { runFfmpeg } from "@avd/shared/ffmpeg";
 
 export async function compositeOverlay(input: {
   videoBytes: Uint8Array;
@@ -16,8 +13,7 @@ export async function compositeOverlay(input: {
   try {
     writeFileSync(join(dir, "base.mp4"), input.videoBytes);
     writeFileSync(join(dir, "overlay.webm"), input.overlayWebmBytes);
-    await exec("docker", [
-      "run", "--rm", "-v", `${dir}:/work`, "jrottenberg/ffmpeg:6.1-alpine",
+    await runFfmpeg(dir, [
       "-i", "/work/base.mp4",
       "-c:v", "libvpx", "-i", "/work/overlay.webm", // libvpx decoder preserves VP8 alpha
       "-filter_complex", "[1:v]scale2ref=w=iw:h=ih[ov][base];[base][ov]overlay=0:0:shortest=1[v]",

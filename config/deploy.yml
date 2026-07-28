@@ -1,0 +1,110 @@
+# REQ-PLT-004 — Kamal 2 deployment for the AI Video Producer.
+#
+# One image (see `Dockerfile`), two roles on one Hetzner CPX32 in Helsinki:
+#   web    — Next.js behind the Kamal proxy (TLS via Let's Encrypt)
+#   worker — pg-boss consumer for generations and exports (REQ-GEN-016)
+# Postgres runs as a Kamal accessory on the same host, bound to loopback only.
+
+service: video-creator
+image: modernpath/ai-video-producer
+
+servers:
+  web:
+    hosts:
+      - 46.62.237.87
+    # Migrations are forward-only and take a pg advisory lock (libs/shared/src/migrate.ts), so both
+    # roles can run them on boot without racing — and neither role can ever serve against a schema
+    # older than the image it was built from.
+    cmd: sh -c "pnpm migrate && pnpm --filter @avd/web exec next start -p 3000"
+  worker:
+    hosts:
+      - 46.62.237.87
+    proxy: false
+    cmd: sh -c "pnpm migrate && pnpm --filter @avd/worker start"
+
+# Generated media, export scratch and the Remotion bundle cache. Survives a container swap; the
+# canonical copy of every asset is in object storage, so this is a cache, not the record.
+volumes:
+  - "video-creator-data:/app/data"
+
+proxy:
+  host: video-creator.modernpath.ai
+  ssl: true
+  app_port: 3000
+  healthcheck:
+    path: /api/health
+    interval: 3
+    timeout: 10
+  # A take can occupy a request for minutes (ADR-007: long jobs are the reason we are not on
+  # serverless). The default 30s would cut generation and export requests off mid-flight.
+  response_timeout: 300
+  buffering:
+    requests: true
+    responses: true
+    max_request_body: 33554432 # 32 MB — matches the 30 MB server-action body limit in next.config.mjs
+
+registry:
+  server: ghcr.io
+  username: modernpath
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+env:
+  clear:
+    NODE_ENV: production
+    PORT: "3000"
+    # REQ-PLT-002 — Auth.js derives its callback URL from this; it must match the redirect URI
+    # registered on the Google OAuth client exactly.
+    AUTH_URL: "https://video-creator.modernpath.ai"
+    AUTH_ALLOWED_DOMAIN: "modernpath.ai"
+    # REQ-GEN-016 — the web app enqueues; the worker role consumes. Unset would mean inline
+    # execution inside a request, which is what dev does and what a 300s proxy timeout cannot hold.
+    WORKER_MODE: "queue"
+    # ADR-014 — ffmpeg is on PATH in this image; there is no docker socket to shell out to.
+    FFMPEG_MODE: native
+    EXPORT_TMP_DIR: /app/data
+    # Hetzner Object Storage (S3-compatible), same region as the server.
+    S3_ENDPOINT: "https://hel1.your-objectstorage.com"
+    S3_REGION: hel1
+    S3_BUCKET: modernpath-video-creator
+  secret:
+    - DATABASE_URL
+    - AUTH_SECRET
+    - AUTH_GOOGLE_ID
+    - AUTH_GOOGLE_SECRET
+    - GEMINI_API_KEY
+    - S3_ACCESS_KEY
+    - S3_SECRET_KEY
+
+accessories:
+  db:
+    image: postgres:16
+    host: 46.62.237.87
+    # Loopback only. The app reaches it as `video-creator-db` over the Kamal docker network;
+    # nothing needs it published, and ufw is not a substitute for not listening.
+    port: "127.0.0.1:5432:5432"
+    env:
+      clear:
+        POSTGRES_DB: video_creator_prod
+        POSTGRES_USER: video_creator
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
+
+builder:
+  arch: amd64
+  # Built on the target host: this repo is developed on arm64, and emulating amd64 locally turns a
+  # Next build plus a pnpm install into a very long deploy.
+  remote: ssh://root@46.62.237.87
+  cache:
+    type: registry
+
+ssh:
+  user: root
+
+boot:
+  limit: 1
+  wait: 30
+
+retain_containers: 3

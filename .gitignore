@@ -9,3 +9,5 @@ coverage/
 .DS_Store
 /data/
 .claude/
+.env*
+.env.internal-apps.bak

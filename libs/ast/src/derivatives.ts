@@ -1,17 +1,14 @@
 // REQ-AST-005 / BR-AST-002: derivative thumbnails (images) and posters (videos) on ready.
-// ffmpeg via docker like ASM's export pipeline (ADR-007: worker container bakes ffmpeg in prod).
-import { execFile } from "node:child_process";
+// ffmpeg via the shared runner like ASM's export pipeline (ADR-014).
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { promisify } from "node:util";
 import { eq } from "drizzle-orm";
 import type { Db } from "@avd/shared/db";
 import { config } from "@avd/shared/config";
+import { runFfmpeg } from "@avd/shared/ffmpeg";
 import { asset } from "./schema";
 import { getObject, putObject } from "./storage";
-
-const exec = promisify(execFile);
 
 const EXT_BY_MIME: Record<string, string> = {
   "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "video/mp4": "mp4", "video/webm": "webm",
@@ -37,8 +34,7 @@ export async function makeAssetThumb(db: Db, assetId: string): Promise<void> {
     writeFileSync(join(dir, inFile), bytes);
     const { thumbWidth, jpegQuality } = config.derivative;
     const videoArgs = a.kind === "video" ? ["-frames:v", "1"] : [];
-    await exec("docker", [
-      "run", "--rm", "-v", `${dir}:/work`, "jrottenberg/ffmpeg:6.1-alpine",
+    await runFfmpeg(dir, [
       "-y", "-i", `/work/${inFile}`,
       ...videoArgs,
       "-vf", `scale=${thumbWidth}:-2`,
