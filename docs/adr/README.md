@@ -69,3 +69,4 @@ this section is the one that pays off later.
 | [010](010-one-visual-prompt-pipeline.md) | One visual prompt pipeline; custom text substitutes a stage | ACCEPTED |
 | [011](011-reference-names-never-reach-a-model.md) | A reference artist is compiled to craft primitives, never forwarded | ACCEPTED |
 | [012](012-consistency-by-reference-not-description.md) | Consistency comes from reference images, not prose | ACCEPTED |
+| [013](013-music-led-planning-plans-against-the-real-track.md) | Music-led films plan against the real track, not before it | ACCEPTED |

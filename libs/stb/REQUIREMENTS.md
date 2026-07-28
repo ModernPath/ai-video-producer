@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 61 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 1 BLOCKED
+Totals: 61 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 1 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -32,6 +32,7 @@ Totals: 61 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 | REQ-STB-061 | Render harness for apps/web + tests for the three UI escapes | P10 | DONE | `docs/88-architecture-review.md` §4b | — | — |
 | REQ-STB-062 | A sub-clip never buys a start frame | P9 | DONE | USER 2026-07-27 "are we still generating images for sub-scenes in the beginning when approving the script?" | tests/continuity.int.spec.ts REQ-STB-062 (4) | requestFrame guard, applyPlanAction + generateMissingFramesAction skip |
 | REQ-STB-063 | Split StagePanel by concern | P10 | PROPOSED | `CLAUDE.md` §10B · REQ-STB-060 | — | apps/web/app/p/[id]/panels/StagePanel.tsx |
+| REQ-STB-064 | Track start-offset for uploaded tracks | P10 | PROPOSED | ADR-013 · OQ-115 | — | — |
 | REQ-STB-058 | A sub-clip admits when its start frame is not the real last frame | P9 | DONE | USER 2026-07-27 "there was already a generated image, so I can't actually go to real last frame of previous video" | tests/handoff-state.spec.ts (6) | handoffState, refreshHandoffAction, honest START FRAME heading |
 | REQ-STB-056 | Linked clips numbered as sub-clips (4, 4.1, 4.2) | P9 | DONE | USER 2026-07-27 "indicate at timeline which clips are linked, e.g. 4, 4.1, 4.2" | tests/chain-labels.spec.ts (7) | chainLabels, rail + timeline + shot header |
 | REQ-STB-057 | A sub-clip's start frame is given, not chosen or bought | P9 | DONE | USER 2026-07-27 "show only the last frame and hide other starting images? skip the starting frame creation for subclips?" | verified live on both a sub-clip and an ordinary shot | page.tsx start-frame + GENERATE panel |
@@ -50,7 +51,7 @@ Totals: 61 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 | REQ-STB-041 | Shot grammar: typed craft vocabulary + plan grader | P9 | DONE | EPIC-STB-001 SR-DIR-001/002 (USER 2026-07-26 "improve the artistic director skills… directed by Aki Kaurismäki") | tests/grammar.spec.ts (11) | shared/config/grammar.ts · libs/stb/src/grammar.ts |
 | REQ-STB-034 | First take auto-selects (export never silently empty) | P8 | DONE | USER 2026-07-24 "why can't I export" (5 takes bought, 0 selected → Export 0 ready) | tests/take-binding.int.spec.ts REQ-STB-034 + browser (5/5 generated) | materializeGenerationOutput take branch |
 | REQ-STB-033 | Cast visibility everywhere (bar with refs + profile badges; library from home) | P8 | DONE | USER 2026-07-24 usability screenshots | browser E2E ×3 views | components/CastBar.tsx, script page wiring, home library link |
-| REQ-STB-032 | Lyric-shot alignment (text appears when the line is sung) | P8 | BLOCKED | Neon Rivers 2026-07-24 · blocked on OQ-115 (strategy: fill-to-timestamp vs track offset vs both) | — | — |
+| REQ-STB-032 | Music-led planning: plan against the real track | P8 | READY | ADR-013 (resolves OQ-115) · Neon Rivers 2026-07-24 | — | — |
 | REQ-STB-031 | Storyboard players audible (no forced mute) | P7 | DONE | USER BUG 2026-07-24 "Kaiju video has no sound" | server-rendered markup + browser (mute icon gone) | page.tsx tile <video> unmuted |
 | REQ-STB-030 | Route-aware UI (route badge + honest take estimates) | P7 | DONE | BACKLOG 2026-07-24 (10s omni shot showed veo-snapped $0.80) | libs/gen/tests/omni-video.spec.ts REQ-STB-030 block + browser | gen estimateTake, storyboard header badge, take-button estimate + effective-duration hint |
 | REQ-STB-025 | Lyric-synced cut suggestions (♪ MUSIC SYNC) | P6 | DONE | USER Lyria epic ("time the change of scene according to song timing") | tests/music-sync.spec.ts + update-duration.int + browser E2E | src/music-sync.ts, updateShotDuration, applySyncAction, SYNC panel |
@@ -393,10 +394,21 @@ Totals: 61 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 - **Tests:** rendered-markup check + browser · **Code:** `apps/web/app/p/[id]/page.tsx` tile player · **Log:** LOG 2026-07-24
 - **Deferred / notes:** share page and A/B compare were already unmuted; animatic supplies its own music track.
 
-### REQ-STB-032 — Lyric-shot alignment
-- **Status:** BLOCKED · **Stage:** P8 · **Blocking OQ:** OQ-115
-- **Source:** Neon Rivers full lyric-video production (2026-07-24) — lyric shots placed by storyboard order, not sung-at timestamps; long-intro tracks put words far ahead of the vocals.
-- **Options on the table (docs/08 OQ-115):** (a) fill-to-timestamp planning · (b) export-time track start-offset · (c) both, archetype-chosen. Recommendation recorded: (c), building (b) first. Unblocks on the human call.
+### REQ-STB-032 — Music-led planning: plan against the real track
+- **Status:** READY · **Stage:** P8 · **Priority:** should
+- **Raised-by:** Neon Rivers lyric-video production (2026-07-24) — lyric shots placed by storyboard order, not by when the line is sung; verse text at ~8s against vocals starting 0:23.
+- **Source:** **ADR-013** (resolves OQ-115) · REQ-STB-028 (the planner already reads the music brief) · REQ-GEN-020 (transcript)
+- **Statement:** For music-led archetypes the shot plan shall be made against the ACTUAL track: planning is blocked until an active track exists and has been transcribed, and the planner receives the track's `[MM:SS]` section stamps so shot boundaries land on them.
+- **Acceptance criteria:**
+  - GIVEN a music-led project with no active track WHEN a shot plan is requested THEN it is refused, naming the missing track and the way to get one (REQ-GEN-027 shape).
+  - GIVEN a music-led project with a track but no transcript WHEN a shot plan is requested THEN it is refused, naming the missing transcript.
+  - GIVEN an active transcribed track THEN the assembled plan prompt contains the track's section stamps — asserted as a GOLDEN FILE, not by checking the code that builds it (§1.9).
+  - GIVEN a produced plan THEN cumulative shot boundaries land on section stamps wherever the duration policy allows, verified by a pure test over `parseSectionTimes` output.
+  - GIVEN a NON-music-led project THEN planning is unchanged and ungated — the old order still applies.
+  - GIVEN the track is regenerated after planning THEN the plan is marked stale in the UI rather than silently kept (the REQ-STB-058 lesson).
+- **Tests:** —
+- **Code:** —
+- **Deferred / notes:** alignment is SECTION-level, not per-line: `shot.minSeconds` is 4 and lyric lines are commonly 1–2s apart, so per-line alignment is arithmetically impossible (ADR-013). Line-level precision stays with captions (REQ-GEN-020). The gate reuses `generationBlocker` — no new machinery. Unblocked 2026-07-28 by the user's call.
 
 ### REQ-STB-033 — Cast visibility everywhere
 - **Status:** DONE · **Stage:** P8 · **Priority:** must
@@ -843,3 +855,13 @@ Totals: 61 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
   - GIVEN the split THEN the served HTML of a real project is unchanged, by the same diff used for REQ-STB-060 (visible text + title tooltips).
   - GIVEN the split THEN `stage-panel.render.spec.tsx` passes unchanged, and each sub-panel is mountable from plain values.
 - **Deferred / notes:** lower value than the first split — this file is already testable and no defect traces to its size. Do it when something needs editing here, not on principle.
+
+### REQ-STB-064 — Track start-offset for uploaded tracks
+- **Status:** PROPOSED · **Stage:** P10 · **Priority:** could
+- **Raised-by:** ADR-013 — the one part of OQ-115 option (b) that survives. On the Suno path (`docs/17` §1) a finished track arrives AFTER a plan exists, so nothing can be reordered and an export-time offset is the only lever.
+- **Statement:** Where a track was uploaded rather than generated, the export shall be able to start it a bounded lead-in before its first lyric, so the words meet the pictures without discarding the whole intro.
+- **Acceptance criteria:**
+  - GIVEN an uploaded track and a transcript THEN the export offset is DERIVED from the current timeline at export time, never stored — a frozen offset goes stale the moment a shot duration changes.
+  - GIVEN the offset THEN the ffmpeg args carry it, asserted as a golden file.
+  - GIVEN a lead-in configured in `@avd/shared/config` THEN the track starts that many seconds BEFORE the first lyric, not exactly on it.
+- **Deferred / notes:** low priority — it serves only the uploaded-track path. Generated music-led projects are handled properly by REQ-STB-032.
