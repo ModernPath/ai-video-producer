@@ -369,6 +369,12 @@ with every real defect escaping all three.*
   it has needed a bug fix.
 - **Every artifact gets a golden file.** `libs/gen/tests/__prompts__/` is the pattern. Update with
   `vitest -u` deliberately and READ the diff — an unexpected line is a bug, not noise.
+- **A golden file is a regression detector, not an acceptance test.** `toMatchFileSnapshot` CREATES
+  the snapshot when it is missing, so a NEW golden blesses whatever the code currently emits and
+  goes green. *Added 2026-07-28: the golden written to prove the script prompt carries the track
+  transcript was generated from the broken output — a prompt with no transcript in it — and passed.*
+  When you add a golden for a rail that does not exist yet, pin the rail with a real assertion too;
+  the golden then guards the wording, and the assertion guards the rail.
 - **Integration tests must be scoped.** Never operate on "all rows" — two specs reaped each other's
   fixtures because a sweep was global. If a test needs a global, the CODE probably shouldn't be.
 - **Run your own generation, not "the next queued one".** `runGenerationById`, not

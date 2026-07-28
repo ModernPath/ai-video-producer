@@ -454,3 +454,23 @@ describe("REQ-GEN-031: filmed prompts forbid on-screen text", () => {
     expect(p).toMatch(/no on-screen text|no text/i);
   });
 });
+
+// REQ-STB-066 — the rail itself, asserted rather than snapshotted.
+//
+// A golden file could not catch this on its own: `toMatchFileSnapshot` CREATES the file from
+// whatever the code currently emits, so a brand-new golden blesses the broken output and goes
+// green. (It did, while this was being written.) The snapshot is the reviewable diff; this is the
+// assertion that the transcript reaches the script prompt at all.
+describe("REQ-STB-066: the script prompt carries the track when there is one", () => {
+  const base = { projectTitle: "T", brief: {}, targetDurationSeconds: 60 };
+
+  it("includes the transcript stamps and says the script is cut to the track", () => {
+    const p = assembleScriptPrompt({ ...base, transcript: "[00:00] [Intro]\n[00:29] Burn down the past!" });
+    expect(p).toContain("[00:29] Burn down the past!");
+    expect(p).toMatch(/cut to this track/i);
+  });
+
+  it("says nothing about a track when there is none", () => {
+    expect(assembleScriptPrompt(base)).not.toMatch(/TRACK/i);
+  });
+});

@@ -1,0 +1,7 @@
+TASK: Write a video script for a 60-second video titled "Neon Rivers".
+BRIEF: {"idea":"a lyric video for a synthwave track"}
+This film is CUT TO THIS TRACK. The track is fixed and the words below are already sung — the script's total runtime is the track's, its beats must land on these sections, and any line a character sings must be the lyric that is actually sung at that moment. Do not write words that contradict the track.
+TRACK TRANSCRIPT [MM:SS]:
+[00:00] instrumental intro
+[00:23] verse one — neon rivers run
+[00:47] chorus — hold the light

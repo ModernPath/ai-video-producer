@@ -7,6 +7,7 @@
 // reader has a single set of blind spots: a continuity supervisor and an editor notice different
 // faults in the same plan. Each lens reads alone so they cannot converge on one opinion.
 import { toDirectingBlock, type StyleCard } from "@avd/shared/contracts";
+import { transcriptBlock } from "@avd/gen"; // REQ-STB-066: one description of the track, shared with the script prompt
 import type { NormalizedPlannedShot } from "./plan-normalize";
 
 export interface CritiqueLens {
@@ -119,10 +120,17 @@ export function assembleScriptCritiquePrompt(input: {
   scriptText: string;
   card: StyleCard | undefined;
   targetDurationS: number;
+  /** REQ-STB-066: the track this film is cut to, when there is one. */
+  transcript?: string | undefined;
 }): string {
   return [
     `TASK: Critique this draft script for a ${input.targetDurationS}-second film. ${input.lens.brief}`,
     input.card ? toDirectingBlock(input.card) : "",
+    // REQ-STB-066: a reviewer who cannot hear the song cannot see that a beat lands in the wrong bar.
+    transcriptBlock(
+      input.transcript,
+      `judge the script against them: whether its beats land on these sections, whether its runtime is the track's, and whether anything it puts in a character's mouth contradicts what is sung.`
+    ),
     ``,
     `Report ONLY problems you can see from your seat. Say nothing about matters outside your brief. An empty list is a valid and useful answer.`,
     `Return ONLY JSON: {"issues":[{"shotTitle":string,"severity":"error"|"warning","note":string}]} — "shotTitle" is the scene or beat heading the issue belongs to. No markdown fences, no commentary.`,
@@ -137,10 +145,17 @@ export function assembleScriptRedraftPrompt(input: {
   issues: MergedIssue[];
   card: StyleCard | undefined;
   targetDurationS: number;
+  /** REQ-STB-066: the track this film is cut to, when there is one. */
+  transcript?: string | undefined;
 }): string {
   return [
     `TASK: Rewrite this ${input.targetDurationS}-second script so that every note below is resolved.`,
     input.card ? toDirectingBlock(input.card) : "",
+    // REQ-STB-066: without this the rewrite is free to move a beat off the chorus it was written for.
+    transcriptBlock(
+      input.transcript,
+      `the rewrite must still fit them: keep the total to the track's length, keep each beat on the section it belongs to, and never rewrite a sung line into words the track does not contain.`
+    ),
     ``,
     `NOTES FROM THE REVIEWERS — each one must be answered:`,
     ...input.issues.map((i) => `- [${i.severity}] (${i.lens}) ${i.shotTitle}: ${i.note}`),

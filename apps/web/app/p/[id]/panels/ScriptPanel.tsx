@@ -70,12 +70,14 @@ export function ScriptPanel({ planBlocker, p, activeKinds, briefIdea, cast, id, 
         </form>
         <form action={setArchetypeAction} style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 8 }}>
           <input type="hidden" name="projectId" value={id} />
-          <select name="archetype" defaultValue={p.archetype ?? ""} className="mono" title="Directing style — injects the recipe into script, shot plan, music and picture prompts" style={{ ...tiny, flex: 1 }}>
+          {/* REQ-STB-065: `minWidth: 0` — a flex item defaults to min-width:auto, so without this
+              the select refuses to shrink below its longest option and pushes "Set" out of the drawer. */}
+          <select name="archetype" defaultValue={p.archetype ?? ""} className="mono" title="Directing style — injects the recipe into script, shot plan, music and picture prompts" style={{ ...tiny, flex: 1, minWidth: 0 }}>
             {/* Honest state: with a compiled card active the picker used to read "freeform". */}
             <option value="">{projectCard ? `directing: ✦ ${projectCard.name} (compiled)` : "directing: freeform"}</option>
             {Object.entries(styleCards).map(([k, a]) => <option key={k} value={k}>directing: {a.name}</option>)}
           </select>
-          <SubmitButton small pendingLabel="…">Set</SubmitButton>
+          <SubmitButton small pendingLabel="…" style={{ flexShrink: 0 }}>Set</SubmitButton>
         </form>
 
         {/* REQ-PRJ-006: the runtime was shown in the header but nowhere editable. */}
@@ -84,8 +86,9 @@ export function ScriptPanel({ planBlocker, p, activeKinds, briefIdea, cast, id, 
           <label className="mono muted" style={{ fontSize: 10 }}>runtime</label>
           <input name="seconds" type="number" min={config.project.minTargetSeconds} max={config.project.maxTargetSeconds}
             defaultValue={Math.round(Number(p.targetDurationS))} style={{ ...tiny, width: 66 }} />
-          <span className="mono muted" style={{ fontSize: 10 }}>s — what the shot plan aims for</span>
-          <SubmitButton small pendingLabel="…">Set</SubmitButton>
+          {/* REQ-STB-065: the caption is the row's flexible part — it wraps so "Set" stays put. */}
+          <span className="mono muted" style={{ fontSize: 10, flex: 1, minWidth: 0 }}>s — what the shot plan aims for</span>
+          <SubmitButton small pendingLabel="…" style={{ flexShrink: 0 }}>Set</SubmitButton>
         </form>
 
         {/* SR-DIR-008: compile the prompt above into a seventh, project-specific card. */}

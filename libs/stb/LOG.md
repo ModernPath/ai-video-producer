@@ -1,5 +1,21 @@
 # Build Log — STB
 
+## 2026-07-28 — REQ-STB-066 the script is written against the track · REQ-STB-065 drawer rows (→ IN_REVIEW)
+**Done:** The MM:SS track transcript now reaches every stage that WRITES the script — `draftScript`, each critique lens, and the redraft — not only the shot planner. One `transcriptBlock` builder in `@avd/gen` describes the track, shared by all three, so they cannot drift in how they state the same constraint. Also fixed the Script drawer's clipped "Set" buttons (REQ-STB-065).
+
+**Decisions:**
+- *The block is emitted whenever a transcript EXISTS, not when a card says "music-led".* Same substitution the planner already uses — a stage, not a fork (CLAUDE.md §1.10). No transcript, no block.
+- *`transcriptBlock` lives in `@avd/gen` beside the prompt assemblers*, and STB imports it. STB already depends on GEN, and the alternative was a second copy of the same sentence in `critique.ts` (§1.11).
+- *The shot-plan prompt was left alone.* Its wording ("align shot boundaries…") is about cutting; the script's is about writing. Its golden file is unchanged, which is the evidence.
+
+**Deferred:** the drawer-row overflow cause is generic (a flex item's default `min-width: auto`); only the two rows the user hit were fixed. Other drawers were not audited → note on REQ-STB-065.
+
+**Discovered — a NEW golden file blesses whatever it first sees.** `toMatchFileSnapshot` CREATES the snapshot when it is missing, so the golden added for the music-led script prompt was written from the broken output and went green on a prompt with no transcript in it. A golden is a regression detector, not an acceptance test; the rail itself needed a real `toContain`. CLAUDE.md §6B says "every artifact gets a golden file" and does not say this — worth a line in the manual.
+
+**Follow-ups:** human sign-off on REQ-STB-065 and REQ-STB-066 · verify against a real model that a music-led draft actually lands on the sections (the tests assert the prompt, not the output).
+**Gate:** `pnpm check:ci` green — 385 tests, 37 files. Typecheck clean. Golden diff read: only the new file, no other prompt shifted.
+
+
 ## 2026-07-28 — REQ-STB-032 music-led planning built (READY → IN_REVIEW)
 **Done:** `src/music-led.ts` — `cardFor` / `isMusicLed` / `musicLedPlanBlocker`, all pure. `proposeShotPlan` refuses a music-led plan until an active track exists and is transcribed. The script panel shows the reason and disables *Break into shots* before the click. 13 new tests + a golden file; suite 517 → 531.
 **Decisions:** (1) **The blocker is rendered, not only thrown.** `proposePlanAction` does not catch, and no pattern for surfacing service refusals existed anywhere in `apps/web` — so my carefully worded sentence would have reached the user as a generic Next error digest. Found by reading the action, not by a test. The UI now mirrors the stage panel's `generationBlocker`: name the way out where the control is. The service still throws — REQ-STB-062's lesson that a disabled button is guidance and the service is the guarantee. (2) `cardFor` is now the ONE resolver of "compiled card wins, else archetype"; it existed twice in `common.ts` and I was about to write a third (§1.11). Both callers derive from it. (3) The gate is pure and runs before anything is enqueued, so a refusal costs nothing.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assembleFramePrompt, assembleShotPlanPrompt, assembleTakePrompt } from "../src/prompt";
+import { assembleFramePrompt, assembleScriptPrompt, assembleShotPlanPrompt, assembleTakePrompt } from "../src/prompt";
 import type { StyleCard } from "@avd/shared/contracts";
 
 // REQ-GEN-032 — golden files of what the MODEL ACTUALLY RECEIVES.
@@ -93,5 +93,22 @@ describe("REQ-STB-032: music-led shot plan carries the track's stamps", () => {
       entities: [],
       transcript: "[00:00] instrumental intro\n[00:23] verse one — neon rivers run\n[00:47] chorus — hold the light",
     })).toMatchFileSnapshot("__prompts__/shot-plan-music-led.txt");
+  });
+});
+
+// REQ-STB-066 (USER 2026-07-28: "will they be used in prompt if I redraft the script?") — no, they
+// were not. ADR-013 says a music-led film plans against the real track, and the PLANNER did receive
+// the transcript. The SCRIPT never did: `assembleScriptPrompt` had no transcript line at all, so
+// the song could not reach the stage where structure and runtime are actually decided. A redraft
+// was written blind to the words it has to carry, and the mismatch only surfaced a stage later.
+describe("REQ-STB-066: a music-led SCRIPT is written against the track too", () => {
+  it("script prompt with a transcript", async () => {
+    await expect(assembleScriptPrompt({
+      projectTitle: "Neon Rivers",
+      brief: { idea: "a lyric video for a synthwave track" },
+      targetDurationSeconds: 60,
+      entities: [],
+      transcript: "[00:00] instrumental intro\n[00:23] verse one — neon rivers run\n[00:47] chorus — hold the light",
+    })).toMatchFileSnapshot("__prompts__/script-music-led.txt");
   });
 });

@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 61 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 61 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -33,6 +33,8 @@ Totals: 61 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 | REQ-STB-062 | A sub-clip never buys a start frame | P9 | DONE | USER 2026-07-27 "are we still generating images for sub-scenes in the beginning when approving the script?" | tests/continuity.int.spec.ts REQ-STB-062 (4) | requestFrame guard, applyPlanAction + generateMissingFramesAction skip |
 | REQ-STB-063 | Split StagePanel by concern | P10 | PROPOSED | `CLAUDE.md` §10B · REQ-STB-060 | — | apps/web/app/p/[id]/panels/StagePanel.tsx |
 | REQ-STB-064 | Track start-offset for uploaded tracks | P10 | PROPOSED | ADR-013 · OQ-115 | — | — |
+| REQ-STB-065 | Drawer rows shrink instead of clipping their button | P10 | IN_REVIEW | USER 2026-07-28 (screenshot: "Set" clipped to "Se") | apps/web/tests/script-panel-overflow.spec.tsx (3) | ScriptPanel directing + runtime rows |
+| REQ-STB-066 | A music-led SCRIPT is written against the track | P10 | IN_REVIEW | USER 2026-07-28 "will they be used in prompt if I redraft the script?" | libs/stb/tests/script-transcript.spec.ts (4) · libs/gen/tests/prompt.spec.ts (2) · __prompts__/script-music-led.txt | transcriptBlock, draftScript, critiqueAndRedraftScript |
 | REQ-STB-058 | A sub-clip admits when its start frame is not the real last frame | P9 | DONE | USER 2026-07-27 "there was already a generated image, so I can't actually go to real last frame of previous video" | tests/handoff-state.spec.ts (6) | handoffState, refreshHandoffAction, honest START FRAME heading |
 | REQ-STB-056 | Linked clips numbered as sub-clips (4, 4.1, 4.2) | P9 | DONE | USER 2026-07-27 "indicate at timeline which clips are linked, e.g. 4, 4.1, 4.2" | tests/chain-labels.spec.ts (7) | chainLabels, rail + timeline + shot header |
 | REQ-STB-057 | A sub-clip's start frame is given, not chosen or bought | P9 | DONE | USER 2026-07-27 "show only the last frame and hide other starting images? skip the starting frame creation for subclips?" | verified live on both a sub-clip and an ordinary shot | page.tsx start-frame + GENERATE panel |
@@ -866,3 +868,32 @@ Totals: 61 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
   - GIVEN the offset THEN the ffmpeg args carry it, asserted as a golden file.
   - GIVEN a lead-in configured in `@avd/shared/config` THEN the track starts that many seconds BEFORE the first lyric, not exactly on it.
 - **Deferred / notes:** low priority — it serves only the uploaded-track path. Generated music-led projects are handled properly by REQ-STB-032.
+
+### REQ-STB-065 — Drawer rows shrink instead of clipping their button
+- **Status:** IN_REVIEW · **Stage:** P10 · **Priority:** should · **Owner:** —
+- **Raised-by:** USER 2026-07-28, from a screenshot of the deployed app: the directing row's **Set** button was clipped to "Se" at the drawer's default width.
+- **Source:** `CLAUDE.md` §6B (render layer) · REQ-STB-060
+- **Statement:** A row in the Script drawer shall keep its action button inside the panel at the default drawer width, whatever the length of the text beside it.
+- **Acceptance criteria:**
+  - GIVEN a compiled style card (the longest possible picker label) WHEN the Script drawer renders THEN the directing `select` may shrink below its content width (`min-width: 0`).
+  - GIVEN either the directing or the runtime row THEN its **Set** button does not shrink.
+  - GIVEN the runtime row THEN its caption is the flexible part and wraps.
+- **Tests:** `apps/web/tests/script-panel-overflow.spec.tsx` (3) · looked at on the deployed host
+- **Code:** `apps/web/app/p/[id]/panels/ScriptPanel.tsx`
+- **Log:** LOG 2026-07-28
+- **Deferred / notes:** the cause is generic — a flex item's default `min-width: auto`. Other drawers have the same row shape and were not audited; a sweep is a candidate follow-up.
+
+### REQ-STB-066 — A music-led SCRIPT is written against the track
+- **Status:** IN_REVIEW · **Stage:** P10 · **Priority:** must · **Owner:** —
+- **Raised-by:** USER 2026-07-28: "how the music lyrics transcript and video script are linked? will they be used in prompt if I redraft the script?" They were not.
+- **Source:** ADR-013 · REQ-STB-028 · REQ-STB-032
+- **Statement:** When a project has a track transcript, every stage that WRITES the script — the first draft, each critique lens, and the redraft — shall receive it and be told the film is cut to that track.
+- **Acceptance criteria:**
+  - GIVEN a project with a transcript WHEN a script is drafted THEN the prompt carries the `[MM:SS]` stamps and states that runtime, beats and sung lines are bound to the track.
+  - GIVEN the same WHEN the script is critiqued THEN each lens reads it against the track; WHEN it is redrafted THEN the rewrite is bound to the track.
+  - GIVEN a project with NO transcript THEN no prompt mentions a track (a prompt that names a track the film lacks invents one).
+  - GIVEN the description of the track THEN it is built in ONE place, shared by script, critique and redraft.
+- **Tests:** `libs/stb/tests/script-transcript.spec.ts` (4) · `libs/gen/tests/prompt.spec.ts` REQ-STB-066 (2) · golden `libs/gen/tests/__prompts__/script-music-led.txt`
+- **Code:** `libs/gen/src/prompt.ts` (`transcriptBlock`, `assembleScriptPrompt`), `libs/stb/src/critique.ts`, `libs/stb/src/script.ts`
+- **Log:** LOG 2026-07-28
+- **Deferred / notes:** ADR-013 said a music-led film "plans against the real track" and the planner had the transcript since REQ-STB-028 — but structure and runtime are decided in the SCRIPT, one stage earlier. Existing scripts are unaffected until redrafted. **Not yet verified against a real model:** the tests assert the prompt, not that the model's output actually lands on the sections.

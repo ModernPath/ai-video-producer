@@ -9,10 +9,15 @@ import { scriptVersion, shot, shotPlanProposal } from "./schema";
 import { normalizePlannedShots } from "./plan-normalize";
 import { normalizePlannedCast } from "./casting";
 import { StbValidationError, getProjectOrThrow, projectCard, recipeFor, resolveCast } from "./common";
+import { getMusicBrief } from "./music"; // REQ-STB-066: the track the script is written against
 
 export async function draftScript(db: Db, input: { projectId: string; principal: string; instruction?: string }) {
   const p = await getProjectOrThrow(db, input.projectId);
   const cast = await resolveCast(db, input.projectId); // REQ-STB-012
+  // REQ-STB-066 / ADR-013: a film cut to a song is WRITTEN to it. The planner has had the
+  // transcript since REQ-STB-028; the script — where runtime and beats are actually decided — had
+  // not, so a draft could contradict the words it has to carry and nothing noticed until planning.
+  const briefRow = await getMusicBrief(db, input.projectId);
   return enqueueGeneration(db, {
     organizationId: p.organizationId,
     projectId: p.id,
@@ -26,6 +31,7 @@ export async function draftScript(db: Db, input: { projectId: string; principal:
       targetDurationSeconds: Number(p.targetDurationS),
       instruction: input.instruction,
       entities: cast.entities,
+      transcript: briefRow?.transcript ?? undefined, // REQ-STB-066
       ...recipeFor(p),
     },
   });
@@ -53,6 +59,8 @@ export async function critiqueAndRedraftScript(
   if (!current?.content?.trim()) throw new StbValidationError("validation_failed", "There is no script to critique yet");
   const card = await projectCard(db, input.projectId);
   const targetDurationS = Math.round(Number(p.targetDurationS));
+  // REQ-STB-066: reviewers and the rewrite read the script against the track, not in a vacuum.
+  const transcript = (await getMusicBrief(db, input.projectId))?.transcript ?? undefined;
 
   const { SCRIPT_LENSES, assembleScriptCritiquePrompt, assembleScriptRedraftPrompt, mergeCritiques } = await import("./critique");
   const { textJson } = await import("@avd/gen/text-json");
@@ -62,7 +70,7 @@ export async function critiqueAndRedraftScript(
     SCRIPT_LENSES.map(async (lens) => ({
       lens: lens.id,
       issues: (await textJson<{ issues?: unknown[] }>(
-        assembleScriptCritiquePrompt({ lens, scriptText: current.content, card: card ?? undefined, targetDurationS }), {}
+        assembleScriptCritiquePrompt({ lens, scriptText: current.content, card: card ?? undefined, targetDurationS, transcript }), {}
       )).issues ?? [],
     }))
   );
@@ -74,7 +82,7 @@ export async function critiqueAndRedraftScript(
   const { modelRoutes } = await import("@avd/shared/config");
   const res = await provider.generateText({
     model: modelRoutes.script,
-    prompt: assembleScriptRedraftPrompt({ scriptText: current.content, issues, card: card ?? undefined, targetDurationS }),
+    prompt: assembleScriptRedraftPrompt({ scriptText: current.content, issues, card: card ?? undefined, targetDurationS, transcript }),
   });
   const text = (res.text ?? "").trim();
   if (!text) return null; // a redraft we cannot read is not an improvement

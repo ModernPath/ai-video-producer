@@ -163,7 +163,25 @@ export interface TextPromptInput {
   directing?: string | undefined;  // REQ-STB-026: archetype directing block (docs/87)
   planBias?: string | undefined;   // REQ-STB-026: plan-only guidance
   musicBias?: string | undefined;  // REQ-STB-026: music-only guidance
-  transcript?: string | undefined; // REQ-STB-028: MM:SS track transcript for music-led planning
+  // REQ-STB-028 planning · REQ-STB-066 scripting: the MM:SS track transcript. Read by BOTH the
+  // script and the shot plan — a film cut to a song has to be WRITTEN to it, not only cut to it.
+  transcript?: string | undefined;
+}
+
+/**
+ * REQ-STB-066 / ADR-013 — the track, stated as a constraint on whatever is being written.
+ *
+ * One builder so the script, the critique and the redraft cannot drift apart in how they describe
+ * the same song (CLAUDE.md §1.11). Empty when there is no transcript: nothing to align to, and a
+ * prompt that mentions a track the film does not have invents one.
+ */
+export function transcriptBlock(transcript: string | undefined, task: string): string {
+  if (!transcript?.trim()) return "";
+  return [
+    `This film is CUT TO THIS TRACK. The track is fixed and the words below are already sung — ${task}`,
+    `TRACK TRANSCRIPT [MM:SS]:`,
+    transcript.trim(),
+  ].join("\n");
 }
 
 function castBlock(entities?: EntityBlock[]): string[] {
@@ -181,6 +199,11 @@ export function assembleScriptPrompt(i: TextPromptInput): string {
     `TASK: Write a video script for a ${i.targetDurationSeconds}-second video titled "${i.projectTitle}".`,
     i.directing ?? "",
     `BRIEF: ${JSON.stringify(i.brief)}`,
+    // REQ-STB-066: the runtime and the beats are decided HERE, so the song has to be here too.
+    transcriptBlock(
+      i.transcript,
+      `the script's total runtime is the track's, its beats must land on these sections, and any line a character sings must be the lyric that is actually sung at that moment. Do not write words that contradict the track.`
+    ),
     ...castBlock(i.entities),
     i.entities?.length ? `Feature the cast naturally where it strengthens the story.` : "",
     i.instruction ? `INSTRUCTION: ${i.instruction}` : "",
