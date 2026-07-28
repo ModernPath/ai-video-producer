@@ -110,6 +110,13 @@ export async function materializeGenerationOutput(db: Db, generationId: string) 
     const [sh] = await db.select().from(shot).where(eq(shot.id, target.shotId));
     if (sh && !sh.selectedTakeId) {
       await db.update(shot).set({ selectedTakeId: id }).where(eq(shot.id, target.shotId));
+      // REQ-STB-067: and hand its last frame on, exactly as `selectTake` does (REQ-STB-054).
+      // This path used to update the row directly and stop there, so a take that auto-selected
+      // never fed the shot continuing from it. Invisible in inline mode — the action selected the
+      // take itself, through `selectTake`, which does hand off — and broken in queue mode, where
+      // the WORKER materializes and nothing else ever touches the selection.
+      const { handoffTailFrame } = await import("./continuity");
+      await handoffTailFrame(db, { shotId: target.shotId }).catch(() => []);
     }
     return { kind: "take" as const, id };
   }

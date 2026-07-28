@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 61 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 61 DONE · 4 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -34,6 +34,7 @@ Totals: 61 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 | REQ-STB-063 | Split StagePanel by concern | P10 | PROPOSED | `CLAUDE.md` §10B · REQ-STB-060 | — | apps/web/app/p/[id]/panels/StagePanel.tsx |
 | REQ-STB-064 | Track start-offset for uploaded tracks | P10 | PROPOSED | ADR-013 · OQ-115 | — | — |
 | REQ-STB-065 | Drawer rows shrink instead of clipping their button | P10 | IN_REVIEW | USER 2026-07-28 (screenshot: "Set" clipped to "Se") | apps/web/tests/script-panel-overflow.spec.tsx (3) | ScriptPanel directing + runtime rows |
+| REQ-STB-067 | The whole continuity chain generates, in the worker | P10 | IN_REVIEW | USER 2026-07-28 "generate whole chain does not work, it just creates the next clip" | libs/stb/tests/chain-run.spec.ts (6) · apps/web/tests/stage-panel.render.spec.tsx (3) | chain-run.ts, CHAIN_QUEUE, worker handleChain, materialize handoff |
 | REQ-STB-066 | A music-led SCRIPT is written against the track | P10 | IN_REVIEW | USER 2026-07-28 "will they be used in prompt if I redraft the script?" | libs/stb/tests/script-transcript.spec.ts (4) · libs/gen/tests/prompt.spec.ts (2) · __prompts__/script-music-led.txt | transcriptBlock, draftScript, critiqueAndRedraftScript |
 | REQ-STB-058 | A sub-clip admits when its start frame is not the real last frame | P9 | DONE | USER 2026-07-27 "there was already a generated image, so I can't actually go to real last frame of previous video" | tests/handoff-state.spec.ts (6) | handoffState, refreshHandoffAction, honest START FRAME heading |
 | REQ-STB-056 | Linked clips numbered as sub-clips (4, 4.1, 4.2) | P9 | DONE | USER 2026-07-27 "indicate at timeline which clips are linked, e.g. 4, 4.1, 4.2" | tests/chain-labels.spec.ts (7) | chainLabels, rail + timeline + shot header |
@@ -897,3 +898,20 @@ Totals: 61 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DE
 - **Code:** `libs/gen/src/prompt.ts` (`transcriptBlock`, `assembleScriptPrompt`), `libs/stb/src/critique.ts`, `libs/stb/src/script.ts`
 - **Log:** LOG 2026-07-28
 - **Deferred / notes:** ADR-013 said a music-led film "plans against the real track" and the planner had the transcript since REQ-STB-028 — but structure and runtime are decided in the SCRIPT, one stage earlier. Existing scripts are unaffected until redrafted. **Not yet verified against a real model:** the tests assert the prompt, not that the model's output actually lands on the sections.
+
+### REQ-STB-067 — The whole continuity chain generates, in the worker
+- **Status:** IN_REVIEW · **Stage:** P10 · **Priority:** must · **Owner:** —
+- **Raised-by:** USER 2026-07-28: "generate whole chain does not work, it just creates the next clip. Can't it do so that it always loops for all the subclips, and when subclip video completes, it takes the last frame and puts that to next clip and generates its video etc. until all in that path are done?"
+- **Source:** REQ-STB-054 (chains) · REQ-STB-055 (order) · ADR-002 (pg-boss) · REQ-PLT-004 (`WORKER_MODE=queue`)
+- **Statement:** Generating a chain shall generate every shot in it, in order, each starting from the previous take's last frame — as a background job, because it is one video generation per shot.
+- **Acceptance criteria:**
+  - GIVEN a chain of N shots with no takes WHEN the chain is generated THEN all N are generated in order, not one.
+  - GIVEN each shot WHEN its take completes THEN it is materialized and its last frame handed to the follower BEFORE the follower is requested.
+  - GIVEN a shot that already has a selected take THEN it is skipped, not re-bought — which also makes the job safe to retry after a worker restart.
+  - GIVEN a failure mid-chain THEN the run stops at that shot and names it; the rest would start from a frame that does not exist.
+  - GIVEN a take that auto-selects on materialization (REQ-STB-034) THEN its last frame is handed on, exactly as an explicit `selectTake` does.
+  - GIVEN the chain button THEN its label contains no leaked prop path.
+- **Tests:** `libs/stb/tests/chain-run.spec.ts` (6, order-asserting) · `apps/web/tests/stage-panel.render.spec.tsx` REQ-STB-067 (3, mutation-verified)
+- **Code:** `libs/stb/src/chain-run.ts`, `libs/stb/src/materialize.ts` (handoff on auto-select), `libs/shared/src/queue.ts` (`CHAIN_QUEUE`), `apps/worker/src/{handlers,index}.ts`, `apps/web/app/actions.ts`, `apps/web/app/p/[id]/panels/StagePanel.tsx`
+- **Log:** LOG 2026-07-28
+- **Deferred / notes:** the chain has no progress readout beyond the rail filling in and the worker log; a per-run status row is a candidate follow-up. **Not yet verified end to end on a real chain** — the unit tests assert the order, not a real 10-shot run.

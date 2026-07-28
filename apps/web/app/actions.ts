@@ -330,20 +330,24 @@ export async function generateChainAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));
   const [p] = await db().select().from(project).where(eq(project.id, projectId));
   if (!p) return;
-  const { chainGenerationPlan, listCandidates } = await import("@avd/stb");
-  const steps = await chainGenerationPlan(db(), { shotId: String(formData.get("shotId")) });
-  for (const step of steps) {
-    const [shotRow] = await db().select().from(shot).where(eq(shot.id, step.shotId));
-    if (shotRow?.selectedTakeId) continue; // already has one — do not re-buy it
-    try {
-      const genId = await requestTake(db(), { shotId: step.shotId, principal: PRINCIPAL, aspectRatio: p.aspectRatio });
-      await drainQueueAndMaterialize([genId]);
-      const takes = (await listCandidates(db(), step.shotId)).takes;
-      const latest = takes[takes.length - 1];
-      if (latest) await selectTake(db(), { shotId: step.shotId, takeId: latest.id }); // hands the frame on
-    } catch {
-      break; // a broken link stops the chain; the rest would start from nothing
-    }
+  // REQ-STB-067 (USER 2026-07-28: "generate whole chain does not work, it just creates the next
+  // clip"). This used to loop here, generating and selecting each take in turn. That only ever
+  // worked inline: in QUEUE mode `drainQueueAndMaterialize` enqueues and returns, so no take
+  // existed to select, the next shot hit the REQ-STB-055 out-of-order guard, and the `catch`
+  // swallowed it — one shot per click, silently.
+  //
+  // A chain is one video generation per shot, waited on in turn: minutes of work that no HTTP
+  // request should hold open. So it is a job now, and the loop lives in the worker.
+  const shotId = String(formData.get("shotId"));
+  const { queueMode, createBoss, CHAIN_QUEUE } = await import("@avd/shared/queue");
+  const job = { shotId, principal: PRINCIPAL, aspectRatio: p.aspectRatio };
+  if (queueMode() === "queue") {
+    const boss = await createBoss();
+    await boss.send(CHAIN_QUEUE, job);
+  } else {
+    // Dev has no worker process; run it here, where the generations are inline and fast.
+    const { runChainForShot } = await import("@avd/stb");
+    await runChainForShot(db(), job);
   }
   revalidatePath(`/p/${projectId}`);
 }

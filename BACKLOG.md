@@ -2,7 +2,7 @@
 
 Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: route to a context `REQUIREMENTS.md`, `docs/08-open-questions.md`, `docs/gap-register.md`, an epic under `epics/`, or drop with reason.
 
-> **Inbox status:** 4 items
+> **Inbox status:** 5 items
 
 ## Inbox
 
@@ -11,6 +11,7 @@ Discoveries without a clear home yet (`CLAUDE.md` §6A). Sweep during Prompt 3: 
 | Entity "Pasi" ref asset id `019f9001-3d7e-…` dangles — asset row missing (mock-purge casualty?); entity UI should tolerate + offer re-upload; sweep other entities for dangling refs | — (route to REQ-AST-*; ref replacement is the user's call) |
 | **No backup of the production database.** The Postgres accessory writes to a docker volume on one Hetzner host. Media survives a host loss (Hetzner Object Storage); every project, script, storyboard and generation record does not. Needs `pg_dump` on a schedule to the existing object storage, and a restore that has actually been run. (2026-07-28, REQ-PLT-004 deferral) | — (route to REQ-PLT-*) |
 | **No alerting on the deployment.** Nothing reports a crash-looping worker, a full disk, an expiring certificate or a stuck job queue. The proxy healthcheck only gates a deploy; after that nobody is watching. (2026-07-28, REQ-PLT-004 deferral) | — (route to REQ-PLT-*) |
+| **Nothing is tested in QUEUE mode.** Every suite runs `WORKER_MODE` unset (inline), where server actions execute generations synchronously. Production runs `queue`, where they return immediately. Two defects shipped straight through a green suite because of this (REQ-STB-067): the chain loop, and the auto-select handoff. Wants at least one integration spec that runs a slice with `WORKER_MODE=queue` and a worker draining. (2026-07-28) | — (route to REQ-GEN-*) |
 | **Production `native` ffmpeg mode is untested by CI.** ADR-014 pins the argv of both modes, but CI only ever runs `docker` mode against `jrottenberg/ffmpeg:6.1-alpine` while production runs Debian's ffmpeg. A filter accepted by one and not the other passes every test. Wants one real-ring export on the deployed host per release, or a container job in CI. (2026-07-28) | — (route to REQ-PLT-003 follow-up) |
 
 ---

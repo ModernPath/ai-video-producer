@@ -45,7 +45,9 @@ const SURFACE = [
   "materializeGenerationOutput", "moveShotToIndex", "proposeShotPlan", "removeFrameCandidate",
   "removeShot", "removeTake", "reorderShot", "requestAnimationOverlay", "requestAnimationTake",
   "requestEntityPortrait", "requestFrame", "requestFrameBatch", "requestMusicBrief",
-  "requestMusicTrack", "requestRetake", "requestTake", "requestTranscript", "selectFrame",
+  "requestMusicTrack", "requestRetake", "requestTake", "requestTranscript",
+  "runChainForShot", // REQ-STB-067
+  "selectFrame",
   "selectTake", "setShotContinuity", "takeProvenance", "updateShotDialogue", "updateShotDuration",
   "updateShotRefs", "updateShotScripts", "upsertMusicBriefForTest",
 ].sort();

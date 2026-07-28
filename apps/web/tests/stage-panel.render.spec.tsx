@@ -85,3 +85,42 @@ describe("REQ-STB-058: the panel tells the truth about where the start frame cam
     expect(screen.queryByText(/NOT from the previous take yet/i)).toBeNull();
   });
 });
+
+// REQ-STB-067 — the chain button's LABEL, because it has shipped wrong twice.
+//
+// REQ-STB-060 extracted this panel by prefixing identifiers, which corrupted seven pieces of
+// user-visible text ('use whole cast' → 'use whole props.cast'). Those seven were fixed; two more
+// survived unnoticed until the user read them on the deployed app (2026-07-28): the button said
+// "Generate the props.chain (10 props.shots)". Nothing tested rendered text, so nothing could
+// catch it. This does.
+describe("REQ-STB-067: the chain button says what a person would say", () => {
+  const prevShot = () => aShot({ id: "shot-prev", title: "Shot before" });
+  const headOfChain = (over = {}) =>
+    stagePanelProps({
+      shot: aShot({ id: "shot-head" }),
+      shots: [prevShot(), aShot({ id: "shot-head" })],
+      index: 1,
+      chain: { headId: "shot-head", length: 10, index: 0 } as never,
+      ...over,
+    });
+
+  it("names shots and the chain in English", () => {
+    const { container } = render(<StagePanel {...headOfChain()} />);
+    expect(container.textContent ?? "").toContain("Generate the chain (10 shots)");
+  });
+
+  it("leaks no prop path into anything the user reads", () => {
+    // container.textContent covers every rendered string, which is the point: the three that
+    // shipped were a button label, a count, and a sentence inside a <span>.
+    const { container } = render(<StagePanel {...headOfChain()} />);
+    expect(container.textContent ?? "").not.toMatch(/props\./);
+  });
+
+  it("...including the stale-handoff warning, which was corrupted too", () => {
+    const { container } = render(
+      <StagePanel {...headOfChain({ shot: aShot({ id: "shot-head", continuesFromShotId: "shot-prev" }), handoff: "stale" })} />
+    );
+    expect(container.textContent ?? "").toMatch(/the handoff will not overwrite one you chose/);
+    expect(container.textContent ?? "").not.toMatch(/props\./);
+  });
+});

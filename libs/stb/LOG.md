@@ -1,5 +1,24 @@
 # Build Log — STB
 
+## 2026-07-28 — REQ-STB-067 the whole chain generates, in the worker (→ IN_REVIEW)
+**Done:** "Generate the chain" now generates every shot in the chain instead of one per click. The loop moved out of the server action into a pg-boss job (`CHAIN_QUEUE`) the worker owns: request take → run it → materialize → hand its LAST FRAME to the follower → next. Shots that already have a selected take are skipped, so a retry resumes rather than re-buying.
+
+**Decisions:**
+- *The loop belongs in the worker, not a server action.* A chain is one video generation per shot, waited on in turn — minutes. No HTTP request should hold that open, and the proxy would cut it at 300s anyway.
+- *`runChain` takes its effects as parameters.* The defect was one of ORDER, so the order is what the spec asserts — with no database, no provider and no queue. The wired version (`runChainForShot`) is a thin adapter.
+- *Only `runChainForShot` is exported from the service.* `runChain` stays internal; the REQ-STB-059 surface guard caught the wider export, which is exactly its job.
+- *A failure stops the chain and names the shot.* Unchanged rule, but it used to be a bare `catch {} break` — silent.
+
+**Discovered — two production-only defects, both mine, both from `WORKER_MODE=queue` (REQ-PLT-004):**
+1. **The chain loop could never work in queue mode.** `drainQueueAndMaterialize` enqueues and returns, so no take existed to select; the next shot hit the REQ-STB-055 out-of-order guard, and the `catch` swallowed it. Inline mode ran generations synchronously, so dev and every integration spec passed. The deploy config turned a working feature into a broken one, and no test could see it because no test runs in queue mode.
+2. **`materializeGenerationOutput`'s auto-select never handed the frame on.** It updated `shot.selectedTakeId` directly instead of going through `selectTake`, which is where `handoffTailFrame` lives (REQ-STB-054). Inline, the action called `selectTake` itself so the handoff happened anyway; in queue mode the WORKER materializes and nothing else touches the selection — so a follower silently never received its start frame. Fixed at the auto-select, so both paths hand off.
+
+**Discovered — the corrupted-text defect class recurred.** REQ-STB-060 records that extracting this panel by prefixing identifiers corrupted seven pieces of user-visible text. Three more survived: the chain button read "Generate the props.chain (10 props.shots)" and the stale-handoff warning read "the props.handoff will not overwrite one you chose" — on the deployed app, read by the user. A grep found no others. Now covered by a mutation-verified render assertion that no rendered string contains `props.`.
+
+**Follow-ups:** human sign-off · **no test runs in queue mode** — that is the gap that let both defects ship, and it is worth a BACKLOG row · a real 10-shot chain has not been run end to end.
+**Gate:** `pnpm check:ci` green — 394 tests, 39 files. Typecheck clean. Web build clean. Label test mutation-verified (3 fail when the corruption is reintroduced).
+
+
 ## 2026-07-28 — REQ-STB-066 the script is written against the track · REQ-STB-065 drawer rows (→ IN_REVIEW)
 **Done:** The MM:SS track transcript now reaches every stage that WRITES the script — `draftScript`, each critique lens, and the redraft — not only the shot planner. One `transcriptBlock` builder in `@avd/gen` describes the track, shared by all three, so they cannot drift in how they state the same constraint. Also fixed the Script drawer's clipped "Set" buttons (REQ-STB-065).
 

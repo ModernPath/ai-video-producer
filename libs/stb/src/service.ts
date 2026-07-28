@@ -11,4 +11,8 @@ export * from "./script";
 export * from "./music";
 export * from "./portraits";
 export * from "./continuity";
+// REQ-STB-067 — only the wired entry point is public. `runChain` (the orchestration with injected
+// effects) stays internal to the module and its spec; exporting it would widen this surface for a
+// function nothing outside STB should call.
+export { runChainForShot } from "./chain-run";
 export * from "./materialize";

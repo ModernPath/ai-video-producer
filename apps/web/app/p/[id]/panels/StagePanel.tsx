@@ -399,7 +399,7 @@ export function StagePanel(props: StagePanelProps) {
                 {props.handoff === "stale" && (
                   <span style={{ flexBasis: "100%", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 4 }}>
                     <span className="mono" style={{ fontSize: 10, color: "#e0763a" }}>
-                      This shot still starts from an older frame — the props.handoff will not overwrite one you chose.
+                      This shot still starts from an older frame — the handoff will not overwrite one you chose.
                     </span>
                     <SubmitButton small primary formAction={refreshHandoffAction}
                       title="Cuts the last frame of the source take and makes it this shot's start frame, replacing the current one"
@@ -420,11 +420,14 @@ export function StagePanel(props: StagePanelProps) {
             )}
             {/* REQ-STB-055: only the HEAD offers this — a chain must be generated from its start,
                 because each shot's first frame is the previous take's last. */}
+            {/* REQ-STB-060's known defect: extracting this panel by prefixing identifiers
+                corrupted user-visible text. Two more survived here — the label read "Generate
+                the props.chain (10 props.shots)" on the deployed app (USER 2026-07-28). */}
             {props.chain && props.chain.index === 0 && (
               <SubmitButton small primary formAction={generateChainAction}
-                title="Generates each shot in order, choosing each take so the next starts from its last frame"
-                pendingLabel={`Generating ${props.chain.length} props.shots…`}>
-                ▸ Generate the props.chain ({props.chain.length} props.shots)
+                title="Runs in the background: generates each shot in order and hands each take's last frame to the next. Watch the rail fill in — you can leave this page."
+                pendingLabel={`Starting ${props.chain.length} shots…`}>
+                ▸ Generate the chain ({props.chain.length} shots)
               </SubmitButton>
             )}
           </form>
