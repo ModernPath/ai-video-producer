@@ -15,6 +15,7 @@ import { setShotContinuity } from "./continuity";
 import { getMusicBrief } from "./music";
 import { latestScript } from "./script";
 import { createShot, listShots, removeShot, updateShotScripts } from "./shots";
+import { cardFor, isMusicLed, musicLedPlanBlocker } from "./music-led"; // REQ-STB-032
 
 export async function proposeShotPlan(db: Db, input: { projectId: string; principal: string }) {
   const briefRow = await getMusicBrief(db, input.projectId); // REQ-STB-028: music-led planning
@@ -22,6 +23,17 @@ export async function proposeShotPlan(db: Db, input: { projectId: string; princi
   const script = await latestScript(db, input.projectId);
   if (!script) throw new StbValidationError("no_script", "Draft a script before proposing a shot plan");
   const cast = await resolveCast(db, input.projectId); // REQ-STB-012
+
+  // REQ-STB-032 / ADR-013 — a music-led film is cut to its song, so it plans against the REAL
+  // track, not before it. Refused here rather than in the UI: REQ-STB-062 is the standing lesson
+  // that a hidden control is guidance and the service is the guarantee. Costs nothing to check.
+  const blocked = musicLedPlanBlocker({
+    isMusicLed: isMusicLed(cardFor(p)),
+    hasTrack: Boolean(briefRow?.activeTrackAssetId),
+    hasTranscript: Boolean(briefRow?.transcript?.trim()),
+  });
+  if (blocked) throw new StbValidationError("music_track_required", blocked);
+
   return enqueueGeneration(db, {
     organizationId: p.organizationId,
     projectId: p.id,

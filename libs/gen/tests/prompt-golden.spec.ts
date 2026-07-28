@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assembleFramePrompt, assembleTakePrompt } from "../src/prompt";
+import { assembleFramePrompt, assembleShotPlanPrompt, assembleTakePrompt } from "../src/prompt";
 import type { StyleCard } from "@avd/shared/contracts";
 
 // REQ-GEN-032 — golden files of what the MODEL ACTUALLY RECEIVES.
@@ -74,5 +74,24 @@ describe("REQ-GEN-032: assembled prompts, as the model receives them", () => {
       customPrompt: "A red kettle boils.",
       direction: { synopsis: "kettle", subject: "a kettle", action: "boils" },
     })).toMatchFileSnapshot("__prompts__/take-no-card.txt");
+  });
+});
+
+// REQ-STB-032 / ADR-013 — the shot plan prompt for a music-led film.
+//
+// The whole decision is that this plan is made AGAINST the real track. The transcript stamps
+// reaching the model is the artifact that proves it, so it is a golden file rather than a
+// `toContain` — if the alignment instruction is ever weakened or the stamps stop being passed, it
+// shows up here as a diff instead of as a film whose words arrive fifteen seconds early.
+describe("REQ-STB-032: music-led shot plan carries the track's stamps", () => {
+  it("plan prompt with a transcript", async () => {
+    await expect(assembleShotPlanPrompt({
+      projectTitle: "Neon Rivers",
+      brief: { idea: "a lyric video for a synthwave track" },
+      targetDurationSeconds: 60,
+      scriptText: "Neon reflections on wet asphalt; a lone driver.",
+      entities: [],
+      transcript: "[00:00] instrumental intro\n[00:23] verse one — neon rivers run\n[00:47] chorus — hold the light",
+    })).toMatchFileSnapshot("__prompts__/shot-plan-music-led.txt");
   });
 });

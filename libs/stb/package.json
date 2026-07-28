@@ -15,7 +15,8 @@
     "./director-pass": "./src/director-pass.ts",
     "./casting": "./src/casting.ts",
     "./critique": "./src/critique.ts",
-    "./chain": "./src/chain.ts"
+    "./chain": "./src/chain.ts",
+    "./music-led": "./src/music-led.ts"
   },
   "dependencies": {
     "@avd/ast": "workspace:*",

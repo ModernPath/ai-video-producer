@@ -30,6 +30,8 @@ import { listEntities, listProjectEntities, listStyleKits } from "@avd/ast";
 import { scriptVersion, shotPlanProposal } from "@avd/stb/schema";
 
 export interface ScriptPanelProps {
+  /** REQ-STB-032: why shot planning is not available yet, or null. Pure — see @avd/stb/music-led. */
+  planBlocker: string | null;
   /** The project row. Named `p` because that is what it is called in the JSX moved from page.tsx. */
   p: typeof project.$inferSelect;
   activeKinds: Set<string>;
@@ -45,7 +47,7 @@ export interface ScriptPanelProps {
   versions: Array<typeof scriptVersion.$inferSelect>;
 }
 
-export function ScriptPanel({ p, activeKinds, briefIdea, cast, id, lastFailure, latestScript, music, projectCard, proposals, shots, versions }: ScriptPanelProps) {
+export function ScriptPanel({ planBlocker, p, activeKinds, briefIdea, cast, id, lastFailure, latestScript, music, projectCard, proposals, shots, versions }: ScriptPanelProps) {
   return (
     <>
       {lastFailure && (
@@ -151,10 +153,17 @@ export function ScriptPanel({ p, activeKinds, briefIdea, cast, id, lastFailure, 
             </form>
             <form action={proposePlanAction}>
               <input type="hidden" name="projectId" value={id} />
-              <SubmitButton small primary disabled={!latestScript || activeKinds.has("shot_plan")} pendingLabel="Planning…">
+              {/* REQ-STB-032 / ADR-013: a music-led film plans against its real track, so say so
+                  BEFORE the click. The service refuses too — a disabled button is guidance, the
+                  service is the guarantee (REQ-STB-062). Same shape as the stage panel's
+                  generationBlocker: name the way out, not just the problem. */}
+              <SubmitButton small primary disabled={!latestScript || activeKinds.has("shot_plan") || Boolean(planBlocker)} pendingLabel="Planning…">
                 Break into shots
               </SubmitButton>
             </form>
+            {planBlocker && (
+              <p className="mono muted" style={{ fontSize: 10, lineHeight: 1.5, maxWidth: 420 }}>↳ {planBlocker}</p>
+            )}
           </>
         }
       >

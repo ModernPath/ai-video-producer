@@ -1,7 +1,7 @@
 # Requirements Ledger — STB (Story & Storyboard)
 
 ## Dashboard — STB (Story & Storyboard)
-Totals: 61 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 1 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 61 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 2 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -51,7 +51,7 @@ Totals: 61 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 1 READY · 2 PROPOSED · 0 DE
 | REQ-STB-041 | Shot grammar: typed craft vocabulary + plan grader | P9 | DONE | EPIC-STB-001 SR-DIR-001/002 (USER 2026-07-26 "improve the artistic director skills… directed by Aki Kaurismäki") | tests/grammar.spec.ts (11) | shared/config/grammar.ts · libs/stb/src/grammar.ts |
 | REQ-STB-034 | First take auto-selects (export never silently empty) | P8 | DONE | USER 2026-07-24 "why can't I export" (5 takes bought, 0 selected → Export 0 ready) | tests/take-binding.int.spec.ts REQ-STB-034 + browser (5/5 generated) | materializeGenerationOutput take branch |
 | REQ-STB-033 | Cast visibility everywhere (bar with refs + profile badges; library from home) | P8 | DONE | USER 2026-07-24 usability screenshots | browser E2E ×3 views | components/CastBar.tsx, script page wiring, home library link |
-| REQ-STB-032 | Music-led planning: plan against the real track | P8 | READY | ADR-013 (resolves OQ-115) · Neon Rivers 2026-07-24 | — | — |
+| REQ-STB-032 | Music-led planning: plan against the real track | P8 | IN_REVIEW | ADR-013 (resolves OQ-115) · Neon Rivers 2026-07-24 | tests/music-led-planning.spec.ts · music-led-gate.int.spec.ts | src/music-led.ts · plan.ts |
 | REQ-STB-031 | Storyboard players audible (no forced mute) | P7 | DONE | USER BUG 2026-07-24 "Kaiju video has no sound" | server-rendered markup + browser (mute icon gone) | page.tsx tile <video> unmuted |
 | REQ-STB-030 | Route-aware UI (route badge + honest take estimates) | P7 | DONE | BACKLOG 2026-07-24 (10s omni shot showed veo-snapped $0.80) | libs/gen/tests/omni-video.spec.ts REQ-STB-030 block + browser | gen estimateTake, storyboard header badge, take-button estimate + effective-duration hint |
 | REQ-STB-025 | Lyric-synced cut suggestions (♪ MUSIC SYNC) | P6 | DONE | USER Lyria epic ("time the change of scene according to song timing") | tests/music-sync.spec.ts + update-duration.int + browser E2E | src/music-sync.ts, updateShotDuration, applySyncAction, SYNC panel |
@@ -395,7 +395,7 @@ Totals: 61 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 1 READY · 2 PROPOSED · 0 DE
 - **Deferred / notes:** share page and A/B compare were already unmuted; animatic supplies its own music track.
 
 ### REQ-STB-032 — Music-led planning: plan against the real track
-- **Status:** READY · **Stage:** P8 · **Priority:** should
+- **Status:** IN_REVIEW · **Stage:** P8 · **Priority:** should
 - **Raised-by:** Neon Rivers lyric-video production (2026-07-24) — lyric shots placed by storyboard order, not by when the line is sung; verse text at ~8s against vocals starting 0:23.
 - **Source:** **ADR-013** (resolves OQ-115) · REQ-STB-028 (the planner already reads the music brief) · REQ-GEN-020 (transcript)
 - **Statement:** For music-led archetypes the shot plan shall be made against the ACTUAL track: planning is blocked until an active track exists and has been transcribed, and the planner receives the track's `[MM:SS]` section stamps so shot boundaries land on them.
@@ -406,9 +406,10 @@ Totals: 61 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 1 READY · 2 PROPOSED · 0 DE
   - GIVEN a produced plan THEN cumulative shot boundaries land on section stamps wherever the duration policy allows, verified by a pure test over `parseSectionTimes` output.
   - GIVEN a NON-music-led project THEN planning is unchanged and ungated — the old order still applies.
   - GIVEN the track is regenerated after planning THEN the plan is marked stale in the UI rather than silently kept (the REQ-STB-058 lesson).
-- **Tests:** —
-- **Code:** —
-- **Deferred / notes:** alignment is SECTION-level, not per-line: `shot.minSeconds` is 4 and lyric lines are commonly 1–2s apart, so per-line alignment is arithmetically impossible (ADR-013). Line-level precision stays with captions (REQ-GEN-020). The gate reuses `generationBlocker` — no new machinery. Unblocked 2026-07-28 by the user's call.
+- **Tests:** `tests/music-led-planning.spec.ts` (9 pure) · `tests/music-led-gate.int.spec.ts` (4, gate mutation-verified) · `libs/gen/tests/__prompts__/shot-plan-music-led.txt` (golden)
+- **Code:** `src/music-led.ts` (`cardFor`/`isMusicLed`/`musicLedPlanBlocker`) · `src/plan.ts` (service gate) · `apps/web/.../ScriptPanel.tsx` (blocker shown, button disabled)
+- **LOOKED AT:** yes — a `lyric-video` project in the dev DB renders "This film is cut to its music, so the shot plan needs the real track first — generate or attach one, then plan." and the *Break into shots* button is disabled (§9.9).
+- **Deferred / notes:** **section alignment needs the OMNI route.** Veo's durations are {4,6,8} — all even — so every reachable cumulative time is even and an odd stamp like 0:23 or 0:47 is arithmetically unreachable; omni's 4–10 integers reach both. Found by reading the golden file, and NOT recorded in ADR-013. Alignment is SECTION-level, not per-line: `shot.minSeconds` is 4 and lyric lines are commonly 1–2s apart, so per-line alignment is arithmetically impossible (ADR-013). Line-level precision stays with captions (REQ-GEN-020). The gate reuses `generationBlocker` — no new machinery. Unblocked 2026-07-28 by the user's call.
 
 ### REQ-STB-033 — Cast visibility everywhere
 - **Status:** DONE · **Stage:** P8 · **Priority:** must

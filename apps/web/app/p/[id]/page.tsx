@@ -51,6 +51,7 @@ import { FilmPanel } from "./panels/FilmPanel";
 import { MusicPanel } from "./panels/MusicPanel";
 import { OutputPanel } from "./panels/OutputPanel";
 import { ScriptPanel } from "./panels/ScriptPanel";
+import { cardFor, isMusicLed, musicLedPlanBlocker } from "@avd/stb/music-led"; // REQ-STB-032
 
 export const dynamic = "force-dynamic";
 
@@ -110,6 +111,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const { getProjectStyleCard } = await import("@avd/prj/service");
   const projectCard = await getProjectStyleCard(d, id); // SR-DIR-008
   const music = await getMusicBrief(d, id);
+  // REQ-STB-032 / ADR-013 — music-led films plan against the real track. Pure and free to compute.
+  const planBlocker = musicLedPlanBlocker({
+    isMusicLed: isMusicLed(cardFor(p)),
+    hasTrack: Boolean(music?.activeTrackAssetId),
+    hasTranscript: Boolean(music?.transcript?.trim()),
+  });
   const sync = music?.transcript
     ? suggestSyncDurations(shots.map((s) => ({ id: s.id, title: s.title, durationS: Number(s.durationS) })), parseSectionTimes(music.transcript))
     : null;
@@ -296,7 +303,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const addShotPanel = <AddShotPanel id={id} />;
 
   // ── Drawer panels ───────────────────────────────────────────────────────
-  const scriptPanel = <ScriptPanel p={p} activeKinds={activeKinds} briefIdea={briefIdea} cast={cast} id={id} lastFailure={lastFailure} latestScript={latestScript} music={music} projectCard={projectCard} proposals={proposals} shots={shots} versions={versions} />;
+  const scriptPanel = <ScriptPanel p={p} planBlocker={planBlocker} activeKinds={activeKinds} briefIdea={briefIdea} cast={cast} id={id} lastFailure={lastFailure} latestScript={latestScript} music={music} projectCard={projectCard} proposals={proposals} shots={shots} versions={versions} />;
 
   const musicPanel = <MusicPanel p={p} activeKinds={activeKinds} id={id} music={music} sync={sync} />;
 

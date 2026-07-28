@@ -14,6 +14,7 @@ import { styleCardSchema, toDirectingBlock, toMusicBias, toPlanBias } from "@avd
 import { listProjectEntities } from "@avd/ast";
 import { shot } from "./schema";
 import { project } from "@avd/prj/schema";
+import { cardFor } from "./music-led";
 
 export class StbValidationError extends Error {
   constructor(public code: string, message: string) {
@@ -82,16 +83,11 @@ export function resolveShotRefs(shotRefAssetIds: string[] | null, castRefAssetId
 export async function projectCard(db: Db, projectId: string) {
   const [p] = await db.select().from(project).where(eq(project.id, projectId));
   if (!p) return undefined;
-  if (p.styleCard) {
-    const parsed = styleCardSchema.safeParse(p.styleCard);
-    if (parsed.success) return parsed.data; // SR-DIR-008 compiled card wins
-  }
-  return p.archetype ? styleCards[p.archetype] : undefined;
+  return cardFor(p); // REQ-STB-032: one resolver, see ./music-led
 }
 
 export function recipeFor(p: { archetype?: string | null; styleCard?: unknown }) {
-  const compiled = p.styleCard ? styleCardSchema.safeParse(p.styleCard) : undefined;
-  const card = compiled?.success ? compiled.data : p.archetype ? styleCards[p.archetype] : undefined; // REQ-STB-026
+  const card = cardFor(p); // REQ-STB-026 / REQ-STB-032: one resolver, see ./music-led
   return card
     ? { directing: toDirectingBlock(card), planBias: toPlanBias(card), musicBias: toMusicBias(card) }
     : {};
