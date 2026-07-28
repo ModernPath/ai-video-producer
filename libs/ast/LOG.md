@@ -1,5 +1,14 @@
 # Build Log — AST (Asset Library)
 
+## 2026-07-28 — REQ-PLT-003: ffmpeg call sites moved to the shared runner (ADR-014)
+**Done:** The three call sites here (thumbnail derivatives, duration probe, tail-frame extraction) switched from `docker run jrottenberg/ffmpeg` to `@avd/shared/ffmpeg`. Arguments are unchanged — they still reference files as `/work/<name>`; the runner bind-mounts on a laptop and rewrites `/work` to the real path against the baked-in binary in the deployed image (`FFMPEG_MODE=native`).
+**Decisions:** the mode is configuration, not a branch at the call site (CLAUDE.md §1.10). No call site knows which mode it is in.
+**Deferred:** —
+**Discovered:** this code could never have worked in the container — there is no docker socket — and it would have failed SILENTLY, because each of these three catches and returns null/warns by design, so a thumbnail, a track duration and a continuity start-frame would all have gone quietly missing.
+**Follow-ups:** covered by REQ-PLT-003 in `libs/plt/REQUIREMENTS.md`.
+**Gate:** `pnpm typecheck` clean; 375 unit tests green; golden argv spec `libs/shared/tests/ffmpeg.spec.ts`.
+
+
 ## 2026-07-27 — human sign-off: 4 requirements IN_REVIEW → DONE
 **Done:** USER:2026-07-27 "Let's approve all requirements in review state?" — the 4 IN_REVIEW rows in this ledger are approved and moved to DONE. Covers uploads, entities, style kits and reference-image editing. Status updated in all three places per `CLAUDE.md` §1.8 (dashboard row · detail block · `Totals:`); `PROGRESS.md` regenerated from the ledgers and independently agrees (129 DONE · 0 IN_REVIEW across all contexts).
 **Decisions:** this drains the queue rather than collapsing the state — the option `docs/88-architecture-review.md` §6 offered when it recorded "48 IN_REVIEW · 0 signed off" and called the distinction information-free. IN_REVIEW keeps its meaning for future work; it is the sign-off that was outstanding, and the user is the sign-off authority. Checked before flipping: every row carries both a Tests and a Code link, and no detail block flags open work.

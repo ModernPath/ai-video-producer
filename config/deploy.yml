@@ -34,7 +34,9 @@ proxy:
   healthcheck:
     path: /api/health
     interval: 3
-    timeout: 10
+    # How long a new container may take to answer healthy before the deploy gives up. It boots
+    # migrations first, so this is not "how fast is the health route" — it is migrate + next start.
+    timeout: 90
   # A take can occupy a request for minutes (ADR-007: long jobs are the reason we are not on
   # serverless). The default 30s would cut generation and export requests off mid-flight.
   response_timeout: 300
