@@ -442,7 +442,7 @@ export function StagePanel(props: StagePanelProps) {
         return (
           <section style={{ ...card, marginTop: 12, borderColor: "#7a4b3a" }}>
             <p className="mono" style={{ fontSize: 10.5, color: "#e0763a" }}>
-              {f.kind} props.failed · {f.errorCode}
+              {f.kind} failed · {f.errorCode}
             </p>
             <p className="muted" style={{ fontSize: 10.5, marginTop: 4 }}>
               {orphaned
@@ -495,7 +495,7 @@ export function StagePanel(props: StagePanelProps) {
 
         <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
           <button type="submit" name="generate" value="none" style={btn}>Save</button>
-          <button type="submit" name="generate" value="frame" disabled={props.busy.frame > 0 || Boolean(props.shot.continuesFromShotId)} title={props.shot.continuesFromShotId ? "This sub-clip starts from the previous take\u2019s last frame — generating one would replace it and break the props.chain." : undefined} style={{ ...btnPrimary, opacity: props.busy.frame > 0 || props.shot.continuesFromShotId ? 0.45 : 1 }}>Save &amp; generate frame</button>
+          <button type="submit" name="generate" value="frame" disabled={props.busy.frame > 0 || Boolean(props.shot.continuesFromShotId)} title={props.shot.continuesFromShotId ? "This sub-clip starts from the previous take\u2019s last frame — generating one would replace it and break the chain." : undefined} style={{ ...btnPrimary, opacity: props.busy.frame > 0 || props.shot.continuesFromShotId ? 0.45 : 1 }}>Save &amp; generate frame</button>
           <button type="submit" name="generate" value="take" disabled={props.busy.take > 0 || Boolean(props.blocked)} title={props.blocked ?? undefined} style={{ ...btnPrimary, opacity: props.busy.take > 0 || props.blocked ? 0.45 : 1 }}>Save &amp; generate take</button>
           <span className="mono muted" style={{ fontSize: 9 }}>empty = auto · custom text sent verbatim</span>
         </div>

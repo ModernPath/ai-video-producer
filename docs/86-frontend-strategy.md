@@ -40,9 +40,9 @@
 ## 5. Testing
 
 - Component: ShotCard states, CandidateStrip selection, AnimaticPlayer timing math (Vitest + Testing Library).
-- E2E (Playwright + `MOCK_GEN`): golden thread (brief → animatic → export) as `EPIC-PRJ-001` / `EPIC-STB-002` / `EPIC-ASM-001` evidence (see `WORKLIST.md`).
+- E2E (Playwright + `MOCK_GEN`): golden thread (brief → animatic → export) as `EPIC-PRJ-001` / `EPIC-STB-002` / `EPIC-ASM-001` evidence (see `.WORKLIST.md`).
 - Visual regression on the storyboard board (it *is* the brand).
-
+_
 ## 6. Design system
 
 `features/design-system.md` — dark-first "director's room" aesthetic.

@@ -10,6 +10,36 @@ export class ProviderError extends Error {
   }
 }
 
+/**
+ * REQ-GEN-036 — why a completed video operation produced no video.
+ *
+ * A content-filtered generation SUCCEEDS: `op.done` is true, `op.error` is empty, and the reason
+ * lives in `raiMediaFilteredCount` / `raiMediaFilteredReasons`. Reading `op.error` alone therefore
+ * reported `{}` in exactly the case that needed explaining — the user's whole error message was
+ * "no video in response: {}" (2026-07-28, a 10-shot chain of arena-stage takes with people in them).
+ *
+ * Pure so it can be tested without a network call.
+ */
+export function videoFailure(op: {
+  response?: { raiMediaFilteredCount?: number | undefined; raiMediaFilteredReasons?: string[] | undefined } | undefined;
+  error?: unknown;
+}): ProviderError {
+  const filtered = op.response?.raiMediaFilteredCount ?? 0;
+  const reasons = op.response?.raiMediaFilteredReasons ?? [];
+  if (reasons.length > 0) {
+    // content_policy, not output_unusable: retrying the SAME prompt filters again (INV-GEN-006).
+    return new ProviderError("content_policy", `blocked by the provider's content filter — ${reasons.join("; ")}`);
+  }
+  if (filtered > 0) {
+    return new ProviderError("content_policy", `blocked by the provider's content filter (${filtered} filtered, no reason given)`);
+  }
+  const detail = op.error ? JSON.stringify(op.error).slice(0, 300) : "";
+  return new ProviderError(
+    "output_unusable",
+    detail ? `no video in response: ${detail}` : "no video in response, and the provider gave no reason"
+  );
+}
+
 export interface TextRequest {
   audio?: { bytes: Uint8Array; mime: string } | undefined; // REQ-GEN-020
   model: string;
@@ -228,9 +258,7 @@ export function createGeminiProvider(): GenProvider {
           op = await client.operations.getVideosOperation({ operation: op });
         }
         const vid = op.response?.generatedVideos?.[0]?.video;
-        if (!vid) {
-          throw new ProviderError("output_unusable", `no video in response: ${JSON.stringify(op.error ?? {}).slice(0, 300)}`);
-        }
+        if (!vid) throw videoFailure(op); // REQ-GEN-036: the reason is in the RESPONSE, not op.error
         let bytes: Uint8Array;
         if (vid.videoBytes) {
           bytes = Uint8Array.from(Buffer.from(vid.videoBytes, "base64"));

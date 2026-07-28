@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 32 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 32 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -28,6 +28,8 @@ Totals: 32 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 | REQ-GEN-023 | Omni video take route (refs + free durations) | P6 | DONE | OQ-112 spike 2026-07-24 | tests/omni-video.spec.ts + real E2E (RUN_REAL_OMNI, 5s take $0.5068) | provider buildOmniVideoRequest + interactions path, routing videoRoute, cost token rate, executor refs |
 | REQ-GEN-034 | Stuck work recovers: queued rows nothing will claim, and cancel | P9 | DONE | USER 2026-07-27 "2 (video) and 3 (image) are stuck… how to restart?" | tests/stuck-recovery.int.spec.ts (8) | executor reapStale queued branch + cancelGeneration, in-flight panel |
 | REQ-GEN-035 | CI runs `pnpm check` on every push | P10 | IN_REVIEW | REQ-GEN-033 | verified by planted type error + failing spec | .github/workflows/ci.yml |
+| REQ-GEN-036 | A failed take says WHY | P10 | IN_REVIEW | USER BUG 2026-07-28 | tests/video-failure.spec.ts | src/provider.ts |
+| REQ-GEN-037 | The video route is explicit wherever generation runs | P10 | PROPOSED | USER BUG 2026-07-28 | — | config/deploy.yml |
 | REQ-GEN-032 | One prompt pipeline; golden-file tests on assembled output | P10 | DONE | `docs/88-architecture-review.md` §2 · four shipped defects | tests/prompt-pipeline.spec.ts (12) + prompt-golden.spec.ts (5) | src/prompt.ts (subjectStage/lookStages/soundStages/assemble) |
 | REQ-GEN-033 | Lint + config hardening: no-dupe-keys, derived vocabularies | P10 | DONE | `docs/88-architecture-review.md` §5 | — | — |
 | REQ-GEN-031 | Filmed prompts carry no typography and forbid on-screen text | P9 | DONE | USER 2026-07-27 "where these gibberish texts in middle of video come from?" | prompt.spec.ts REQ-GEN-031 (4) + style-card.spec.ts (4) | style-card toVisualStyle, prompt.ts NO_ON_SCREEN_TEXT |
@@ -417,3 +419,26 @@ Totals: 32 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Tests:** the gate is mutation-verified — a planted type error exits 2 and names the file; a planted failing spec exits 1. `pnpm test:unit` passes against a DEAD database host, proving it needs no services.
 - **Code:** `.github/workflows/ci.yml` · `package.json` (`test:unit`, `check:ci`) · `scripts/test-setup.ts` (`AVD_SKIP_DB_SETUP` guard)
 - **Deferred / notes:** USER:2026-07-28 chose GitHub Actions and the narrow ring. Scope is typecheck + the 33 spec files needing no services (354 tests). **62 `*.int.spec.ts` files do NOT run in CI** — they need Postgres and MinIO and already flake at load ≥ 7 locally; a CI red for reasons that are not the code is worse than none. Widening it is a follow-up once that flakiness is understood. The real-API ring stays manual per §9.8 and is excluded by name as well as by pattern.
+
+### REQ-GEN-036 — A failed take says WHY
+- **Status:** IN_REVIEW · **Stage:** P10 · **Priority:** must
+- **Raised-by:** USER BUG 2026-07-28 — "Generate the chain (10 shots)" produced `take failed · output_unusable` / `no video in response: {}`. The `{}` was the entire diagnosis offered.
+- **Statement:** When a completed video operation returns no video, the recorded failure shall name the provider's reason, and a content-filtered generation shall be reported as `content_policy` rather than `output_unusable`.
+- **Acceptance criteria:**
+  - GIVEN a response with `raiMediaFilteredReasons` THEN the error is `content_policy` and the message carries the reasons verbatim.
+  - GIVEN `raiMediaFilteredCount` with no reason string THEN the error is `content_policy` and names the count.
+  - GIVEN a genuine `op.error` THEN it is reported as `output_unusable` with that detail.
+  - GIVEN neither THEN the message says the provider gave no reason — never prints `{}` and calls it a diagnosis.
+- **Tests:** `libs/gen/tests/video-failure.spec.ts` (5, pure) · `apps/web/tests/stage-panel.render.spec.tsx` (state-matrix text guard, mutation-verified)
+- **Code:** `libs/gen/src/provider.ts` (`videoFailure`)
+- **Deferred / notes:** cause of the empty message: a content-filtered generation SUCCEEDS — `op.done` true, `op.error` empty — and puts the reason in `raiMediaFilteredCount`/`raiMediaFilteredReasons` on the RESPONSE, which this code never read. So the one field printed was the one guaranteed to be empty in the likeliest case. `content_policy` and not `output_unusable` because retrying the same prompt filters again. **Does not by itself explain the user's failure** — the route mis-configuration recorded as REQ-GEN-037 is the likelier cause of the take failing at all.
+
+### REQ-GEN-037 — The video route is explicit wherever generation runs
+- **Status:** PROPOSED · **Stage:** P10 · **Priority:** must
+- **Raised-by:** USER BUG 2026-07-28, found while diagnosing REQ-GEN-036 — `GEN_VIDEO_ROUTE=omni` is set in **`apps/web/.env.local` and nowhere else**. `config/deploy.yml` does not declare it, so every deployed process falls back to the `"veo"` default in `libs/shared/src/config/limits.ts`. REQ-STB-067 moved chain generation into the worker, which made the split visible.
+- **Statement:** The active video route shall be explicit in every environment that generates, and shall not depend on which process happens to run a generation.
+- **Acceptance criteria:**
+  - GIVEN the deployed app THEN `GEN_VIDEO_ROUTE` is declared in `config/deploy.yml` and applies to the web AND worker roles alike.
+  - GIVEN two processes in one environment THEN both resolve the SAME route — a generation must not depend on whether it ran inline or in the worker.
+  - GIVEN the route THEN it is visible in the product (the generation ledger already stores `modelId`; surface it where a take's cost is shown), so a wrong route is noticed rather than inferred from a duration palette.
+- **Deferred / notes:** the routes are not interchangeable — veo takes only {4,6,8}s and omni every integer 4–10, which is also why ADR-013's section alignment needs omni. A film planned on one route and generated on the other has boundaries it cannot hit. Cost is comparable (~$0.10/s) so this is a correctness and taste issue, not a billing one. **Deliberately not fixed unilaterally:** declaring the route changes deployed behaviour and is the user's call.

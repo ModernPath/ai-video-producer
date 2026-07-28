@@ -124,3 +124,35 @@ describe("REQ-STB-067: the chain button says what a person would say", () => {
     expect(container.textContent ?? "").not.toMatch(/props\./);
   });
 });
+
+// REQ-GEN-036 — the same corruption class, found by the user a THIRD time (2026-07-28):
+// the failure banner read "take props.failed · output_unusable".
+//
+// The REQ-STB-067 guard above already asserted `textContent` carries no "props.", and it passed —
+// because it renders ONE state, and a shot with no failed take never renders the banner. A guard
+// that only visits the happy path only guards the happy path. This walks the states instead.
+describe("REQ-GEN-036: no rendered state leaks a prop path", () => {
+  const failed = (over = {}) =>
+    new Map([["shot-x", { id: "gen-1", kind: "take", errorCode: "content_policy", errorDetail: "blocked by the provider's content filter — Person/Face generation blocked", target: {}, ...over }]]);
+
+  const STATES: Array<[string, Parameters<typeof stagePanelProps>[0]]> = [
+    ["a failed take", { shot: aShot({ id: "shot-x" }), failedByShot: failed() as never }],
+    ["a failed take on a sub-clip", { shot: aShot({ id: "shot-x", continuesFromShotId: "shot-w" }), handoff: "stale", failedByShot: failed() as never }],
+    ["a shot mid-generation", { shot: aShot({ id: "shot-x" }), busy: { frame: 1, take: 1 } }],
+    ["a blocked chain member", { shot: aShot({ id: "shot-x", continuesFromShotId: "shot-w" }), blocked: "Continues Shot W — generate and choose that take first." as never }],
+    ["a shot with custom prompts", { shot: aShot({ id: "shot-x", imagePrompt: "img", videoPrompt: "vid" }) }],
+    ["a plain shot", {}],
+  ];
+
+  for (const [name, over] of STATES) {
+    it(`${name} reads as English`, () => {
+      const { container } = render(<StagePanel {...stagePanelProps(over)} />);
+      expect(container.textContent ?? "", `a prop path reached the screen in: ${name}`).not.toMatch(/props\./);
+    });
+  }
+
+  it("the failure banner names the kind and the code, not the props object", () => {
+    const { container } = render(<StagePanel {...stagePanelProps({ shot: aShot({ id: "shot-x" }), failedByShot: failed() as never })} />);
+    expect(container.textContent ?? "").toMatch(/take failed · content_policy/);
+  });
+});
