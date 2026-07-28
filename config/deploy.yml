@@ -62,6 +62,13 @@ env:
     # REQ-GEN-016 — the web app enqueues; the worker role consumes. Unset would mean inline
     # execution inside a request, which is what dev does and what a 300s proxy timeout cannot hold.
     WORKER_MODE: "queue"
+    # REQ-GEN-037 — the take/retake provider route. It was set ONLY in apps/web/.env.local, which
+    # no deployed process reads, so every take here silently used the "veo" default in
+    # libs/shared/src/config/limits.ts. REQ-STB-067 moved chain generation into the worker, which
+    # is where the user hit it. Declared at env.clear so BOTH roles resolve the same route — a
+    # generation must not depend on whether it ran inline or in the worker.
+    # Not interchangeable: veo takes only {4,6,8}s, omni every integer 4-10 (ADR-013 §alignment).
+    GEN_VIDEO_ROUTE: omni
     # ADR-014 — ffmpeg is on PATH in this image; there is no docker socket to shell out to.
     FFMPEG_MODE: native
     EXPORT_TMP_DIR: /app/data

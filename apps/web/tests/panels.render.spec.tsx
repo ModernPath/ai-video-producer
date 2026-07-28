@@ -11,6 +11,7 @@ import { AddShotPanel } from "../app/p/[id]/panels/AddShotPanel";
 import { CastPanel } from "../app/p/[id]/panels/CastPanel";
 import { MusicPanel } from "../app/p/[id]/panels/MusicPanel";
 import { OutputPanel } from "../app/p/[id]/panels/OutputPanel";
+import { omniVideoModel } from "@avd/shared/config"; // REQ-GEN-007: never a model-id literal
 
 afterEach(cleanup);
 
@@ -58,5 +59,42 @@ describe("REQ-STB-060: every extracted panel renders without a database", () => 
       .filter((f) => f.endsWith(".tsx"))
       .filter((f) => /from "\.\.\/\.\.\/\.\.\/\.\.\/lib\/db"|\bdb\(\)/.test(readFileSync(join(dir, f), "utf8")));
     expect(offenders, `these panels load their own data: ${offenders.join(", ")}`).toEqual([]);
+  });
+});
+
+// REQ-GEN-037 — the route has to be VISIBLE, or a wrong one is only ever inferred from a duration
+// palette after a film comes out wrong. The generation ledger already records `modelId`; this puts
+// it next to the cost. Asserted here rather than in a browser: local dev now sits behind sign-in
+// (REQ-PLT-002) and signing in is not something an agent should do on the user's behalf.
+describe("REQ-GEN-037: a generation says which model actually ran", () => {
+  const gen = (over = {}) => ({
+    id: "gen-1", kind: "take", status: "succeeded", costUsd: "0.60",
+    modelId: omniVideoModel, retryOf: null, errorCode: null, ...over,
+  });
+
+  it("names the model beside the cost", () => {
+    const { container } = render(
+      <OutputPanel
+        p={project} id="proj-1" music={null as never} kits={[]} recentGens={[gen()] as never}
+        progress={{ ready: false, pending: [], done: 0, total: 1 } as never} captionSelect={null}
+      />
+    );
+    const text = container.textContent ?? "";
+    expect(text).toContain(omniVideoModel);
+    expect(text, "cost and model belong on the same line — that is what makes a wrong route obvious")
+      .toContain(`take · succeeded · $0.60 · ${omniVideoModel}`);
+  });
+
+  it("a failed take still names its model and its reason", () => {
+    const { container } = render(
+      <OutputPanel
+        p={project} id="proj-1" music={null as never} kits={[]}
+        recentGens={[gen({ status: "failed", costUsd: null, errorCode: "content_policy" })] as never}
+        progress={{ ready: false, pending: [], done: 0, total: 1 } as never} captionSelect={null}
+      />
+    );
+    const text = container.textContent ?? "";
+    expect(text).toContain("content_policy");
+    expect(text).toContain(omniVideoModel);
   });
 });

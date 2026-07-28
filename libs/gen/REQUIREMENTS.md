@@ -1,7 +1,7 @@
 # Requirements Ledger — GEN (Generation)
 
 ## Dashboard — GEN (Generation)
-Totals: 32 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 32 DONE · 3 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -29,7 +29,7 @@ Totals: 32 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 | REQ-GEN-034 | Stuck work recovers: queued rows nothing will claim, and cancel | P9 | DONE | USER 2026-07-27 "2 (video) and 3 (image) are stuck… how to restart?" | tests/stuck-recovery.int.spec.ts (8) | executor reapStale queued branch + cancelGeneration, in-flight panel |
 | REQ-GEN-035 | CI runs `pnpm check` on every push | P10 | IN_REVIEW | REQ-GEN-033 | verified by planted type error + failing spec | .github/workflows/ci.yml |
 | REQ-GEN-036 | A failed take says WHY | P10 | IN_REVIEW | USER BUG 2026-07-28 | tests/video-failure.spec.ts | src/provider.ts |
-| REQ-GEN-037 | The video route is explicit wherever generation runs | P10 | PROPOSED | USER BUG 2026-07-28 | — | config/deploy.yml |
+| REQ-GEN-037 | The video route is explicit wherever generation runs | P10 | IN_REVIEW | USER BUG 2026-07-28 | libs/shared/tests/deploy-config.spec.ts | config/deploy.yml |
 | REQ-GEN-032 | One prompt pipeline; golden-file tests on assembled output | P10 | DONE | `docs/88-architecture-review.md` §2 · four shipped defects | tests/prompt-pipeline.spec.ts (12) + prompt-golden.spec.ts (5) | src/prompt.ts (subjectStage/lookStages/soundStages/assemble) |
 | REQ-GEN-033 | Lint + config hardening: no-dupe-keys, derived vocabularies | P10 | DONE | `docs/88-architecture-review.md` §5 | — | — |
 | REQ-GEN-031 | Filmed prompts carry no typography and forbid on-screen text | P9 | DONE | USER 2026-07-27 "where these gibberish texts in middle of video come from?" | prompt.spec.ts REQ-GEN-031 (4) + style-card.spec.ts (4) | style-card toVisualStyle, prompt.ts NO_ON_SCREEN_TEXT |
@@ -434,11 +434,14 @@ Totals: 32 DONE · 2 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DE
 - **Deferred / notes:** cause of the empty message: a content-filtered generation SUCCEEDS — `op.done` true, `op.error` empty — and puts the reason in `raiMediaFilteredCount`/`raiMediaFilteredReasons` on the RESPONSE, which this code never read. So the one field printed was the one guaranteed to be empty in the likeliest case. `content_policy` and not `output_unusable` because retrying the same prompt filters again. **Does not by itself explain the user's failure** — the route mis-configuration recorded as REQ-GEN-037 is the likelier cause of the take failing at all.
 
 ### REQ-GEN-037 — The video route is explicit wherever generation runs
-- **Status:** PROPOSED · **Stage:** P10 · **Priority:** must
+- **Status:** IN_REVIEW · **Stage:** P10 · **Priority:** must
 - **Raised-by:** USER BUG 2026-07-28, found while diagnosing REQ-GEN-036 — `GEN_VIDEO_ROUTE=omni` is set in **`apps/web/.env.local` and nowhere else**. `config/deploy.yml` does not declare it, so every deployed process falls back to the `"veo"` default in `libs/shared/src/config/limits.ts`. REQ-STB-067 moved chain generation into the worker, which made the split visible.
 - **Statement:** The active video route shall be explicit in every environment that generates, and shall not depend on which process happens to run a generation.
 - **Acceptance criteria:**
   - GIVEN the deployed app THEN `GEN_VIDEO_ROUTE` is declared in `config/deploy.yml` and applies to the web AND worker roles alike.
   - GIVEN two processes in one environment THEN both resolve the SAME route — a generation must not depend on whether it ran inline or in the worker.
   - GIVEN the route THEN it is visible in the product (the generation ledger already stores `modelId`; surface it where a take's cost is shown), so a wrong route is noticed rather than inferred from a duration palette.
+- **Tests:** `libs/shared/tests/deploy-config.spec.ts` (5, mutation-verified — deleting the line turns 2 red) · `apps/web/tests/panels.render.spec.tsx` (model shown beside cost)
+- **Code:** `config/deploy.yml` (`GEN_VIDEO_ROUTE: omni` at `env.clear`, so both roles get it) · `apps/worker/package.json` (loads the same `.env.local` the web app does) · `OutputPanel.tsx` (recent generations name their model)
+- **LOOKED AT:** NO — local dev now sits behind sign-in (REQ-PLT-002) and signing in is not something an agent should do on the user's behalf. Verified at the render layer instead, which is why the harness exists. **The deployed fix is unverified until the next deploy.**
 - **Deferred / notes:** the routes are not interchangeable — veo takes only {4,6,8}s and omni every integer 4–10, which is also why ADR-013's section alignment needs omni. A film planned on one route and generated on the other has boundaries it cannot hit. Cost is comparable (~$0.10/s) so this is a correctness and taste issue, not a billing one. **Deliberately not fixed unilaterally:** declaring the route changes deployed behaviour and is the user's call.

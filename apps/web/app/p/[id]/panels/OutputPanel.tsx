@@ -70,7 +70,7 @@ export function OutputPanel({ p, captionSelect, id, kits, music, progress, recen
           {recentGens.map((g) => (
             <div key={g.id} style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <p className="mono muted" style={{ fontSize: 10 }}>
-                {g.kind} · {g.status} · ${g.costUsd ?? "—"}{g.retryOf ? " · retry" : ""}{g.status === "failed" && g.errorCode ? ` · ${g.errorCode}` : ""}
+                {g.kind} · {g.status} · ${g.costUsd ?? "—"}{g.retryOf ? " · retry" : ""}{g.status === "failed" && g.errorCode ? ` · ${g.errorCode}` : ""}{g.modelId ? ` · ${g.modelId}` : ""}
               </p>
               {g.status === "failed" && (
                 <form action={retryGenerationAction}>
