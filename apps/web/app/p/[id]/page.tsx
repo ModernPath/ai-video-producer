@@ -33,6 +33,7 @@ import {
   updateBriefAction, updateShotDurationAction, updateShotRefsAction, uploadTrackAction,
 } from "../../actions";
 import { CastBar } from "../../../components/CastBar";
+import { UserChip } from "../../../components/UserChip";
 import { ABCompare } from "../../../components/ABCompare";
 import { AnimaticPlayer } from "../../../components/AnimaticPlayer";
 import { LiveRefresh } from "../../../components/LiveRefresh";
@@ -323,6 +324,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       projectId={id}
       shots={railShots}
       commandBar={commandBar}
+      userChip={<UserChip />}
       stagePanels={stagePanels}
       filmPanel={filmPanel}
       addShotPanel={addShotPanel}

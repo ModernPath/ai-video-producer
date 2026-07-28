@@ -5,6 +5,7 @@ import { createStyleKitAction, devOrgId } from "../actions";
 import { addEntityRefsAction, archiveEntityAction, createEntityAction, editEntityRefAction, removeEntityRefAction, researchEntityProfileAction, saveEntityProfileAction } from "../actions";
 import { SubmitButton } from "../../components/SubmitButton";
 import { ImagePicker } from "../../components/ImagePicker";
+import { UserChip } from "../../components/UserChip";
 import { db } from "../../lib/db";
 
 export const dynamic = "force-dynamic";
@@ -20,8 +21,9 @@ export default async function LibraryPage() {
 
   return (
     <main style={{ maxWidth: 880, margin: "0 auto", padding: "36px 24px" }}>
-      <p className="mono muted" style={{ fontSize: 12 }}>
+      <p className="mono muted" style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 16 }}>
         <Link href="/">← projects</Link>
+        <span style={{ marginLeft: "auto" }}><UserChip /></span>
       </p>
       <h1 className="disp" style={{ fontSize: 22, marginTop: 8 }}>
         Library — Cast &amp; Brand

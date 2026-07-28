@@ -42,6 +42,7 @@ export function Workspace({
   projectId,
   shots,
   commandBar,
+  userChip,
   stagePanels,
   filmPanel,
   addShotPanel,
@@ -54,6 +55,8 @@ export function Workspace({
   projectId: string;
   shots: RailShot[];
   commandBar: React.ReactNode;
+  /** REQ-PLT-002 — the session chip, placed INSIDE this header so it cannot cover the tab buttons. */
+  userChip?: React.ReactNode;
   /** One node per shot id — only the focused one is mounted visible. */
   stagePanels: Record<string, React.ReactNode>;
   /** The finished film: exports player + animatic. Shown when focus is "film". */
@@ -108,7 +111,7 @@ export function Workspace({
         }}
       >
         {commandBar}
-        <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center" }}>
           {(Object.keys(TAB_LABELS) as DrawerTab[]).map((t) => (
             <button
               key={t}
@@ -139,6 +142,11 @@ export function Workspace({
               )}
             </button>
           ))}
+          {userChip && (
+            <span style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: 6, paddingLeft: 12, borderLeft: "1px solid var(--line)" }}>
+              {userChip}
+            </span>
+          )}
         </div>
       </header>
 
