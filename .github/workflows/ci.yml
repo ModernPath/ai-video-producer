@@ -27,13 +27,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
+      # v4 still targets Node 20, which the runners now force onto 24 with a deprecation
+      # warning. Pinned rather than floating so a runner change is a deliberate edit.
       - uses: pnpm/action-setup@v4
         with:
           version: 10.30.1 # keep in step with "packageManager" in package.json
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22 # package.json engines: >=22
           cache: pnpm
