@@ -1,0 +1,48 @@
+# REQ-GEN-035 — the gate, run by a machine instead of by memory.
+#
+# `pnpm typecheck` carried 45 errors across 11 files for weeks (REQ-GEN-033). Nothing was wrong with
+# the compiler; nothing ran it. CLAUDE.md §9.3 named no command, so a gate that existed on paper was
+# never a gate. This is that command, on every push.
+#
+# Deliberately NARROW — typecheck plus the specs that need no services:
+#   - integration specs (`*.int.spec.ts`) need Postgres AND MinIO, and already flake locally at
+#     load >= 7. A CI that is red for reasons that are not your code is worse than no CI, so they
+#     stay local until that flakiness is understood (tracked on REQ-GEN-035).
+#   - the real-API ring (`pnpm test:real`) SPENDS MONEY and stays manual per CLAUDE.md §9.8.
+#     `test:unit` excludes it explicitly as well as by name; do not add it here.
+name: check
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+# A newer push supersedes an in-flight run on the same branch.
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.1 # keep in step with "packageManager" in package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22 # package.json engines: >=22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Split from the test run on purpose: when this fails the log says "types", not "tests".
+      - name: typecheck
+        run: pnpm typecheck
+
+      - name: unit + render specs (no database, no provider calls)
+        run: pnpm test:unit

@@ -15,7 +15,9 @@
     "test:real": "RUN_REAL_API=1 vitest run libs/gen/tests/real-api.e2e.spec.ts",
     "style": "tsx scripts/style-card.ts",
     "audit:prompts": "tsx scripts/audit-prompts.ts",
-    "check": "pnpm typecheck && pnpm test"
+    "check": "pnpm typecheck && pnpm test",
+    "test:unit": "AVD_SKIP_DB_SETUP=1 vitest run --exclude '**/node_modules/**' --exclude '**/dist/**' --exclude '**/.next/**' --exclude '**/*.int.spec.ts' --exclude '**/real-api.e2e.spec.ts'",
+    "check:ci": "pnpm typecheck && pnpm test:unit"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.2",
