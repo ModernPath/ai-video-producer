@@ -1,12 +1,13 @@
 # Requirements Ledger — ASM (Assembly & Export)
 
 ## Dashboard — ASM (Assembly & Export)
-Totals: 15 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 15 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 1 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
 | REQ-ASM-001 | Snapshot requires ready takes; immutable | P1 | DONE | INV-ASM-001/002 | tests/export.int.spec.ts | src/service.ts |
 | REQ-ASM-015 | Audio mode in plain language, one click, next to the player | P8 | DONE | USER 2026-07-25 "how do I select do I use the tracks own audio, music or mixed?" | browser (one click native→mix relabels player + ducks bed to 0.2512; restore to music) | components/AudioModePicker.tsx, stage + Music + Output wiring |
+| REQ-ASM-016 | A stuck export recovers, as a stuck generation does | P10 | PROPOSED | USER BUG 2026-08-03 | — | — |
 | REQ-ASM-014 | Clip preview plays with the music bed at its cut position | P8 | DONE | USER 2026-07-25 "how do I play the audio within one clip? … only the videos own audio track, not external music" | tests/preview-mix.spec.ts (6) + browser (music: bed@19.32 vs expected 19.27, scrub→21.33/21.32, pause stops bed; mix: duck 0.2512 == 10^(-12/20)) | libs/asm/src/preview.ts, components/ClipPlayer.tsx, stage wiring |
 | REQ-ASM-013 | Finished film plays in-app (exports player + post-export jump) | P7 | DONE | USER 2026-07-24 "how do I even play the video" | browser E2E (#exports anchor + inline player) | page.tsx exports section, exportAction redirect |
 | REQ-ASM-012 | Exports use universally playable audio (aac) | P7 | DONE | USER BUG 2026-07-24 (downloaded export silent in QuickTime) | tests/audio-mix.int.spec.ts (music mode aac) | src/service.ts music-mode -c:a aac |
@@ -185,3 +186,14 @@ Totals: 15 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DE
 - **Code:** `apps/web/components/AudioModePicker.tsx`, `apps/web/app/p/[id]/page.tsx` (stage under the player, Music panel SOUND section, Output panel)
 - **Log:** LOG 2026-07-25
 - **Deferred / notes:** still one setting for the whole film — per-shot audio overrides (e.g. keep dialogue on one clip while the rest is music-only) are not built; that needs a per-shot column and an exporter change.
+
+### REQ-ASM-016 — A stuck export recovers, as a stuck generation does
+- **Status:** PROPOSED · **Stage:** P10 · **Priority:** must
+- **Raised-by:** USER BUG 2026-08-03 — the worker crash-looped (REQ-ANM-007) and left an `export_job` at `status='running'`, `progress_stage='captions'`, with no pg-boss job driving it. Measured 28:54 and climbing, with **nothing in the codebase that would ever free it**: `sweepStuckGenerations` covers `gen.generation` only (`libs/gen/src/executor.ts`), and exports have no equivalent. The generation orphaned by the same crash self-healed at the 30-minute mark; the export did not and never will.
+- **Statement:** An export that has been `running` past the stale window shall be failed with a retryable reason, by the same page-load sweep that already recovers generations.
+- **Acceptance criteria:**
+  - GIVEN an export `running` longer than `config.gen.staleRunningMinutes` THEN a sweep fails it with a reason naming the stall and offering a retry (the REQ-GEN-027 shape).
+  - GIVEN an export legitimately in flight THEN it is untouched — exports are minutes-long by design.
+  - GIVEN the sweep THEN it is scoped to the project, never global: REQ-GEN-027 already records two specs reaping each other's fixtures because a sweep was repo-wide.
+  - GIVEN a swept export THEN the UI stops showing it as working and offers the retry.
+- **Deferred / notes:** the deeper defect is that ONE crashing job killed the whole worker — an uncaught exception thrown inside a webpack loader escapes pg-boss entirely (3 boots, 2 crashes in seven minutes). That belongs in GEN as worker error isolation, and is not filed yet because `libs/gen/REQUIREMENTS.md` carries another session's uncommitted work. This row covers the recovery, not the crash.
