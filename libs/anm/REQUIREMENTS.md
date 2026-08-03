@@ -1,7 +1,7 @@
 # ANM — Requirements Ledger
 
 ## Dashboard — ANM (Animations)
-Totals: 6 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
+Totals: 6 DONE · 1 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEFERRED · 0 BLOCKED
 
 | ID | Title | Stage | Status | Source | Tests | Code |
 |----|-------|-------|--------|--------|-------|------|
@@ -11,6 +11,7 @@ Totals: 6 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 | REQ-ANM-005 | Plan-driven animation palette (accent + background through the chain) | P8 | DONE | Neon Rivers 2026-07-24 | plan-normalize spec REQ-ANM-005 + $0 render proof | normalize hex validation, plan schema, requestAnimationTake fallback, executor forwarding |
 | REQ-ANM-003 | Caption/lyric overlays from MM:SS transcripts (slices 1+2) | P6 | DONE | USER Remotion epic + REQ-GEN-020 | render.int + asm/tests/animated-captions.int.spec.ts (full export) + captions.spec cues | Captions.tsx + asm transcriptToCues/captionStyle path + UI option |
 | REQ-ANM-006 | Template variety: stat, quote, checklist | P8 | DONE | USER 2026-07-24 "always repeating one" | render.int REQ-ANM-006 (3 real renders) + frame proofs | StatPunch.tsx, QuoteCard.tsx, Checklist.tsx, Root/render wiring |
+| REQ-ANM-007 | Remotion's TypeScript API is pinned by a test | P10 | IN_REVIEW | USER BUG 2026-08-03 | tests/bundler-contract.spec.ts | package.json (typescript 6.0.3) |
 
 ### REQ-ANM-001 — Title-card animation takes
 - **Status:** DONE · **Stage:** P6 · **Priority:** should · **Owner:** —
@@ -81,3 +82,15 @@ Totals: 6 DONE · 0 IN_REVIEW · 0 IN_PROGRESS · 0 READY · 0 PROPOSED · 0 DEF
 - **Tests:** `tests/render.int.spec.ts` REQ-ANM-006 block (3 real renders) · frame proofs in session scratchpad
 - **Code:** `src/StatPunch.tsx`, `src/QuoteCard.tsx`, `src/Checklist.tsx`, `src/Root.tsx`, `src/render.ts` · **Log:** LOG 2026-07-24
 - **Deferred / notes:** more templates (split-screen versus, logo sting, bar-chart) as demand appears; REQ-STB-036 owns plan/UI wiring.
+
+### REQ-ANM-007 — Remotion's TypeScript API is pinned by a test
+- **Status:** IN_REVIEW · **Stage:** P10 · **Priority:** must
+- **Raised-by:** USER BUG 2026-08-03 — the production worker was jammed at 8/9 shots with an export stuck at stage `captions`. It was not hung; it was CRASH-LOOPING. Every Remotion render died with `TypeError: Cannot read properties of undefined (reading 'readFile')` at `@remotion/bundler`'s esbuild loader.
+- **Statement:** The TypeScript compiler API that `@remotion/bundler` calls shall be asserted by a test, so a dependency change that removes it fails the gate rather than the worker.
+- **Acceptance criteria:**
+  - GIVEN the installed `typescript` THEN `ts.sys.readFile` and `ts.readConfigFile` are functions — the exact pair on the crashing line.
+  - GIVEN this repo's own `tsconfig.base.json` THEN it parses through that API, so an API that exists but cannot read our config still fails.
+  - GIVEN TypeScript 7.0.2 THEN the test FAILS — mutation-verified by installing it: all 3 tests go red.
+- **Tests:** `libs/anm/tests/bundler-contract.spec.ts` (3)
+- **Code:** `package.json` — `typescript` pinned back to `6.0.3`; `apps/web/next.config.mjs` — the TS7 `experimental.useTypeScriptCli` workaround REMOVED, since `next dev` boots without it on 6.
+- **Deferred / notes:** cause was mine: the 2026-07-27 dependency update took TypeScript 5.9 → **7.0.2**, the native port, which does not expose the classic JS compiler API. That upgrade was verified against `tsc`, the suite and `next build` — none of which touch this surface. It had ALREADY broken `next dev` once, patched rather than reconsidered; this is the same root cause reaching production. **Reproduced locally byte-identically before the fix, and the same reproduction bundles OK after it.** The test asserts the API, not the version, so a future TypeScript that restores `ts.sys` is fine.
